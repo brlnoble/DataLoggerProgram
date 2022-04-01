@@ -6,6 +6,7 @@ A new unit can cost well over $10,000 so I had a chance to save the company thou
 The goal for this project was to create a simple data logger to record and graph temperature of our stress annealing furnace.
 Using a Raspberry Pi and Python, I hope to complete this in as simple a manner as possible to ensure ease of repairability for after I complete my internship.
 
+## General Goals
 - [ ] Read data from thermocouples
 - [ ] Record data at a given interval to a .csv file
 - [ ] Save settings in a .txt file for access and modification
@@ -15,7 +16,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 
 
 
-------------PROGRAM SCREENS------------
+## Program Screens
 - [ ] Main screen with options to:
   - [ ] Change current settings
   - [ ] View current readout (numerics)
