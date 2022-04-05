@@ -9,7 +9,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 ## General Goals
 - [ ] Read data from thermocouples
 - [ ] Record data at a given interval to a .csv file
-- [ ] Save settings in a .txt file for access and modification
+- [X] Save settings in a .txt file for access and modification
 - [ ] Simple and intuitive UI based upon PySimpleGUI
 - [ ] Allow users to start and stop charge recording to save graphs
 - [ ] Access and use program from computer
@@ -18,9 +18,9 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 
 ## Program Screens
 - [ ] Main screen with options to:
-  - [ ] Change current settings
-  - [ ] View current readout (numerics)
-  - [ ] View current readout (graphically)
+  - [X] Change current settings
+  - [X] View current readout (numerics)
+  - [X] View current readout (graphically)
   - [ ] Open an old graph for viewing
 - [ ] Settings menu to change parameters
   - [ ] Recording interval step (minutes between data points)
@@ -28,4 +28,4 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 - [ ] Graphical view of current readout
   - [ ] Live update graph
   - [ ] Allow user to record a charge (input charge number)
-  - [ ] Interactive menu to change view and return home
+  - [X] Interactive menu to change view and return home
