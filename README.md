@@ -10,7 +10,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 - [ ] Read data from thermocouples
 - [ ] Record data at a given interval to a .csv file
 - [X] Save settings in a .txt file for access and modification
-- [ ] Simple and intuitive UI based upon PySimpleGUI
+- [X] Simple and intuitive UI based upon PySimpleGUI
 - [ ] Allow users to start and stop charge recording to save graphs
 - [ ] Access and use program from computer
 
@@ -22,10 +22,19 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] View current readout (numerics)
   - [X] View current readout (graphically)
   - [ ] Open an old graph for viewing
-- [ ] Settings menu to change parameters
-  - [ ] Recording interval step (minutes between data points)
-  - [ ] High temperature warning (to alert user)
+- [X] Settings menu to change parameters
+  - [X] Recording interval step (minutes between data points)
+  - [X] High temperature warning (to alert user)
 - [ ] Graphical view of current readout
-  - [ ] Live update graph
+  - [X] Live update graph
   - [ ] Allow user to record a charge (input charge number)
   - [X] Interactive menu to change view and return home
+ 
+## Current Main Screen
+![Current Main Screen](https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-06-04-22.jpg)
+
+## Current Settings Screen
+![Current Main Screen](https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-06-04-22.jpg)
+
+## Current Logging Screen
+![Current Log Screen](https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-06-04-22.jpg)
