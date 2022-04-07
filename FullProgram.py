@@ -3,13 +3,23 @@ from tkinter import ttk
 from time import time
 import datetime
 import pandas as pd
-import GeneralCommands as GC
-import subprocess
+import GeneralCommands as GC #Custom file
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 #Current directory path
 path = GC.get_path()
+
+
+# ~~~~~MAKE SURE THE SETTINGS FILE EXISTS~~~~~
+if not GC.verify_settings(path):
+    sg.popup('Settings file does not exist.\n\nA file with default values has been generated.',font=('Arial',20),keep_on_top=True) #inform user it was not found
+    
+# ~~~~~MAKE SURE THE LOG FILE EXISTS~~~~~
+if not GC.verify_logs(path):
+    sg.popup('Log file does not exist.\n\nA file with default values has been generated.',font=('Arial',20),keep_on_top=True) #inform user it was not found
+
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~READ IN SETTING FILE~~~~~
@@ -27,7 +37,7 @@ def read_settings():
     
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
 def update_tc_nums():
-    df = pd.read_csv(path + '\9timeTest.csv')
+    df = pd.read_csv(path + '\\' + logFile)
     window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
     
     window['TC1'].update(str(round(df['Temp1'].values[-1],1)) + '°F')
@@ -39,7 +49,7 @@ def update_tc_nums():
     
     
 # ~~~~~Update settings window~~~~~
-def update_setttings_display():
+def update_settings_display():
     event, values = window.read(timeout=100)
     window['interval'].update(value = GC.get_settings('Interval', path))
     window['temp'].update(value = tempWarn)
@@ -333,16 +343,19 @@ while True:
     
     #Check if it is time to update the TC readings
     if currTime - datetime.timedelta(seconds=readInterval) > lastRead:
-        #print(currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
         lastRead = currTime
         update_tc_nums()
+        if plotDisplay:
+            plt.clf()
+            display_graph(logFile)
+            update_graph_view()
         
     if event in (sg.WINDOW_CLOSED, "Exit"):
         break
     
     elif event == "Settings": #Switch to settings window
         window["Set"].select()
-        update_setttings_display()
+        update_settings_display()
     elif event == "Cancel": #Return from settings window
         window["Main"].select()
     if event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
@@ -478,3 +491,7 @@ window.close()
 
 # ~~~~~ References ~~~~~
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/3946        Tab groups and hiding tabs
+
+
+# ~~~~~ Compile ~~~~~
+#pyinstaller -wF --splash=splashLoad.jpg FullProgram.py
