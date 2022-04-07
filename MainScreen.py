@@ -1,40 +1,31 @@
 import PySimpleGUI as sg
 from time import time
 import datetime
-import sys
-import os
 import pandas as pd
+import GeneralCommands as GC
 
 #-----PATH-----
-if getattr(sys, 'frozen', False): #If an executable, it needs to use this or it takes the temp folder as current path
-    path = os.path.dirname(sys.executable)
-elif __file__: #if running as a python script
-    path = os.path.dirname(__file__)
+path = GC.get_path()
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
-    fileLines = []
-    with open(path + '\Settings.txt') as f:
-        fileLines = f.readlines()
-    
     #interval in minutes between reading the data
-    global readInterval #make sure we change the global variable
-    readInterval = fileLines[0].split(" = ")
-    readInterval = int(readInterval[1].strip("\n"))*60+5 #number of minutes, convert to seconds, add 5 as a precautionary measure
-    
-    #high temperature warning in degrees F
+    global readInterval #make sure we change the global variable  
     global tempWarn #make sure we change the global variable
-    tempWarn = fileLines[1].split(" = ")
-    tempWarn = int(tempWarn[1].strip("\n")) #degrees
+    global logFile
+    readInterval = int(GC.get_settings('Interval', path))*60+5
+    tempWarn = int(GC.get_settings('MaxTemp', path))
+    logFile = GC.get_settings('LogFile', path)
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
 def update_tc_nums():
     df = pd.read_csv(path + '\9timeTest.csv')
-    #window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
-    window['lastRead'].update(value=lastRead)
+    window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
+    #window['lastRead'].update(value=lastRead)
     
     window['TC1'].update(str(round(df['Temp1'].values[-1],1)) + '°F')
     window['TC2'].update(str(round(df['Temp2'].values[-1],1)) + '°F')
@@ -71,7 +62,7 @@ butCol = [
         ]
 
 #LAYOUT FOR ENTIRE WINDOW
-layout = [  [sg.Text('DATA LOGGER', font=titleFont)],
+layout = [  [sg.Text('DATA LOGGER', key='Title', font=titleFont)],
             [sg.VPush()],
             [sg.Text(key='Time',font=butFont)],
             [sg.VPush()],
@@ -94,8 +85,10 @@ layout = [  [sg.Text('DATA LOGGER', font=titleFont)],
         ]
 
 window = sg.Window('Custom Data Logger', layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c').Finalize()
-window.Maximize()
+#window.Maximize()
 
+event, values = window.read(timeout=100)
+update_tc_nums()
 
 while True:
     event, values = window.read(timeout=100)
@@ -115,7 +108,9 @@ while True:
         break
     elif event == 'Settings': #Change the settings
         import SettingsScreen
+        #os.startfile(path + '\SettingsScreen.exe') #runs in a separate thread, does not change the settings on completion
         read_settings()
+        #window['Title'].update(str(readInterval))
     elif event == 'Live Log': #View the log chart
         import LoggingScreen
     

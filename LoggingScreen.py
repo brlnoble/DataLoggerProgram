@@ -7,15 +7,10 @@ import PySimpleGUI as sg
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import os
-import sys
+import GeneralCommands as GC
 
-#-----PATH-----
-if getattr(sys, 'frozen', False): #If an executable, it needs to use this or it takes the temp folder as current path
-    path = os.path.dirname(sys.executable)
-elif __file__: #if running as a python script
-    path = os.path.dirname(__file__)
-
+#Current directory path
+path = GC.get_path()
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -54,35 +49,16 @@ def update_tc_graph():
 # ~~~~~Update graphs when zooming~~~~~
 def update_graph_view():
     plt.xlim(left,right) #size of viewport
+    #plt.locator_params(axis='x', nbins=50/(right-left))
     draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #redraw graph
     update_tc_graph() #update TC text on right of graph
 
-
-# ~~~~~READ IN SETTING FILE~~~~~
-def read_settings():
-    fileLines = []
-    with open(path + '\Settings.txt') as f:
-        fileLines = f.readlines()
-    
-    #interval in minutes between reading the data
-    global readInterval #make sure we change the global variable
-    readInterval = fileLines[0].split(" = ")
-    readInterval = int(readInterval[1].strip("\n"))*60+7 #number of minutes, convert to seconds, add 5 as a precautionary measure
-    
-    #high temperature warning in degrees F
-    global tempWarn #make sure we change the global variable
-    tempWarn = fileLines[1].split(" = ")
-    tempWarn = int(tempWarn[1].strip("\n")) #degrees
-    
-    #file name to store the log data
-    global logFile
-    logFile = fileLines[2].split(" = ")
-    logFile = str(logFile[1].strip("\n"))
     
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
 def display_graph(fileName):
     # MATPLOTLIB CODE HERE
+    global plt
     plt.figure(1)
     global fig
     fig = plt.gcf()
@@ -95,18 +71,9 @@ def display_graph(fileName):
     df = pd.read_csv(path + '\\' + str(fileName),parse_dates=['Time'], dayfirst=True)
     global dates
     dates = df['Time'].dt.strftime("%d/%b/%y \n %I:%M:%S %p")
+    global x
     x = list(range(0,len(dates)))
-    
-    global right
-    right = max(x) #most recent reading
-    global maxTime
-    maxTime = right #global storage of above for Home button
-    global left
-    left = right - zoom #make view to be towards the end of readings
-    
-    window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
-    window['Slide'].update(value=maxTime) #Set slider to right side of graph
-    
+        
     #thermocouple 1
     y = df.Temp1
     plt.plot(x,y,linewidth=2,marker='o',label='TC1',color='#FF0000') 
@@ -135,7 +102,7 @@ def display_graph(fileName):
     plt.locator_params(axis='x', nbins=1.5*zoom) #number of labels on X axis
     plt.gca().spines['right'].set_color('#FF0000') #make rightmost axis red
     plt.gca().spines['right'].set_linewidth(5)
-    plt.xlim(left,right) #initial limits X
+    #plt.xlim(left,right) #initial limits X
     plt.ylim([0,1200]) #initial limits Y
     plt.grid()
     
@@ -146,10 +113,13 @@ def display_graph(fileName):
     global plotDisplay
     plotDisplay = True #flag to prevent moving plot before it is shown
     draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #idk what half this does but its necessary
+
     
 
 # ~~~~~READ IN SETTING FILE~~~~~
-read_settings()
+readInterval = int(GC.get_settings('Interval', path))
+tempWarn = int(GC.get_settings('MaxTemp', path))
+logFile = GC.get_settings('LogFile', path)
 
 
 # ~~~~~VARIABLES~~~~~
@@ -251,7 +221,7 @@ window = sg.Window('Custom Data Logger', layout, no_titlebar = False, keep_on_to
 window.Maximize() #show fullscreen
 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-readInterval = (readInterval-7)/60+10
+readInterval = (readInterval-7)/60+10 #read every 7s
 
 # ~~~~~MAIN LOOP~~~~~
 while True:
@@ -262,14 +232,26 @@ while True:
     window['Time'].update(currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
 
 
+    # ~~~~~INITIAL PLOT~~~~~
     if plotDisplay == False: #If not currently displaying plot, basically only run on startup
         display_graph(logFile)
+        
+        #~~~Setup initial axes~~~
+        right = max(x) #most recent reading
+        maxTime = right #global storage of above for Home button
+        left = right - zoom #make view to be towards the end of readings
+        window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
+        window['Slide'].update(value=maxTime) #Set slider to right side of graph
+        update_graph_view()
         
     # ~~~~~Check if it is time to update the graph readings~~~~~
     if currTime - datetime.timedelta(seconds=readInterval) > lastRead:
         lastRead = currTime
         plt.clf()
         display_graph(logFile)
+        update_graph_view()
+        #update_tc_graph()
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
     # ~~~~~BUTTON EVENTS~~~~~
     if event == 'Exit' or event == sg.WIN_CLOSED: #CLOSE PROGRAM

@@ -1,18 +1,8 @@
 import PySimpleGUI as sg
-import os
-import sys
-from os.path import exists
+import GeneralCommands as GC
 
-#-----PATH-----
-if getattr(sys, 'frozen', False): #If an executable, it needs to use this or it takes the temp folder as current path
-    path = os.path.dirname(sys.executable)
-elif __file__: #if running as a python script
-    path = os.path.dirname(__file__)
-    
-def remove_prefix(text, prefix):
-    if text.startswith(prefix):
-        return text[len(prefix):]
-    return text  # or whatever
+#current directory path
+path = GC.get_path()
 
 
 # ~~~~~Create the layout of the screen~~~~~
@@ -38,15 +28,9 @@ layout = [  [sg.Text('DATA LOGGER SETTINGS', font=titleFont)],
 window = sg.Window('Custom Data Logger', layout, no_titlebar = False, keep_on_top=True, element_justification='c')
 
 # ~~~~~UPDATE CURRENT VALUES IN FORM~~~~~
-currSettings = []
-intSet = ''
-tempSet = ''
-with open(path + '\Settings.txt', 'r') as f:
-    currSettings = f.readlines()
-    
-intSet = remove_prefix(currSettings[0],'intervalReading = ').strip()
-tempSet = remove_prefix(currSettings[1],'tempWarning = ').strip()
-logFile = remove_prefix(currSettings[2],'logFile = ').strip()
+intSet = GC.get_settings('Interval', path)
+tempSet = GC.get_settings('MaxTemp', path)
+logFile = GC.get_settings('LogFile', path)
 
 
 event, values = window.read(timeout=100)
@@ -72,9 +56,7 @@ while True:
     elif event == 'Submit':
         
         #VERIFY THE FILE EXISTS
-        file_exists = exists(values['logFile'])
-        if not file_exists:
-            file_exists = exists(path + '\\' + values['logFile'])
+        file_exists = GC.does_this_exist(values['logFile'])
         
         #VERIFY INTERVAL WAS INPUT
         int_exists = True
@@ -98,12 +80,12 @@ while True:
             
         #ERROR MESSAGES
         elif not file_exists:
-            window['tips'].update('This file does not exist')
+            sg.popup('This file does not exist!',keep_on_top=True)
         
         elif not int_exists:
-            window['tips'].update('Please input an interval less than 100 minutes')
+            sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
         
         elif not temp_exists:
-            window['tips'].update('Please input a temp less than 3000')
+            sg.popup('Please input a temperature less than 3000°F',keep_on_top=True)
 
 window.close()
