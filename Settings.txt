@@ -1,3 +1,4 @@
-intervalReading = 1
+intervalReading = 3
 tempWarning = 1300
 logFile = AllTempLogs.csv
+maxLogRecords = 1000
