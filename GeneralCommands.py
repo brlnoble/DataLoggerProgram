@@ -1,5 +1,6 @@
 import os
 import sys
+import csv
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
@@ -28,6 +29,8 @@ def get_settings(selection, path):
         return remove_prefix(currSettings[1],'tempWarning = ').strip()
     elif selection == 'LogFile':
         return remove_prefix(currSettings[2],'logFile = ').strip()
+    elif selection == 'MaxRecords':
+        return remove_prefix(currSettings[3],'maxLogRecords = ').strip()
     
 
 # ~~~~~Check if a file exists~~~~~
@@ -38,3 +41,41 @@ def does_this_exist(fileName):
         path = get_path()
         file_exists = os.path.exists(path + '\\' + fileName)
     return file_exists
+
+
+# ~~~~~Make settings file if not present~~~~~
+def verify_settings(path):
+    if does_this_exist(path + '\\Settings.txt'):
+        return True
+    
+    #Create file that could not be found
+    with open(path + '\\Settings.txt', 'w') as f:
+       f.write('intervalReading = {}'.format(10))
+       f.write('\n')
+       f.write('tempWarning = {}'.format(1300))
+       f.write('\n')
+       f.write('logFile = {}'.format('AllTempLogs.csv'))
+       f.write('\n')
+       f.write('maxLogRecords = {}'.format(1000))
+    
+    return False
+
+
+# ~~~~~Make Log file if not present~~~~~
+def verify_logs(path):
+    logFile = get_settings('LogFile', path)
+    if does_this_exist(path + '\\' + logFile):
+        return True
+    
+    with open(path + '\\' + logFile, 'w', newline='') as f:
+        
+        writer = csv.writer(f)
+        writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
+        writer.writerow(['01/01/2022 00:03',1,1,1,1,1,1])
+        writer.writerow(['01/01/2022 00:02',2,2,2,2,2,2])
+        writer.writerow(['01/01/2022 00:01',3,3,3,3,3,3])
+    
+    
+    
+    
+    
