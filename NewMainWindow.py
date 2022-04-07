@@ -4,18 +4,19 @@ from time import time
 import datetime
 import pandas as pd
 import GeneralCommands as GC
+import subprocess
 
-#-----PATH-----
+#Current directory path
 path = GC.get_path()
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
     #interval in minutes between reading the data
-    global readInterval #make sure we change the global variable  
-    global tempWarn #make sure we change the global variable
+    global readInterval #make sure we change the global variables
+    global tempWarn
     global logFile
-    readInterval = int(GC.get_settings('Interval', path))*60+5
+    readInterval = int(GC.get_settings('Interval', path))*60+5 #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
     
@@ -24,7 +25,6 @@ def read_settings():
 def update_tc_nums():
     df = pd.read_csv(path + '\9timeTest.csv')
     window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
-    #window['lastRead'].update(value=lastRead)
     
     window['TC1'].update(str(round(df['Temp1'].values[-1],1)) + '°F')
     window['TC2'].update(str(round(df['Temp2'].values[-1],1)) + '°F')
@@ -47,7 +47,7 @@ font = ("Arial, 16")
 butFont = ('Airal', 16, 'bold')
 iconFont = ('Calibri',20)
 tcFont = ('Courier New',16,'bold')
-titleFont = ('Arial', 24, 'bold')
+titleFont = ('Arial', 26, 'bold')
 sg.theme_text_element_background_color(color = '#EEEEEE')
 sg.theme_text_color('#1D2873')
 sg.theme_background_color('#EEEEEE')
@@ -65,19 +65,14 @@ read_settings()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MAIN WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Buttons
 butCol = [
-            [sg.Push(),sg.Button('Settings',size=(20,3), font=butFont, button_color='#1D2873'), sg.Push(), sg.Button('Live Log',size=(20,3), font=butFont, button_color='#02AB29'), sg.Push()],
-            [sg.Push(),sg.Button('',size=(20,3), font=butFont, button_color='#111'), sg.Push(),sg.Button('Old Log',size=(20,3), font=butFont, button_color='#F5AC11'), sg.Push()],
+            [sg.Button('Settings',size=(20,3), font=butFont, button_color='#1D2873'), sg.Push(), sg.Button('View Previous Log',key='Old Log',size=(20,3), font=butFont, button_color='#F5AC11')],
+            [sg.Button('View Current Readout',key='Live Log',size=(42,3), font=butFont, button_color='#02AB29')],
         ]
 
 #LAYOUT FOR ENTIRE WINDOW
 wMain = [  
-            [sg.Text('DATA LOGGER', key='Title', font=titleFont)],
-            [sg.VPush()],
-            [sg.Text(key='Time',font=butFont)],
-            [sg.VPush()],
             [sg.Column(butCol)],
-            [sg.VPush()],
-            
+            [sg.Text('',font=font)], #spacing
             [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font)],
             
             [sg.Push(), sg.Text('TC1:',font=butFont),sg.Text('000.0',key='TC1', font=tcFont), 
@@ -88,9 +83,8 @@ wMain = [
              sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont), 
              sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont),sg.Push()],
             
-            [sg.VPush()],
+            [sg.Text('',font=font)], #spacing
             [sg.Button('Exit',size=(10,2), font=butFont, button_color='#F5273A')],
-            [sg.VPush()],
         ]
 
 
@@ -98,7 +92,7 @@ wMain = [
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 wSet = [  
-            [sg.Text('DATA LOGGER SETTINGS', font=titleFont)],
+            [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
             [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(15,1), font=font)],
             [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(15,1), font=font)],
             [sg.Text('Log File (.csv):',size=(15,1), font=font), sg.Input(key='logFile', enable_events=True,size=(15,1), font=font)],
@@ -117,15 +111,16 @@ tab_group = [
 ]
 
 layout = [
+    [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,50))],
+    [sg.Text(key='Time',font=butFont)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
-
-style = ttk.Style()
-style.layout('TNotebook.Tab', []) # Hide tab bar
 
 window = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c').Finalize()
 window.Maximize()
 
+style = ttk.Style()
+style.layout('TNotebook.Tab', []) # Hide tab bar
 
 
 
@@ -203,6 +198,13 @@ while True:
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     elif event == 'Live Log': #View the log chart
-        import LoggingScreen
+        #import LoggingScreen
+        subprocess.call([path + '\LoggingScreen.exe'])
         
 window.close()
+
+
+
+
+# ~~~~~ References ~~~~~
+# https://github.com/PySimpleGUI/PySimpleGUI/issues/3946        Tab groups and hiding tabs
