@@ -21,7 +21,7 @@ def remove_prefix(text, prefix):
 # ~~~~~Get the system settings~~~~~
 def get_settings(selection, path):
     currSettings = []
-    with open(path + '\Settings.txt', 'r') as f:
+    with open(path + 'Settings.txt', 'r') as f:
         currSettings = f.readlines()
     if selection == 'Interval':
         return remove_prefix(currSettings[0],'intervalReading = ').strip()
@@ -39,17 +39,17 @@ def does_this_exist(fileName):
     file_exists = os.path.exists(fileName)
     if not file_exists:
         path = get_path()
-        file_exists = os.path.exists(path + '\\' + fileName)
+        file_exists = os.path.exists(path + fileName)
     return file_exists
 
 
 # ~~~~~Make settings file if not present~~~~~
 def verify_settings(path):
-    if does_this_exist(path + '\\Settings.txt'):
+    if does_this_exist(path + 'Settings.txt'):
         return True
     
     #Create file that could not be found
-    with open(path + '\\Settings.txt', 'w') as f:
+    with open(path + 'Settings.txt', 'w') as f:
        f.write('intervalReading = {}'.format(10))
        f.write('\n')
        f.write('tempWarning = {}'.format(1300))
@@ -64,10 +64,10 @@ def verify_settings(path):
 # ~~~~~Make Log file if not present~~~~~
 def verify_logs(path):
     logFile = get_settings('LogFile', path)
-    if does_this_exist(path + '\\' + logFile):
+    if does_this_exist(path + logFile):
         return True
     
-    with open(path + '\\' + logFile, 'w', newline='') as f:
+    with open(path + logFile, 'w', newline='') as f:
         
         writer = csv.writer(f)
         writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
@@ -75,6 +75,11 @@ def verify_logs(path):
         writer.writerow(['01/01/2022 00:02',2,2,2,2,2,2])
         writer.writerow(['01/01/2022 00:01',3,3,3,3,3,3])
     
+    
+# ~~~~~Get saved charges~~~~~
+def get_charges(path):
+    files = [f.strip('.csv') for f in os.listdir(path) if os.path.exists(path + f)] #collect all files in the folder
+    return files
     
     
     

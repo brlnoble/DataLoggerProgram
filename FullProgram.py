@@ -8,8 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 #Current directory path
-path = GC.get_path()
-
+path = GC.get_path() + '\\'
 
 # ~~~~~MAKE SURE THE SETTINGS FILE EXISTS~~~~~
 if not GC.verify_settings(path):
@@ -37,7 +36,7 @@ def read_settings():
     
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
 def update_tc_nums():
-    df = pd.read_csv(path + '\\' + logFile)
+    df = pd.read_csv(path + logFile)
     window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
     
     window['TC1'].update(str(round(df['Temp1'].values[-1],1)) + '°F')
@@ -112,7 +111,7 @@ def display_graph(fileName):
     # -------------------------------
 
     global df
-    df = pd.read_csv(path + '\\' + str(fileName),parse_dates=['Time'], dayfirst=True)
+    df = pd.read_csv(path + str(fileName),parse_dates=['Time'], dayfirst=True)
     global dates
     dates = df['Time'].dt.strftime("%d/%b/%y \n %I:%M:%S %p")
     global x
@@ -150,7 +149,7 @@ def display_graph(fileName):
     plt.gca().spines['right'].set_linestyle((0,(1,5)))
     #plt.xlim(left,right) #initial limits X
     plt.ylim([0,1200]) #initial limits Y
-    plt.grid()
+    plt.grid(visible=True)
     
     #Adjust the legend to be above the graph
     #l4 = plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6,frameon=False)
@@ -181,6 +180,7 @@ tempWarn = 0
 maxRecords = 0
 
 plotDisplay = False #flag for the plot display
+chargeDisplay = False #flag for the charge view
 
 #Axes limits
 zoom = 10
@@ -218,7 +218,7 @@ wMain = [
              sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont),sg.Push()],
             
             [sg.Text('',font=font)], #spacing
-            [sg.Button('Exit',size=(10,2), font=butFont, button_color='#F5273A')],
+            [sg.Button('Exit Program',key='Exit',size=(20,3), font=butFont, button_color='#F5273A')],
         ]
 
 
@@ -263,7 +263,7 @@ inputFormat = [
 
 #Submit/exit boxes at top right
 topButFormat = [
-            [sg.Button('Record',size=(10,2), font=butFont, button_color='#02AB29'), sg.Button('Main Screen',size=(10,2), font=butFont, button_color='#F5273A')],
+            
     ]
 
 #Zoom buttons
@@ -278,11 +278,13 @@ scrollButFormat = [
 
 
 # ~~~~~MAIN LAYOUT OF THE WHOLE SCREEN~~~~~
-wLog = [  #[sg.Text('DATA LOGGER PLOT', font=titleFont)],
-            [sg.Column(inputFormat,pad=(50,0)),sg.Column(topButFormat)],
+wLog = [  
+            [sg.Column([
+                [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',size=(10,2), font=butFont, button_color='#02AB29')]])],
+                ],key='logInput')],
+            [sg.Text('',font=butFont,key='cDesc')],
             
             #Plotting stuff
-            #[sg.Text('Current Time:',font=butFont),sg.Text(currTime.strftime("%d %B, %Y - %I:%M:%S %p"),key='Time',font=font)],
             [sg.Canvas(key='controls_cv')], #idk why this has to be here
             
             #WHERE THE MAGIC HAPPENS
@@ -299,6 +301,22 @@ wLog = [  #[sg.Text('DATA LOGGER PLOT', font=titleFont)],
             
             [sg.Column(scrollButFormat,pad=(20,5)),sg.VerticalSeparator(pad=None),sg.Column(zoomButFormat,pad=(20,5))]
             ]
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+wCharge = [
+            [sg.Text('Please select a charge from the list below.\n',font=font,text_color='#333')],
+            [sg.Column(layout=[
+                [sg.Text('Charge -- Temp -- Date',font=tcFont)],
+                [sg.Text(''),sg.Listbox(values=GC.get_charges(path + 'Charges\\'),size=(27,15),font=('Courier New',16,'bold'),key='cList')] #the text is to align the title and box
+            ] )],
+            [sg.Button('Select',font=butFont),sg.Button('Return',font=butFont)]
+    ]
+
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -308,10 +326,11 @@ tab_group = [
     [sg.Tab("Main", wMain, key="Main",element_justification='c',background_color='#EEEEEE')],
     [sg.Tab("Settings", wSet, key="Set",element_justification='c',background_color='#EEEEEE')],
     [sg.Tab("Logging", wLog, key="Log",element_justification='c',background_color='#EEEEEE')],
+    [sg.Tab("Charge", wCharge, key="Charge",element_justification='c',background_color='#EEEEEE')],
 ]
 
 layout = [
-    [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,50))],
+    [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,20)),sg.Button('Main Screen',size=(10,2), font=butFont, button_color='#F5273A',visible=False)],
     [sg.Text(key='Time',font=butFont)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
@@ -336,6 +355,10 @@ update_tc_nums()
 while True:
 
     event, values = window.read(timeout=100)
+
+    #See if window should be closed
+    if event in (sg.WINDOW_CLOSED, "Exit"):
+        break
     
     #Update the clock
     currTime = datetime.datetime.fromtimestamp(time())
@@ -345,30 +368,39 @@ while True:
     if currTime - datetime.timedelta(seconds=readInterval) > lastRead:
         lastRead = currTime
         update_tc_nums()
-        if plotDisplay:
+        if plotDisplay and not chargeDisplay:
             plt.clf()
             display_graph(logFile)
             update_graph_view()
-        
-    if event in (sg.WINDOW_CLOSED, "Exit"):
-        break
     
-    elif event == "Settings": #Switch to settings window
-        window["Set"].select()
-        update_settings_display()
-    elif event == "Cancel": #Return from settings window
+    elif event == 'Main Screen': #RETURN FROM LOG
+        plotDisplay = False
+        chargeDisplay = False
+        window['Main Screen'].update(visible=False)
+        window['Title'].update(visible=True)
         window["Main"].select()
-    if event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
-        window['interval'].update(values['interval'][:-1])
-        
-    if event == 'temp' and values['temp'] and values['temp'][-1] not in ('0123456789'):
-        window['temp'].update(values['temp'][:-1])
-        
-    if event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
-        window['maxRecords'].update(values['maxRecords'][:-1])
-        
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif event == "Settings": #Switch to settings window
+        window['Main Screen'].update(visible=True)
+        window['Title'].update(visible=False)
+        window["Set"].select()
+        update_settings_display()
+    
+    elif event == "Cancel": #Return from settings window
+        window["Main"].select()
+        window['Main Screen'].update(visible=False)
+        window['Title'].update(visible=True)
+        
+    elif event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
+        window['interval'].update(values['interval'][:-1])
+        
+    elif event == 'temp' and values['temp'] and values['temp'][-1] not in ('0123456789'):
+        window['temp'].update(values['temp'][:-1])
+        
+    elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
+        window['maxRecords'].update(values['maxRecords'][:-1])
+        
     elif event == 'Submit':
         
         #VERIFY THE FILE EXISTS
@@ -391,7 +423,7 @@ while True:
         
         #SEE IF WE CAN SAVE THE FILE
         if file_exists and int_exists and temp_exists and maxR_exists:
-            with open(path + '\Settings.txt', 'w') as f:
+            with open(path + 'Settings.txt', 'w') as f:
                 f.write('intervalReading = {}'.format(values['interval']))
                 f.write('\n')
                 f.write('tempWarning = {}'.format(values['temp']))
@@ -419,7 +451,13 @@ while True:
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  LOGGING WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
     elif event == 'Live Log': #View the log chart
+        window['Main Screen'].update(visible=True)
+        window['Title'].update(visible=False)
         window["Log"].select()
+        window['logInput'].update(visible = True)
+        window['cDesc'].update(visible=False)
+        window['Record'].update(disabled=False)
+        
         if plotDisplay == False: #If not currently displaying plot, basically only run on startup
             display_graph(logFile)
             
@@ -431,9 +469,6 @@ while True:
             window['Slide'].update(value=maxTime) #Set slider to right side of graph
             update_graph_view()
             
-    elif event == 'Main Screen': #RETURN FROM LOG
-        plotDisplay = False
-        window["Main"].select()
         
     # ~~~~~BUTTON CLICK EVENTS~~~~~
     elif event == 'Left' and plotDisplay:
@@ -483,6 +518,37 @@ while True:
     elif event == 'C Plot':
         plt.clf()
         update_graph_view()
+        
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif event == 'Old Log':
+        window['Main Screen'].update(visible=True)
+        window['Title'].update(visible=False)
+        window['Charge'].select()
+        #window['logInput'].update(visible = False) #hide the input boxes
+        
+    elif event == 'Return':
+        window['Main'].select()
+        
+    elif event == 'Select':
+        window["Log"].select()
+        window['logInput'].update(visible = False)
+        window['cDesc'].update(visible=True)
+        window['cDesc'].update('You are viewing: ' + str(values['cList'][0]))
+        if plotDisplay == False: #If not currently displaying plot, basically only run on 
+            chargeDisplay = True
+            display_graph('Charges\\' + str(values['cList'][0]) + '.csv')
+            
+            #~~~Setup initial axes~~~
+            zoom = 10
+            right = max(x) #most recent reading
+            maxTime = right #global storage of above for Home button
+            left = right - zoom #make view to be towards the end of readings
+            window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
+            window['Slide'].update(value=maxTime) #Set slider to right side of graph
+            update_graph_view()
+        
+        
         
 window.close()
 
