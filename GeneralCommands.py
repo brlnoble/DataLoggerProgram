@@ -39,7 +39,7 @@ def does_this_exist(fileName):
     file_exists = os.path.exists(fileName)
     if not file_exists:
         path = get_path()
-        file_exists = os.path.exists(path + fileName)
+        file_exists = os.path.exists(path + '\\' + fileName)
     return file_exists
 
 

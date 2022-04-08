@@ -28,6 +28,7 @@ def read_settings():
     global tempWarn
     global logFile
     global maxRecords
+    print('~~~Read Settings~~~')
     readInterval = int(GC.get_settings('Interval', path))*60+5 #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
@@ -207,6 +208,8 @@ butCol = [
 wMain = [  
             [sg.Column(butCol)],
             [sg.Text('',font=font)], #spacing
+            [sg.Text('',font=font)], #spacing
+            [sg.Text('',font=font)], #spacing
             [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font)],
             
             [sg.Push(), sg.Text('TC1:',font=butFont),sg.Text('000.0',key='TC1', font=tcFont), 
@@ -312,7 +315,7 @@ wCharge = [
                 [sg.Text('Charge -- Temp -- Date',font=tcFont)],
                 [sg.Text(''),sg.Listbox(values=GC.get_charges(path + 'Charges\\'),size=(27,15),font=('Courier New',16,'bold'),key='cList')] #the text is to align the title and box
             ] )],
-            [sg.Button('Select',font=butFont),sg.Button('Return',font=butFont)]
+            [sg.Button('Select',font=butFont,size=(10,2),button_color='#02AB29')]
     ]
 
 
@@ -421,18 +424,19 @@ while True:
         if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
             maxR_exists = False
         
-        #SEE IF WE CAN SAVE THE FILE
+        #SAVE THE FILE
         if file_exists and int_exists and temp_exists and maxR_exists:
             with open(path + 'Settings.txt', 'w') as f:
-                f.write('intervalReading = {}'.format(values['interval']))
-                f.write('\n')
-                f.write('tempWarning = {}'.format(values['temp']))
-                f.write('\n')
-                f.write('logFile = {}'.format(values['logFile']))
-                f.write('\n')
-                f.write('maxLogRecords = {}'.format(values['maxRecords']))
-                read_settings()
-                break
+                f.write('intervalReading = {}\n'.format(values['interval']))
+                f.write('tempWarning = {}\n'.format(values['temp']))
+                f.write('logFile = {}\n'.format(values['logFile']))
+                f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
+            read_settings()
+            sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
+            window['Main Screen'].update(visible=False)
+            window['Title'].update(visible=True)
+            window["Main"].select()
+            
             
         #ERROR MESSAGES
         elif not file_exists:
@@ -527,10 +531,7 @@ while True:
         window['Charge'].select()
         #window['logInput'].update(visible = False) #hide the input boxes
         
-    elif event == 'Return':
-        window['Main'].select()
-        
-    elif event == 'Select':
+    elif event == 'Select' and values['cList']:
         window["Log"].select()
         window['logInput'].update(visible = False)
         window['cDesc'].update(visible=True)
