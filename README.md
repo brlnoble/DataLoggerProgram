@@ -21,7 +21,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] Change current settings
   - [X] View current readout (numerics)
   - [X] View current readout (graphically)
-  - [ ] Open an old graph for viewing
+  - [X] Open an old graph for viewing
 - [X] Settings menu to change parameters
   - [X] Recording interval step (minutes between data points)
   - [X] High temperature warning (to alert user)
