@@ -35,10 +35,14 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] Show readout of selected data
  
 ## Current Main Screen
-![Current Main Screen](https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-07-04-22.jpg)
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-08-04-22.jpg" width="800">
 
 ## Current Settings Screen
-![Current Main Screen](https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-07-04-22.jpg)
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-08-04-22.jpg" width="400">
 
 ## Current Logging Screen
-![Current Log Screen](https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-07-04-22.jpg)
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-08-04-22.jpg" width="800">
+
+## Current Charge Screen
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicChargeScreen-08-04-22.jpg" width="400"> 
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLogScreen-08-04-22.jpg" width="800">
