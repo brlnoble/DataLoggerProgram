@@ -5,3 +5,4 @@ maxLogRecords = 1000
 recordCharge = N
 emailTo = intern@uniondrawn.com
 enableEmail = True
+path = C:\Users\Darryn\Desktop\Code\DATA LOGGER PI\

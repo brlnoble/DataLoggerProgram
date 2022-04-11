@@ -117,7 +117,7 @@ def update_graph_view():
     update_tc_graph() #update TC text on right of graph
     
 # ~~~~~Update recording status~~~~~
-def update_record():
+def update_record(change):
     
     if chargeRecord != 'N':    
         #Alert the user it is recording
@@ -148,15 +148,17 @@ def update_record():
         window['TempIn'].update(disabled=False)
         window['TimeIn'].update(disabled=False)
         
-    #Update settings file
-    with open(path + 'Settings.txt', 'w') as f:
-        f.write('intervalReading = {}\n'.format(readInterval))
-        f.write('tempWarning = {}\n'.format(tempWarn))
-        f.write('logFile = {}\n'.format(logFile))
-        f.write('maxLogRecords = {}\n'.format(maxRecords))
-        f.write('recordCharge = {}\n'.format(chargeRecord))
-        f.write('emailTo = {}\n'.format(emailSend))
-        f.write('enableEmail = {}'.format(emailAlert))
+    if change:
+        #Update settings file
+        with open(path + 'Settings.txt', 'w') as f:
+            f.write('intervalReading = {}\n'.format(readInterval))
+            f.write('tempWarning = {}\n'.format(tempWarn))
+            f.write('logFile = {}\n'.format(logFile))
+            f.write('maxLogRecords = {}\n'.format(maxRecords))
+            f.write('recordCharge = {}\n'.format(chargeRecord))
+            f.write('emailTo = {}\n'.format(emailSend))
+            f.write('enableEmail = {}\n'.format(emailAlert))
+            f.write('path = {}'.format(path))
 
     
 
@@ -238,18 +240,19 @@ sg.theme_background_color('#EEE')
 
 
 # ~~~~~VARIABLES~~~~~
+read_settings() #Get current settings
 currTime = datetime.datetime.fromtimestamp(time()) #used for clock
 lastRead = currTime
-readInterval = 0
-tempWarn = 0
-maxRecords = 0
+# readInterval = 0
+# tempWarn = 0
+# maxRecords = 0
 
 plotDisplay = False #flag for the plot display
 chargeDisplay = False #flag for the charge view
-chargeRecord = '' #flag for if we are currently recording a charge
+# chargeRecord = '' #flag for if we are currently recording a charge
 activeScreen  = 'Main' #helps speed up the main loop
-emailSend = '' #emails to send alerts to
-emailAlert = '' #if emails alerts are enabled
+# emailSend = '' #emails to send alerts to
+# emailAlert = '' #if emails alerts are enabled
 
 #Axes limits
 zoom = 10
@@ -262,7 +265,7 @@ stepSize = (readInterval-7)/60 #moves one data point, adjusts for the seconds to
 graphSize = (1200, 600)
 
 
-read_settings() #Get current settings
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MAIN WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -434,6 +437,7 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 event, values = window.read(timeout=100)
 update_tc_nums()
+update_record(False)
 
 while True:
 
@@ -586,7 +590,7 @@ while True:
             if cCheck and tCheck and dCheck:
                 chargeRecord = values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
                 
-                update_record()
+                update_record(True)
                 
                 
                 
@@ -603,7 +607,7 @@ while True:
         elif event == 'cRecord' and chargeRecord != 'N':
             chargeRecord = 'N'
             
-            update_record()
+            update_record(True)
             sg.popup('Recording cancelled.',font=font,keep_on_top=True)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -690,7 +694,8 @@ while True:
                     f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
                     f.write('recordCharge = {}\n'.format(chargeRecord))
                     f.write('emailTo = {}\n'.format(values['email']))
-                    f.write('enableEmail = {}'.format(values['eBut']))
+                    f.write('enableEmail = {}\n'.format(values['eBut']))
+                    f.write('path = {}'.format(path))
                 read_settings()
                 sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
                 window['Main Screen'].update(visible=False)
