@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 #Current directory path
-path = GC.get_path() + '\\'
+path = GC.get_path()
 
 # ~~~~~MAKE SURE THE SETTINGS FILE EXISTS~~~~~
 if not GC.verify_settings(path):
@@ -28,11 +28,14 @@ def read_settings():
     global tempWarn
     global logFile
     global maxRecords
-    print('~~~Read Settings~~~')
+    global chargeRecord
+    global emailSend
     readInterval = int(GC.get_settings('Interval', path))*60+5 #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
     maxRecords = int(GC.get_settings('MaxRecords', path))
+    chargeRecord = GC.get_settings('Record', path)
+    emailSend = GC.get_settings('Email', path)
     
     
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
@@ -40,12 +43,21 @@ def update_tc_nums():
     df = pd.read_csv(path + logFile)
     window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
     
-    window['TC1'].update(str(round(df['Temp1'].values[-1],1)) + '°F')
-    window['TC2'].update(str(round(df['Temp2'].values[-1],1)) + '°F')
-    window['TC3'].update(str(round(df['Temp3'].values[-1],1)) + '°F')
-    window['TC4'].update(str(round(df['Temp4'].values[-1],1)) + '°F')
-    window['TC5'].update(str(round(df['Temp5'].values[-1],1)) + '°F')
-    window['TC6'].update(str(round(df['Temp6'].values[-1],1)) + '°F')
+    for tc in range(1,7):
+        window['TC' + str(tc)].update(str(round(df['Temp' + str(tc)].values[-1],1)) + '°F')
+        
+        #check high temperature limit
+        if round(df['Temp' + str(tc)].values[-1],1) < tempWarn:
+            window['TC' + str(tc)].update(background_color='#EEE')
+                          
+        else: #!!!Temperature over limit!!!
+            window['TC' + str(tc)].update(background_color='#F5273A')
+            GC.send_email('TC'+str(tc), tempWarn, currTime.strftime("%d %B, %Y - %I:%M %p"))
+            
+            #Alert the user it is recording
+            window['RecordAlert'].update('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
+            window['RecordAlert'].update(background_color='#F5273A')
+            
     
     
 # ~~~~~Update settings window~~~~~
@@ -55,6 +67,7 @@ def update_settings_display():
     window['temp'].update(value = tempWarn)
     window['logFile'].update(value = logFile)
     window['maxRecords'].update(value = maxRecords)
+    window['email'].update(value = emailSend)
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -96,6 +109,46 @@ def update_graph_view():
     plt.locator_params(axis='x', nbins=(maxTime/(right-left))*10) #makes sure there are only 10 x-axis ticks at a time
     draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #redraw graph
     update_tc_graph() #update TC text on right of graph
+    
+# ~~~~~Update recording status~~~~~
+def update_record():
+    
+    if chargeRecord != 'N':    
+        #Alert the user it is recording
+        window['RecordAlert'].update('Currently Recording: ' + chargeRecord)
+        window['RecordAlert'].update(background_color='#02AB29')
+        
+        #Update the button to stop recording
+        window['cRecord'].update('Stop Recording')
+        window['cRecord'].update(button_color='#F5273A')
+        
+        #Disable changing the input boxes
+        window['ChargeIn'].update(disabled=True)
+        window['TempIn'].update(disabled=True)
+        window['TimeIn'].update(disabled=True)
+        
+        
+    else:
+        #Remove alert for the user
+        window['RecordAlert'].update('')
+        window['RecordAlert'].update(background_color='#EEE')
+        
+        #Update the button to stop recording
+        window['cRecord'].update('Record')
+        window['cRecord'].update(button_color='#02AB29')
+        
+        #Disable changing the input boxes
+        window['ChargeIn'].update(disabled=False)
+        window['TempIn'].update(disabled=False)
+        window['TimeIn'].update(disabled=False)
+        
+    #Update settings file
+    with open(path + 'Settings.txt', 'w') as f:
+        f.write('intervalReading = {}\n'.format(readInterval))
+        f.write('tempWarning = {}\n'.format(tempWarn))
+        f.write('logFile = {}\n'.format(logFile))
+        f.write('maxLogRecords = {}\n'.format(maxRecords))
+        f.write('recordCharge = {}\n'.format(chargeRecord))
 
     
 
@@ -161,16 +214,19 @@ def display_graph(fileName):
     draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #idk what half this does but its necessary
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 
+#Window theme
 sg.theme('DefaultNoMoreNagging')
 font = ("Arial, 16")
 butFont = ('Airal', 16, 'bold')
 iconFont = ('Calibri',20)
 tcFont = ('Courier New',16,'bold')
 titleFont = ('Arial', 26, 'bold')
-sg.theme_text_element_background_color(color = '#EEEEEE')
+sg.theme_text_element_background_color(color = '#EEE')
 sg.theme_text_color('#1D2873')
-sg.theme_background_color('#EEEEEE')
+sg.theme_background_color('#EEE')
 
 
 # ~~~~~VARIABLES~~~~~
@@ -182,6 +238,9 @@ maxRecords = 0
 
 plotDisplay = False #flag for the plot display
 chargeDisplay = False #flag for the charge view
+chargeRecord = '' #flag for if we are currently recording a charge
+activeScreen  = 'Main' #helps speed up the main loop
+emailSend = '' #emails to send alerts to
 
 #Axes limits
 zoom = 10
@@ -194,7 +253,7 @@ stepSize = (readInterval-7)/60 #moves one data point, adjusts for the seconds to
 graphSize = (1200, 600)
 
 
-read_settings()
+read_settings() #Get current settings
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MAIN WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -230,9 +289,10 @@ wMain = [
 
 wSet = [  
             [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
-            [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('',font=font,pad=(0,30))],
+            [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
+            [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
+            [sg.Text('Alert Emails:',size=(15,1), font=font), sg.Input(key='email', enable_events=True,size=(20,20), font=font)],
+            [sg.Text('',font=font,pad=(0,30))], #spacing
             [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
             [sg.Text('Log File (.csv):',size=(15,1), font=font), sg.Input(key='logFile', enable_events=True,size=(15,1), font=font)],
             [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
@@ -248,12 +308,12 @@ tcGraph = [
             [sg.Text('Reading at Red Line',font=butFont,justification='c')],
             [sg.Text()],
             [sg.Text('',key='TC_TL',font=font,justification='c')],
-            [sg.Text('TC1: ',font=butFont,text_color='#FF0000'),sg.Text('1',font=font,key='TC1L',text_color='#333')],
-            [sg.Text('TC2: ',font=butFont,text_color='#FFAA00'),sg.Text('2',font=font,key='TC2L',text_color='#333')],
-            [sg.Text('TC3: ',font=butFont,text_color='#365BB0'),sg.Text('3',font=font,key='TC3L',text_color='#333')],
-            [sg.Text('TC4: ',font=butFont,text_color='#444'),sg.Text('4',font=font,key='TC4L',text_color='#333')],
-            [sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=font,key='TC5L',text_color='#333')],
-            [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=font,key='TC6L',text_color='#333')],
+            [sg.Text('TC1: ',font=butFont,text_color='#FF0000'),sg.Text('1',font=tcFont,key='TC1L',text_color='#333')],
+            [sg.Text('TC2: ',font=butFont,text_color='#FFAA00'),sg.Text('2',font=tcFont,key='TC2L',text_color='#333')],
+            [sg.Text('TC3: ',font=butFont,text_color='#365BB0'),sg.Text('3',font=tcFont,key='TC3L',text_color='#333')],
+            [sg.Text('TC4: ',font=butFont,text_color='#444'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],
+            [sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=tcFont,key='TC5L',text_color='#333')],
+            [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6L',text_color='#333')],
             
         ]
 
@@ -283,7 +343,7 @@ scrollButFormat = [
 # ~~~~~MAIN LAYOUT OF THE WHOLE SCREEN~~~~~
 wLog = [  
             [sg.Column([
-                [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',size=(10,2), font=butFont, button_color='#02AB29')]])],
+                [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='cRecord',size=(10,2), font=butFont, button_color='#02AB29')]])],
                 ],key='logInput')],
             [sg.Text('',font=butFont,key='cDesc')],
             
@@ -333,6 +393,7 @@ tab_group = [
 ]
 
 layout = [
+    [sg.Text(key='RecordAlert',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))],
     [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,20)),sg.Button('Main Screen',size=(10,2), font=butFont, button_color='#F5273A',visible=False)],
     [sg.Text(key='Time',font=butFont)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
@@ -343,7 +404,6 @@ window.Maximize()
 
 style = ttk.Style()
 style.layout('TNotebook.Tab', []) # Hide tab bar
-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -376,80 +436,15 @@ while True:
             display_graph(logFile)
             update_graph_view()
     
-    elif event == 'Main Screen': #RETURN FROM LOG
+    if event == 'Main Screen': #RETURN TO MAIN SCREEN
         plotDisplay = False
         chargeDisplay = False
         window['Main Screen'].update(visible=False)
         window['Title'].update(visible=True)
         window["Main"].select()
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    elif event == "Settings": #Switch to settings window
-        window['Main Screen'].update(visible=True)
-        window['Title'].update(visible=False)
-        window["Set"].select()
-        update_settings_display()
+        activeScreen = 'Main'
+        
     
-    elif event == "Cancel": #Return from settings window
-        window["Main"].select()
-        window['Main Screen'].update(visible=False)
-        window['Title'].update(visible=True)
-        
-    elif event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
-        window['interval'].update(values['interval'][:-1])
-        
-    elif event == 'temp' and values['temp'] and values['temp'][-1] not in ('0123456789'):
-        window['temp'].update(values['temp'][:-1])
-        
-    elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
-        window['maxRecords'].update(values['maxRecords'][:-1])
-        
-    elif event == 'Submit':
-        
-        #VERIFY THE FILE EXISTS
-        file_exists = GC.does_this_exist(values['logFile'])
-        
-        #VERIFY INTERVAL WAS INPUT
-        int_exists = True
-        if values['interval'] == '' or int(values['interval']) > 100:
-            int_exists = False
-            
-        #VERIFY TEMP WAS INPUT
-        temp_exists = True
-        if values['temp'] == '' or int(values['temp']) > 3000:
-            temp_exists = False
-            
-        #VERIFY RECORDS WAS INPUT
-        maxR_exists = True
-        if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
-            maxR_exists = False
-        
-        #SAVE THE FILE
-        if file_exists and int_exists and temp_exists and maxR_exists:
-            with open(path + 'Settings.txt', 'w') as f:
-                f.write('intervalReading = {}\n'.format(values['interval']))
-                f.write('tempWarning = {}\n'.format(values['temp']))
-                f.write('logFile = {}\n'.format(values['logFile']))
-                f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
-            read_settings()
-            sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
-            window['Main Screen'].update(visible=False)
-            window['Title'].update(visible=True)
-            window["Main"].select()
-            
-            
-        #ERROR MESSAGES
-        elif not file_exists:
-            sg.popup('This file does not exist!',keep_on_top=True)
-        
-        elif not int_exists:
-            sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
-        
-        elif not temp_exists:
-            sg.popup('Please input a temperature less than 3000°F',keep_on_top=True)
-            
-        elif not maxR_exists:
-            sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True)
             
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  LOGGING WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -460,12 +455,14 @@ while True:
         window["Log"].select()
         window['logInput'].update(visible = True)
         window['cDesc'].update(visible=False)
-        window['Record'].update(disabled=False)
+        window['cRecord'].update(disabled=False)
+        activeScreen = 'Log'
         
         if plotDisplay == False: #If not currently displaying plot, basically only run on startup
             display_graph(logFile)
             
             #~~~Setup initial axes~~~
+            zoom = 10
             right = max(x) #most recent reading
             maxTime = right #global storage of above for Home button
             left = right - zoom #make view to be towards the end of readings
@@ -473,55 +470,121 @@ while True:
             window['Slide'].update(value=maxTime) #Set slider to right side of graph
             update_graph_view()
             
-        
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # ~~~~~BUTTON CLICK EVENTS~~~~~
-    elif event == 'Left' and plotDisplay:
-        #Move the plot left
-        left -= 1
-        right -= 1
-        window['Slide'].update(value=right) #adjsut slider
-        update_graph_view()
+    elif activeScreen == 'Log':
         
-    elif event =='Right' and plotDisplay:
-        #Move plot right
-        left += 1
-        right += 1
-        if right < maxTime:
+        # if emailTry:
+        #     if GC.send_email('TC1', tempWarn, currTime.strftime("%d %B, %Y - %I:%M:%S %p")):
+        #         sg.popup('Email sent successfully.',font=font,keep_on_top=True)
+        #         emailTry = False
+        #     else:
+        #         sg.popup('Failed to send email.',font=font,keep_on_top=True)
+        #         emailTry = False
+        
+        if event == 'Left' and plotDisplay:
+            #Move the plot left
+            left -= 1
+            right -= 1
             window['Slide'].update(value=right) #adjsut slider
-        else:
-            window['Slide'].update(value=maxTime) #adjsut slider
-        update_graph_view()
-        
-    elif event == 'Home' and plotDisplay:
-        #Return to home view
-        zoom = 10
-        left = maxTime - zoom
-        right = maxTime
-        window['Slide'].update(value=right) #Return slider to right side
-        update_graph_view()
-    
-    elif event == 'ZoomOut' and plotDisplay:
-        #Zoom out graph
-        if zoom < maxZoom:
-            zoom = zoom + 5
-            left = right - zoom
+            update_graph_view()
+            
+        elif event =='Right' and plotDisplay:
+            #Move plot right
+            left += 1
+            right += 1
+            if right < maxTime:
+                window['Slide'].update(value=right) #adjsut slider
+            else:
+                window['Slide'].update(value=maxTime) #adjsut slider
+            update_graph_view()
+            
+        elif event == 'Home' and plotDisplay:
+            #Return to home view
+            zoom = 10
+            left = maxTime - zoom
+            right = maxTime
+            window['Slide'].update(value=right) #Return slider to right side
             update_graph_view()
         
-    elif event == 'ZoomIn' and plotDisplay:
-        #Zoom in graph
-        if zoom > minZoom:
-            zoom = zoom - 5
-            left = right - zoom
+        elif event == 'ZoomOut' and plotDisplay:
+            #Zoom out graph
+            if zoom < maxZoom:
+                zoom = zoom + 5
+                left = right - zoom
+                update_graph_view()
+            
+        elif event == 'ZoomIn' and plotDisplay:
+            #Zoom in graph
+            if zoom > minZoom:
+                zoom = zoom - 5
+                left = right - zoom
+                update_graph_view()
+        
+        elif event == 'Slide' and plotDisplay:
+            right = values['Slide']
+            left = values['Slide'] - zoom
             update_graph_view()
-    
-    elif event == 'Slide' and plotDisplay:
-        right = values['Slide']
-        left = values['Slide'] - zoom
-        update_graph_view()
-    
-    elif event == 'C Plot':
-        plt.clf()
-        update_graph_view()
+        
+        elif event == 'C Plot':
+            plt.clf()
+            update_graph_view()
+     
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ~~~~~RECORDING A CHARGE~~~~~
+        elif event == 'ChargeIn' and values['ChargeIn'] and (values['ChargeIn'][-1] not in ('0123456789') or len(values['ChargeIn']) > 5):
+            window['ChargeIn'].update(values['ChargeIn'][:-1])
+            
+        elif event == 'TempIn' and values['TempIn'] and (values['TempIn'][-1] not in ('0123456789') or len(values['TempIn']) > 4):
+            window['TempIn'].update(values['TempIn'][:-1])
+            
+        elif event == 'TimeIn' and values['TimeIn'] and (values['TimeIn'][-1] not in ('0123456789') or len(values['TimeIn']) >4):
+            window['TimeIn'].update(values['TimeIn'][:-1])
+        
+        
+        #Recording a new charge
+        elif event == 'cRecord' and chargeRecord == 'N':
+            #Verify inputs
+            cCheck = False
+            tCheck = False
+            dCheck = False
+            
+            if values['ChargeIn'] and len(values['ChargeIn']) == 5:
+                if(GC.check_charge(values['ChargeIn'], path + 'Charges\\')):
+                    cCheck = True
+                else:
+                    sg.popup('This charge number is already in use!',font=font,keep_on_top=True)
+                    
+            if values['TempIn'] and int(values['TempIn']) > 0:
+                tCheck = True
+                if len(values['TempIn']) < 4:
+                    values['TempIn'] = '0' + str(values['TempIn']) #zero pad for charge log
+            if values['TimeIn'] and 50 > int(values['TimeIn']) > 0:
+                dCheck = True
+                
+            #If all the inputs are good, record the charge    
+            if cCheck and tCheck and dCheck:
+                chargeRecord = values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
+                
+                update_record()
+                
+                
+                
+            elif not cCheck:
+                sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True)
+            elif not tCheck:
+                sg.popup('Please input a temperature.',font=font,keep_on_top=True)
+            elif not dCheck:
+                sg.popup('Please input a duration less than 50 hours.',font=font,keep_on_top=True)
+        
+                
+        
+        #If stopping charge recording
+        elif event == 'cRecord' and chargeRecord != 'N':
+            chargeRecord = 'N'
+            
+            update_record()
+            sg.popup('Recording cancelled.',font=font,keep_on_top=True)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -530,13 +593,16 @@ while True:
         window['Title'].update(visible=False)
         window['Charge'].select()
         #window['logInput'].update(visible = False) #hide the input boxes
+        activeScreen = 'Charge'
         
     elif event == 'Select' and values['cList']:
         window["Log"].select()
         window['logInput'].update(visible = False)
         window['cDesc'].update(visible=True)
         window['cDesc'].update('You are viewing: ' + str(values['cList'][0]))
-        if plotDisplay == False: #If not currently displaying plot, basically only run on 
+        activeScreen = 'Log'
+        
+        if plotDisplay == False: #If not currently displaying plot
             chargeDisplay = True
             display_graph('Charges\\' + str(values['cList'][0]) + '.csv')
             
@@ -549,7 +615,79 @@ while True:
             window['Slide'].update(value=maxTime) #Set slider to right side of graph
             update_graph_view()
         
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    elif event == "Settings": #Switch to settings window
+        window['Main Screen'].update(visible=True)
+        window['Title'].update(visible=False)
+        window["Set"].select()
+        update_settings_display()
+        activeScreen = 'Settings'
         
+    elif activeScreen == 'Settings':
+    
+        if event == "Cancel": #Return from settings window
+            window["Main"].select()
+            window['Main Screen'].update(visible=False)
+            window['Title'].update(visible=True)
+            
+        elif event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
+            window['interval'].update(values['interval'][:-1])
+            
+        elif event == 'temp' and values['temp'] and values['temp'][-1] not in ('0123456789'):
+            window['temp'].update(values['temp'][:-1])
+            
+        elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
+            window['maxRecords'].update(values['maxRecords'][:-1])
+            
+        elif event == 'Submit':
+            
+            #VERIFY THE FILE EXISTS
+            file_exists = GC.does_this_exist(values['logFile'])
+            
+            #VERIFY INTERVAL WAS INPUT
+            int_exists = True
+            if values['interval'] == '' or int(values['interval']) > 100:
+                int_exists = False
+                
+            #VERIFY TEMP WAS INPUT
+            temp_exists = True
+            if values['temp'] == '' or int(values['temp']) > 3000:
+                temp_exists = False
+                
+            #VERIFY RECORDS WAS INPUT
+            maxR_exists = True
+            if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
+                maxR_exists = False
+            
+            #SAVE THE FILE
+            if file_exists and int_exists and temp_exists and maxR_exists:
+                with open(path + 'Settings.txt', 'w') as f:
+                    f.write('intervalReading = {}\n'.format(values['interval']))
+                    f.write('tempWarning = {}\n'.format(values['temp']))
+                    f.write('logFile = {}\n'.format(values['logFile']))
+                    f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
+                    f.write('recordCharge = {}\n'.format(chargeRecord))
+                    f.write('emailTo = {}'.format(values['email']))
+                read_settings()
+                sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
+                window['Main Screen'].update(visible=False)
+                window['Title'].update(visible=True)
+                window["Main"].select()
+                
+                
+            #ERROR MESSAGES
+            elif not file_exists:
+                sg.popup('This file does not exist!',keep_on_top=True)
+            
+            elif not int_exists:
+                sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
+            
+            elif not temp_exists:
+                sg.popup('Please input a temperature less than 3000°F',keep_on_top=True)
+                
+            elif not maxR_exists:
+                sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True)
         
 window.close()
 
@@ -562,3 +700,4 @@ window.close()
 
 # ~~~~~ Compile ~~~~~
 #pyinstaller -wF --splash=splashLoad.jpg FullProgram.py
+#pyinstaller -wF --splash=splashLoad.jpg --icon=test.ico FullProgram.py

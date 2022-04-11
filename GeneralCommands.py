@@ -1,6 +1,7 @@
 import os
 import sys
 import csv
+import win32com.client
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
@@ -8,7 +9,7 @@ def get_path():
         path = os.path.dirname(sys.executable)
     elif __file__: #if running as a python script
         path = os.path.dirname(__file__)
-    return path
+    return path + '\\'
 
 
 # ~~~~~Removes the beginning of a string
@@ -31,6 +32,10 @@ def get_settings(selection, path):
         return remove_prefix(currSettings[2],'logFile = ').strip()
     elif selection == 'MaxRecords':
         return remove_prefix(currSettings[3],'maxLogRecords = ').strip()
+    elif selection == 'Record':
+        return remove_prefix(currSettings[4],'recordCharge = ').strip()
+    elif selection == 'Email':
+        return remove_prefix(currSettings[5],'emailTo = ').strip()
     
 
 # ~~~~~Check if a file exists~~~~~
@@ -50,14 +55,12 @@ def verify_settings(path):
     
     #Create file that could not be found
     with open(path + 'Settings.txt', 'w') as f:
-       f.write('intervalReading = {}'.format(10))
-       f.write('\n')
-       f.write('tempWarning = {}'.format(1300))
-       f.write('\n')
-       f.write('logFile = {}'.format('AllTempLogs.csv'))
-       f.write('\n')
-       f.write('maxLogRecords = {}'.format(1000))
-    
+       f.write('intervalReading = {}\n'.format(10))
+       f.write('tempWarning = {}\n'.format(1300))
+       f.write('logFile = {}'.format('AllTempLogs.csv\n'))
+       f.write('maxLogRecords = {}\n'.format(1000))
+       f.write('recordCharge = N\n')
+       f.write('emailTo = bbrindle@uniondrawn.com; intern@uniondrawn.com')
     return False
 
 
@@ -78,9 +81,38 @@ def verify_logs(path):
     
 # ~~~~~Get saved charges~~~~~
 def get_charges(path):
+    #Make sure folder exists
+    if not does_this_exist(path):
+        os.mkdir(path) #create folder if not present
+    
+    #Collect all files in folder
     files = [f.strip('.csv') for f in os.listdir(path) if os.path.exists(path + f)] #collect all files in the folder
     return files
     
+# ~~~~~Compare charges~~~~~
+def check_charge(charge,path):
+    files = get_charges(path)
     
+    for c in files:
+        print(c[:5])
+        if str(charge) == c[:5]:
+            return False
+    return True
+
+# ~~~~Send email~~~~~
+def send_email(TC,temp,time):
+    sendTo = get_settings('Email', get_path())
+    
+    try:
+        outlook = win32com.client.Dispatch('outlook.application')
+        mail = outlook.CreateItem(0)
+        mail.To = sendTo
+        mail.Subject = 'Temperature Alert'
+        mail.Body = "Thermocouple {} has exceeded {}°F at {}".format(TC,temp,time)
+        mail.Send()
+        return True
+    except:
+        print("Unable to send")
+        return False
     
     
