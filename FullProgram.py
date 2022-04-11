@@ -30,12 +30,14 @@ def read_settings():
     global maxRecords
     global chargeRecord
     global emailSend
-    readInterval = int(GC.get_settings('Interval', path))*60+5 #convert minutes to seconds, add 5 as a precautionary measure
+    global emailAlert
+    readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
     maxRecords = int(GC.get_settings('MaxRecords', path))
     chargeRecord = GC.get_settings('Record', path)
     emailSend = GC.get_settings('Email', path)
+    emailAlert = GC.get_settings('EmailAlert', path)
     
     
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
@@ -52,7 +54,6 @@ def update_tc_nums():
                           
         else: #!!!Temperature over limit!!!
             window['TC' + str(tc)].update(background_color='#F5273A')
-            GC.send_email('TC'+str(tc), tempWarn, currTime.strftime("%d %B, %Y - %I:%M %p"))
             
             #Alert the user it is recording
             window['RecordAlert'].update('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
@@ -68,6 +69,11 @@ def update_settings_display():
     window['logFile'].update(value = logFile)
     window['maxRecords'].update(value = maxRecords)
     window['email'].update(value = emailSend)
+    
+    if emailAlert == 'True':
+        window['eBut'].update(value = True)
+    else:
+        window['eBut'].update(value = False)
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -149,6 +155,8 @@ def update_record():
         f.write('logFile = {}\n'.format(logFile))
         f.write('maxLogRecords = {}\n'.format(maxRecords))
         f.write('recordCharge = {}\n'.format(chargeRecord))
+        f.write('emailTo = {}\n'.format(emailSend))
+        f.write('enableEmail = {}'.format(emailAlert))
 
     
 
@@ -241,6 +249,7 @@ chargeDisplay = False #flag for the charge view
 chargeRecord = '' #flag for if we are currently recording a charge
 activeScreen  = 'Main' #helps speed up the main loop
 emailSend = '' #emails to send alerts to
+emailAlert = '' #if emails alerts are enabled
 
 #Axes limits
 zoom = 10
@@ -289,15 +298,26 @@ wMain = [
 
 wSet = [  
             [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
+            
             [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
             [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
-            [sg.Text('Alert Emails:',size=(15,1), font=font), sg.Input(key='email', enable_events=True,size=(20,20), font=font)],
+            
+            
             [sg.Text('',font=font,pad=(0,30))], #spacing
             [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
+            
+            [sg.Text('Alert Emails:',size=(14,1), font=font), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
+            [sg.Checkbox('Enable Alerts',key='eBut',font=font,size=(10,2),enable_events=True)],
+            
+            [sg.Text('',font=font,pad=(0,30))], #spacing
             [sg.Text('Log File (.csv):',size=(15,1), font=font), sg.Input(key='logFile', enable_events=True,size=(15,1), font=font)],
             [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
+            
+            
             [sg.Text('',key='tips')],
-            [sg.Push(), sg.Button('Submit',size=(10,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(10,2), font=butFont, button_color='#F5273A'), sg.Push()],
+            [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=butFont, button_color='#F5273A'), sg.Push()],
+            
+            
         ]
 
 
@@ -428,7 +448,7 @@ while True:
     window['Time'].update(currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
     
     #Check if it is time to update the TC readings
-    if currTime - datetime.timedelta(seconds=readInterval) > lastRead:
+    if currTime - datetime.timedelta(seconds=(readInterval*60+5)) > lastRead:
         lastRead = currTime
         update_tc_nums()
         if plotDisplay and not chargeDisplay:
@@ -640,6 +660,7 @@ while True:
         elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
             window['maxRecords'].update(values['maxRecords'][:-1])
             
+            
         elif event == 'Submit':
             
             #VERIFY THE FILE EXISTS
@@ -668,7 +689,8 @@ while True:
                     f.write('logFile = {}\n'.format(values['logFile']))
                     f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
                     f.write('recordCharge = {}\n'.format(chargeRecord))
-                    f.write('emailTo = {}'.format(values['email']))
+                    f.write('emailTo = {}\n'.format(values['email']))
+                    f.write('enableEmail = {}'.format(values['eBut']))
                 read_settings()
                 sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
                 window['Main Screen'].update(visible=False)

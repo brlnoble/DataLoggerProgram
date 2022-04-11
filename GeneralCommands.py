@@ -36,6 +36,8 @@ def get_settings(selection, path):
         return remove_prefix(currSettings[4],'recordCharge = ').strip()
     elif selection == 'Email':
         return remove_prefix(currSettings[5],'emailTo = ').strip()
+    elif selection == 'EmailAlert':
+        return remove_prefix(currSettings[6],'enableEmail = ').strip()
     
 
 # ~~~~~Check if a file exists~~~~~
@@ -60,7 +62,8 @@ def verify_settings(path):
        f.write('logFile = {}'.format('AllTempLogs.csv\n'))
        f.write('maxLogRecords = {}\n'.format(1000))
        f.write('recordCharge = N\n')
-       f.write('emailTo = bbrindle@uniondrawn.com; intern@uniondrawn.com')
+       f.write('emailTo = {}\n'.format('bbrindle@uniondrawn.com; intern@uniondrawn.com'))
+       f.write('enableEmail = Y')
     return False
 
 
