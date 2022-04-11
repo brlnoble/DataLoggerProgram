@@ -13,6 +13,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 - [X] Simple and intuitive UI based upon PySimpleGUI
 - [ ] Allow users to start and stop charge recording to save graphs
 - [X] Access and use program from computer
+- [X] Email alerts when temperature exceeds a set limit
 
 
 
@@ -27,9 +28,9 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] High temperature warning (to alert user)
   - [X] Change log file location
   - [X] Change maximum records saved in log file
-- [ ] Graphical view of current readout
+- [X] Graphical view of current readout
   - [X] Live update graph
-  - [ ] Allow user to record a charge (input charge number)
+  - [X] Allow user to record a charge (input charge number)
   - [X] Interactive menu to change view and return home
   - [X] Allow user to scroll through data
   - [X] Show readout of selected data
@@ -42,6 +43,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 
 ## Current Logging Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-08-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreenRecord-11-04-22.jpg" width="800">
 
 ## Current Charge Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicChargeScreen-08-04-22.jpg" width="400"> 
