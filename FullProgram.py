@@ -278,18 +278,18 @@ butCol = [
 #LAYOUT FOR ENTIRE WINDOW
 wMain = [  
             [sg.Column(butCol)],
-            [sg.Text('',font=font)], #spacing
-            [sg.Text('',font=font)], #spacing
-            [sg.Text('',font=font)], #spacing
-            [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font)],
+            [sg.Text('',font=font,pad=(0,20))], #spacing
+            [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font,pad=(0,30))],
             
-            [sg.Push(), sg.Text('TC1:',font=butFont),sg.Text('000.0',key='TC1', font=tcFont), 
-             sg.Push(), sg.Text('TC2:',font=butFont),sg.Text('000.0',key='TC2', font=tcFont), 
-             sg.Push(), sg.Text('TC3:',font=butFont),sg.Text('000.0',key='TC3', font=tcFont),sg.Push()],
-            
-            [sg.Push(), sg.Text('TC4:',font=butFont),sg.Text('000.0',key='TC4', font=tcFont), 
+            [sg.Push(),sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont), 
              sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont), 
-             sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont),sg.Push()],
+             sg.Push(), sg.Text('TC4:',font=butFont),sg.Text('000.0',key='TC4', font=tcFont),sg.Push(),sg.Push()],
+            
+            [sg.Image('Furnace.png',pad=(0,0))],
+            
+            [sg.Push(),sg.Push(), sg.Text('TC1:',font=butFont),sg.Text('000.0',key='TC1', font=tcFont), 
+             sg.Push(), sg.Text('TC2:',font=butFont),sg.Text('000.0',key='TC2', font=tcFont), 
+             sg.Push(), sg.Text('TC3:',font=butFont),sg.Text('000.0',key='TC3', font=tcFont),sg.Push(),sg.Push()],
             
             [sg.Text('',font=font)], #spacing
             [sg.Button('Exit Program',key='Exit',size=(20,3), font=butFont, button_color='#F5273A')],
