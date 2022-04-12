@@ -20,8 +20,8 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 ## Program Screens
 - [ ] Main screen with options to:
   - [X] Change current settings
-  - [X] View current readout (numerics)
-  - [X] View current readout (graphically)
+  - [X] View current readout (numerics) at locations within furnace (see Furnace.png, open side is door)
+  - [X] View current readout button (graphically)
   - [X] Open an old graph for viewing
 - [X] Settings menu to change parameters
   - [X] Recording interval step (minutes between data points)
@@ -36,7 +36,7 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] Show readout of selected data
  
 ## Current Main Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-08-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-12-04-22.jpg" width="800">
 
 ## Current Settings Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-11-04-22.jpg" width="400">
