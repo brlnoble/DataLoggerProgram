@@ -8,10 +8,10 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
 
 ## General Goals
 - [ ] Read data from thermocouples
-- [ ] Record data at a given interval to a .csv file
+- [X] Record data at a given interval to a .csv file
 - [X] Save settings in a .txt file for access and modification
 - [X] Simple and intuitive UI based upon PySimpleGUI
-- [ ] Allow users to start and stop charge recording to save graphs
+- [X] Allow users to start and stop charge recording to save graphs
 - [X] Access and use program from computer
 - [X] Email alerts when temperature exceeds a set limit
 
@@ -36,11 +36,15 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] Show readout of selected data
  
 ## Current Main Screen
+Reading as normal
+
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-14-04-22.jpg" width="800">
+Error reading data
+
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreenErr-14-04-22.jpg" width="800">
 
 ## Current Settings Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-11-04-22.jpg" width="400">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-14-04-22.jpg" width="800">
 
 ## Current Logging Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-08-04-22.jpg" width="800">
