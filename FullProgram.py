@@ -3,10 +3,11 @@ from tkinter import ttk
 from time import time
 import datetime
 import pandas as pd
-import GeneralCommands as GC #Custom file
-import newRead as NR #custom file
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+import GeneralCommands as GC #Custom file
+
 
 #Current directory path
 path = GC.get_path()
@@ -72,8 +73,6 @@ def update_tc_nums():
             window['TC' + str(tc)].update(background_color='#F5273A')
             update_alert('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
             
-            
-    
     
 # ~~~~~Update settings window~~~~~
 def update_settings_display():
@@ -148,8 +147,6 @@ def update_record(change):
         window['ChargeIn'].update(disabled=True)
         window['TempIn'].update(disabled=True)
         window['TimeIn'].update(disabled=True)
-        
-        
     else:
         #Remove alert for the user
         window['RecordAlert'].update('')
@@ -176,7 +173,6 @@ def update_record(change):
             f.write('enableEmail = {}\n'.format(emailAlert))
             f.write('path = {}'.format(path))
 
-    
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
 def display_graph(fileName):
@@ -447,9 +443,8 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MAIN LOOP  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-event, values = window.read(timeout=100)
-update_tc_nums()
-update_record(False)
+# event, values = window.read(timeout=100)
+
 
 while True:
 
@@ -465,8 +460,10 @@ while True:
     
     #Check if it is time to update the TC readings
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+        update_alert("READING DATA") #inform user we are reading data
+        window.refresh()
+        
         update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"))) #read TC, see if error is present
-        # NR.read_tc(path, logFile, port, currTime)
         lastRead = currTime
         update_tc_nums()
         if plotDisplay and not chargeDisplay:
