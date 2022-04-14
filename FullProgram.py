@@ -42,15 +42,23 @@ def read_settings():
     port = GC.get_settings('Port', path)
     
     
+# ~~~~~Alert across top~~~~~
+def update_alert(msg):
+    if msg != '':
+        #Alert the user of an issue
+        window['RecordAlert'].update(msg)
+        window['RecordAlert'].update(background_color='#F5273A')
+    else:
+        #Hide alert
+        window['RecordAlert'].update(msg)
+        window['RecordAlert'].update(background_color='#EEE')
+
+
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
 def update_tc_nums():
     df = pd.read_csv(path + logFile)
     
-    #If an error occured while reading TC
-    if errRaise != '':
-        window['lastRead'].update(value=str(df['Time'].values[-1]) +'\n' + errRaise)
-    else:
-        window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
+    window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
     
     for tc in range(1,7):
         window['TC' + str(tc)].update(str(round(df['Temp' + str(tc)].values[-1],1)) + '°F')
@@ -61,11 +69,8 @@ def update_tc_nums():
                           
         else: #!!!Temperature over limit!!!
             window['TC' + str(tc)].update(background_color='#F5273A')
+            update_alert('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
             
-            #Alert the user it is recording
-            window['RecordAlert'].update('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
-            window['RecordAlert'].update(background_color='#F5273A')
-
             
     
     
@@ -77,6 +82,7 @@ def update_settings_display():
     window['logFile'].update(value = logFile)
     window['maxRecords'].update(value = maxRecords)
     window['email'].update(value = emailSend)
+    window['sPort'].update(value = port)
     
     if emailAlert == 'True':
         window['eBut'].update(value = True)
@@ -108,7 +114,7 @@ def update_tc_graph():
         window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
         window['TC6L'].update(str(round(df.Temp6[right],1)) + '°F')
     else:
-        window['TC_TL'].update('Reading: \nUnavailable'+errRaise)
+        window['TC_TL'].update('Reading: \nUnavailable')
         window['TC1L'].update('000.00' + '°F')
         window['TC2L'].update('000.00' + '°F')
         window['TC3L'].update('000.00' + '°F')
@@ -123,6 +129,7 @@ def update_graph_view():
     plt.locator_params(axis='x', nbins=(maxTime/(right-left))*10) #makes sure there are only 10 x-axis ticks at a time
     draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #redraw graph
     update_tc_graph() #update TC text on right of graph
+    
     
 # ~~~~~Update recording status~~~~~
 def update_record(change):
@@ -256,7 +263,6 @@ lastRead = currTime - datetime.timedelta(seconds=(readInterval*60))
 plotDisplay = False #flag for the plot display
 chargeDisplay = False #flag for the charge view
 activeScreen  = 'Main' #helps speed up the main loop
-errRaise = ''
 
 
 #Axes limits
@@ -320,7 +326,7 @@ wSet = [
             [sg.Text('',font=font,pad=(0,30))], #spacing
             [sg.Text('Log File (.csv):',size=(15,1), font=font), sg.Input(key='logFile', enable_events=True,size=(15,1), font=font)],
             [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
-            
+            [sg.Text('Serial Port:',size=(15,1), font=font), sg.Input(key='sPort', enable_events=True,size=(15,1), font=font)],
             
             [sg.Text('',key='tips')],
             [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=butFont, button_color='#F5273A'), sg.Push()],
@@ -458,7 +464,7 @@ while True:
     
     #Check if it is time to update the TC readings
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
-        errRaise = GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p")) #read TC, see if error is present
+        update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"))) #read TC, see if error is present
         
         lastRead = currTime
         update_tc_nums()
@@ -689,6 +695,11 @@ while True:
             maxR_exists = True
             if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
                 maxR_exists = False
+                
+            #VERIFY PORT WAS INPUT
+            port_exists = True
+            if values['sPort'] == '':
+               port_exists = False
             
             #SAVE THE FILE
             if file_exists and int_exists and temp_exists and maxR_exists:
@@ -700,7 +711,7 @@ while True:
                     f.write('recordCharge = {}\n'.format(chargeRecord))
                     f.write('emailTo = {}\n'.format(values['email']))
                     f.write('enableEmail = {}\n'.format(values['eBut']))
-                    f.write('path = {}'.format(path))
+                    f.write('port = {}'.format(values['sPort']))
                 read_settings()
                 sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
                 window['Main Screen'].update(visible=False)
