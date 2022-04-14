@@ -36,7 +36,8 @@ Using a Raspberry Pi and Python, I hope to complete this in as simple a manner a
   - [X] Show readout of selected data
  
 ## Current Main Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-12-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-14-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreenErr-14-04-22.jpg" width="800">
 
 ## Current Settings Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-11-04-22.jpg" width="400">
