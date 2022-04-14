@@ -31,6 +31,7 @@ def read_settings():
     global chargeRecord
     global emailSend
     global emailAlert
+    global port
     readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
@@ -38,12 +39,18 @@ def read_settings():
     chargeRecord = GC.get_settings('Record', path)
     emailSend = GC.get_settings('Email', path)
     emailAlert = GC.get_settings('EmailAlert', path)
+    port = GC.get_settings('Port', path)
     
     
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
 def update_tc_nums():
     df = pd.read_csv(path + logFile)
-    window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
+    
+    #If an error occured while reading TC
+    if errRaise != '':
+        window['lastRead'].update(value=str(df['Time'].values[-1]) +'\n' + errRaise)
+    else:
+        window['lastRead'].update(value=df['Time'].values[-1]) #last time the file was written to
     
     for tc in range(1,7):
         window['TC' + str(tc)].update(str(round(df['Temp' + str(tc)].values[-1],1)) + '°F')
@@ -58,6 +65,7 @@ def update_tc_nums():
             #Alert the user it is recording
             window['RecordAlert'].update('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
             window['RecordAlert'].update(background_color='#F5273A')
+
             
     
     
@@ -91,7 +99,7 @@ def draw_figure_w_toolbar(canvas, fig, canvas_toolbar):
 
 # ~~~~~Updates thermocouples on right of graph~~~~~
 def update_tc_graph():
-    if len(dates) - 1 >= right:
+    if len(dates) - 1 >= right and df.Temp1[right] not in [-111,-222,-333]:
         window['TC_TL'].update(dates[right])
         window['TC1L'].update(str(round(df.Temp1[right],1)) + '°F')
         window['TC2L'].update(str(round(df.Temp2[right],1)) + '°F')
@@ -100,7 +108,7 @@ def update_tc_graph():
         window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
         window['TC6L'].update(str(round(df.Temp6[right],1)) + '°F')
     else:
-        window['TC_TL'].update('Reading: \nUnavailable')
+        window['TC_TL'].update('Reading: \nUnavailable'+errRaise)
         window['TC1L'].update('000.00' + '°F')
         window['TC2L'].update('000.00' + '°F')
         window['TC3L'].update('000.00' + '°F')
@@ -242,17 +250,14 @@ sg.theme_background_color('#EEE')
 # ~~~~~VARIABLES~~~~~
 read_settings() #Get current settings
 currTime = datetime.datetime.fromtimestamp(time()) #used for clock
-lastRead = currTime
-# readInterval = 0
-# tempWarn = 0
-# maxRecords = 0
+lastRead = currTime - datetime.timedelta(seconds=(readInterval*60))
+
 
 plotDisplay = False #flag for the plot display
 chargeDisplay = False #flag for the charge view
-# chargeRecord = '' #flag for if we are currently recording a charge
 activeScreen  = 'Main' #helps speed up the main loop
-# emailSend = '' #emails to send alerts to
-# emailAlert = '' #if emails alerts are enabled
+errRaise = ''
+
 
 #Axes limits
 zoom = 10
@@ -452,7 +457,9 @@ while True:
     window['Time'].update(currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
     
     #Check if it is time to update the TC readings
-    if currTime - datetime.timedelta(seconds=(readInterval*60+5)) > lastRead:
+    if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+        errRaise = GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p")) #read TC, see if error is present
+        
         lastRead = currTime
         update_tc_nums()
         if plotDisplay and not chargeDisplay:
@@ -593,7 +600,6 @@ while True:
                 update_record(True)
                 
                 
-                
             elif not cCheck:
                 sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True)
             elif not tCheck:
@@ -616,7 +622,6 @@ while True:
         window['Main Screen'].update(visible=True)
         window['Title'].update(visible=False)
         window['Charge'].select()
-        #window['logInput'].update(visible = False) #hide the input boxes
         activeScreen = 'Charge'
         
     elif event == 'Select' and values['cList']:

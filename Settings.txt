@@ -1,8 +1,8 @@
-intervalReading = 10
+intervalReading = 1
 tempWarning = 1300
 logFile = AllTempLogs.csv
 maxLogRecords = 1000
 recordCharge = N
 emailTo = intern@uniondrawn.com
 enableEmail = True
-path = C:\Users\Darryn\Desktop\Code\DATA LOGGER PI\
+port = COM4

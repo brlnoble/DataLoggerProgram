@@ -2,6 +2,8 @@ import os
 import sys
 import csv
 import win32com.client
+import serial
+from time import sleep
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
@@ -22,6 +24,8 @@ def remove_prefix(text, prefix):
 # ~~~~~Get the system settings~~~~~
 def get_settings(selection, path):
     currSettings = []
+    if path == 'Pi':
+        path = get_path()
     with open(path + 'Settings.txt', 'r') as f:
         currSettings = f.readlines()
     if selection == 'Interval':
@@ -38,6 +42,8 @@ def get_settings(selection, path):
         return remove_prefix(currSettings[5],'emailTo = ').strip()
     elif selection == 'EmailAlert':
         return remove_prefix(currSettings[6],'enableEmail = ').strip()
+    elif selection == 'Port':
+        return remove_prefix(currSettings[7],'port = ').strip()
     
 
 # ~~~~~Check if a file exists~~~~~
@@ -63,7 +69,8 @@ def verify_settings(path):
        f.write('maxLogRecords = {}\n'.format(1000))
        f.write('recordCharge = N\n')
        f.write('emailTo = {}\n'.format('bbrindle@uniondrawn.com; intern@uniondrawn.com'))
-       f.write('enableEmail = Y')
+       f.write('enableEmail = {}\n'.format(True))
+       f.write('port = {}'.format('COM4'))
     return False
 
 
@@ -80,6 +87,7 @@ def verify_logs(path):
         writer.writerow(['01/01/2022 00:03',1,1,1,1,1,1])
         writer.writerow(['01/01/2022 00:02',2,2,2,2,2,2])
         writer.writerow(['01/01/2022 00:01',3,3,3,3,3,3])
+    return False
     
     
 # ~~~~~Get saved charges~~~~~
@@ -92,15 +100,16 @@ def get_charges(path):
     files = [f.strip('.csv') for f in os.listdir(path) if os.path.exists(path + f)] #collect all files in the folder
     return files
     
+
 # ~~~~~Compare charges~~~~~
 def check_charge(charge,path):
     files = get_charges(path)
     
     for c in files:
-        print(c[:5])
         if str(charge) == c[:5]:
             return False
     return True
+
 
 # ~~~~Send email~~~~~
 def send_email(TC,temp,time):
@@ -117,5 +126,66 @@ def send_email(TC,temp,time):
     except:
         print("Unable to send")
         return False
+    
+    
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~Read thermocouples~~~~~
+def read_tc(path, logFile, port, currTime):
+    readings = ''
+    tList = [currTime,0,0,0,0,0,0]
+    
+    try:
+        ser = serial.Serial('COM4', 9800, timeout=1, write_timeout=1)
+        
+    #unable to connect to port    
+    except:
+        tList = [currTime,-111,-111,-111,-111,-111,-111]
+        
+        with open(path+logFile,'a',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(tList)
+        return 'err1: Unable to open port ' + str(port)
+    
+    
+    try:
+        ser.write(b'Read TC') #inform the Arduino it should read code
+        
+    #unable to send data to port    
+    except:
+        tList = [currTime,'err2','err2','err2','err2','err2','err2']
+        
+        with open(path+logFile,'a',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(tList)
+        return 'err2: Unable to write to port ' + str(port)
+    
+    sleep(0.5) #wait half a second before reading
+    
+    try:
+        for i in range(0,6):
+            readings = ser.readline()
+            tList[i+1] = readings
+        ser.close()
+        
+        with open(path+logFile,'a',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(tList)
+        
+        return '' #NO ERROR, READING SUCCESS
+    
+    #unable to read data from the port
+    except:
+        ser.close()
+        tList = [currTime,'err3','err3','err3','err3','err3','err3']
+        
+        with open(path+logFile,'a',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(tList)
+        return 'err3: Unable to read from port ' + str(port)
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
     
     
