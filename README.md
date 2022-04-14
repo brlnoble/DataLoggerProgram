@@ -4,7 +4,7 @@ After the Honeywell Minitrend GR paperless data recorder stopped working, my man
 A new unit can cost well over $10,000 so I had a chance to save the company thousands if done right.
 
 The goal for this project was to create a simple data logger to record and graph temperature of our stress annealing furnace.
-Using a Raspberry Pi and Python, I hope to complete this in as simple a manner as possible to ensure ease of repairability for after I complete my internship.
+Using an Arduino Uno and Python, I hope to complete this in as simple a manner as possible to ensure ease of repairability for after I complete my internship.
 
 ## General Goals
 - [ ] Read data from thermocouples
