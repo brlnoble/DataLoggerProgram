@@ -4,6 +4,7 @@ from time import time
 import datetime
 import pandas as pd
 import GeneralCommands as GC #Custom file
+import newRead as NR #custom file
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -39,7 +40,7 @@ def read_settings():
     chargeRecord = GC.get_settings('Record', path)
     emailSend = GC.get_settings('Email', path)
     emailAlert = GC.get_settings('EmailAlert', path)
-    port = GC.get_settings('Port', path)
+    port = str(GC.get_settings('Port', path))
     
     
 # ~~~~~Alert across top~~~~~
@@ -465,7 +466,7 @@ while True:
     #Check if it is time to update the TC readings
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
         update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"))) #read TC, see if error is present
-        
+        # NR.read_tc(path, logFile, port, currTime)
         lastRead = currTime
         update_tc_nums()
         if plotDisplay and not chargeDisplay:
@@ -738,8 +739,8 @@ window.close()
 
 
 # ~~~~~ References ~~~~~
-# https://github.com/PySimpleGUI/PySimpleGUI/issues/3946        Tab groups and hiding tabs
-
+# https://github.com/PySimpleGUI/PySimpleGUI/issues/3946                        Tab groups and hiding tabs
+# https://stackoverflow.com/questions/29990995/arduino-switch-with-chars        Serial read with python
 
 # ~~~~~ Compile ~~~~~
 #pyinstaller -wF --splash=splashLoad.jpg FullProgram.py

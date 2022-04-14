@@ -133,11 +133,11 @@ def send_email(TC,temp,time):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~Read thermocouples~~~~~
 def read_tc(path, logFile, port, currTime):
-    readings = ''
     tList = [currTime,0,0,0,0,0,0]
     
     try:
-        ser = serial.Serial('COM4', 9800, timeout=1, write_timeout=1)
+        arduino = serial.Serial(port=port, baudrate=9600, timeout=3)
+        sleep(4) #wait for connection to establish
         
     #unable to connect to port    
     except:
@@ -150,7 +150,7 @@ def read_tc(path, logFile, port, currTime):
     
     
     try:
-        ser.write(b'Read TC') #inform the Arduino it should read code
+        arduino.write(bytes("R", 'utf-8')) #inform the Arduino it should read code
         
     #unable to send data to port    
     except:
@@ -161,13 +161,17 @@ def read_tc(path, logFile, port, currTime):
             writer.writerow(tList)
         return 'err2: Unable to write to port ' + str(port)
     
-    sleep(0.5) #wait half a second before reading
     
     try:
-        for i in range(0,6):
-            readings = ser.readline()
-            tList[i+1] = readings
-        ser.close()
+        # for i in range(0,6):
+        sleep(1) #wait half a second before reading
+        readings = arduino.readline().decode('UTF-8')[1:]
+        arduino.close()
+        
+        #Clean up readings
+        readings = readings.split("/")
+        for i in range(1,7):
+            tList[i] = float(readings[i-1])
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
@@ -177,13 +181,14 @@ def read_tc(path, logFile, port, currTime):
     
     #unable to read data from the port
     except:
-        ser.close()
+        arduino.close()
         tList = [currTime,'err3','err3','err3','err3','err3','err3']
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(tList)
         return 'err3: Unable to read from port ' + str(port)
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    

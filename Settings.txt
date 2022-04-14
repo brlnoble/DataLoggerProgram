@@ -5,4 +5,4 @@ maxLogRecords = 1000
 recordCharge = N
 emailTo = intern@uniondrawn.com
 enableEmail = True
-port = COM4
+port = COM5
