@@ -132,9 +132,13 @@ def send_email(TC,temp,time):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~Read thermocouples~~~~~
-def read_tc(path, logFile, port, currTime):
+def read_tc(path, logFile, port, currTime, charge):
     tList = [currTime,0,0,0,0,0,0]
-    
+    print(path)
+    print(logFile)
+    print(port)
+    print(currTime)
+    print(charge)
     try:
         arduino = serial.Serial(port=port, baudrate=9600, timeout=3)
         sleep(4) #wait for connection to establish
@@ -143,9 +147,16 @@ def read_tc(path, logFile, port, currTime):
     except:
         tList = [currTime,-111,-111,-111,-111,-111,-111]
         
-        with open(path+logFile,'a',newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(tList)
+        # with open(path+logFile,'a',newline='') as f:
+        #     writer = csv.writer(f)
+        #     writer.writerow(tList)
+        
+        if charge != 'N':
+            tList = [currTime,-111,-111,-111,-111,-111,-111]
+            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(tList)
+                
         return 'err1: Unable to open port ' + str(port)
     
     
@@ -154,11 +165,17 @@ def read_tc(path, logFile, port, currTime):
         
     #unable to send data to port    
     except:
-        tList = [currTime,'err2','err2','err2','err2','err2','err2']
+        tList = [currTime,-222,-222,-222,-222,-222,-222]
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(tList)
+            
+        if charge != 'N':
+            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(tList)
+                
         return 'err2: Unable to write to port ' + str(port)
     
     
@@ -182,11 +199,17 @@ def read_tc(path, logFile, port, currTime):
     #unable to read data from the port
     except:
         arduino.close()
-        tList = [currTime,'err3','err3','err3','err3','err3','err3']
+        tList = [currTime,-333,-333,-333,-333,-333,-333]
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(tList)
+            
+        if charge != 'N':
+            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(tList)
+                
         return 'err3: Unable to read from port ' + str(port)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

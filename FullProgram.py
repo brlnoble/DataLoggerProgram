@@ -171,7 +171,7 @@ def update_record(change):
             f.write('recordCharge = {}\n'.format(chargeRecord))
             f.write('emailTo = {}\n'.format(emailSend))
             f.write('enableEmail = {}\n'.format(emailAlert))
-            f.write('path = {}'.format(path))
+            f.write('port = {}'.format(port))
 
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
@@ -458,19 +458,32 @@ while True:
     currTime = datetime.datetime.fromtimestamp(time())
     window['Time'].update(currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
     
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if it is time to update the TC readings
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
-        update_alert("READING DATA") #inform user we are reading data
+        
+        #inform user we are reading data
+        update_alert("READING DATA") 
         window.refresh()
         
-        update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"))) #read TC, see if error is present
+        #read TC, see if error is present
+        update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord)) 
+        
         lastRead = currTime
         update_tc_nums()
+        
+        #only update graph if we are viewing the live plot and not charges
         if plotDisplay and not chargeDisplay:
+            #adjust view if looking at most recent point !!!!!!!!!DOESNT WORK!!!!!!!!!
+            if right == maxTime :
+                right += 1
+                left -= 1
             plt.clf()
             display_graph(logFile)
             update_graph_view()
-    
+            
+            
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if event == 'Main Screen': #RETURN TO MAIN SCREEN
         plotDisplay = False
         chargeDisplay = False
@@ -596,7 +609,7 @@ while True:
                     values['TempIn'] = '0' + str(values['TempIn']) #zero pad for charge log
             if values['TimeIn'] and 50 > int(values['TimeIn']) > 0:
                 dCheck = True
-                
+            
             #If all the inputs are good, record the charge    
             if cCheck and tCheck and dCheck:
                 chargeRecord = values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
