@@ -1,66 +1,54 @@
+#include "max6675.h" // max6675.h file is part of the library that you should download from Robojax.com
 
-//define analog pins for code clarity
-#define TC1 A5
-#define TC2 A4
-#define TC3 A3
-#define TC4 A2
-#define TC5 A1
-#define TC6 A0
+int soPin1 = 6;// SO = Serial Out for 1
+int soPin2 = 7;// SO = Serial Out for 1
+int soPin3 = 8;// SO = Serial Out for 1
+int soPin4 = 9;// SO = Serial Out for 1
+int soPin5 = 10;// SO = Serial Out for 1
+int soPin6 = 11;// SO = Serial Out for 1
 
-int r1[] = {0,0,0,0,0,0};
-int tcList[] = {TC1,TC2,TC3,TC4,TC5,TC6};
-int sample = 25
-String printString = "";
-  
+int csPin123 = 2;// CS = chip select CS pin for 1 2 3
+int ckPin123 = 3;// SCK = Serial Clock pin for 1 2 3
+
+int csPin456 = 4;// CS = chip select CS pin for 4 5 6
+int ckPin456 = 5;// SCK = Serial Clock pin for 4 5 6
+
+MAX6675 TC1(ckPin123, csPin123, soPin1);
+MAX6675 TC2(ckPin123, csPin123, soPin2);
+MAX6675 TC3(ckPin123, csPin123, soPin3);
+MAX6675 TC4(ckPin456, csPin456, soPin4);
+MAX6675 TC5(ckPin456, csPin456, soPin5);
+MAX6675 TC6(ckPin456, csPin456, soPin6);
+
+double corr = 00.0; //Correction value
+
 void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-  pinMode(LED_BUILTIN, OUTPUT);
 
-  //setup the pins to default high
-  pinMode(TC1, INPUT_PULLUP);
-  pinMode(TC2, INPUT_PULLUP);
-  pinMode(TC3, INPUT_PULLUP);
-  pinMode(TC4, INPUT_PULLUP);
-  pinMode(TC5, INPUT_PULLUP);
-  pinMode(TC6, INPUT_PULLUP);
+          
+  Serial.begin(9600);// initialize serial monitor with 9600 baud
 
- //for monitoring the inputs
- Serial.begin(9600);
-
- //thermocouple voltage is very low, reference will be about 100mV
- analogReference(EXTERNAL);
 }
-
 
 void loop() {
-  digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+  // basic readout test, just print the current temp
+  
+   Serial.print("TC1: F = "); 
+   Serial.println(corr + TC1.readFahrenheit());
+   Serial.print("TC2: F = "); 
+   Serial.println(corr + TC2.readFahrenheit());
+   Serial.print("TC3: F = "); 
+   Serial.println(corr + TC3.readFahrenheit());
+   Serial.print("TC4: F = "); 
+   Serial.println(corr + TC4.readFahrenheit());
+   Serial.print("TC5: F = "); 
+   Serial.println(corr + TC5.readFahrenheit());
+   Serial.print("TC6: F = "); 
+   Serial.println(corr + TC6.readFahrenheit());
 
-  //Loop through each thermocouple
-  for(int i=0; i<6; i++) {
-    r1[i] = 0 //reset reading
 
-    //Sample input to average
-    for(int j=0;j<sample;j++) {
-      r1[i] += analogRead(tcList[i]);
-      delay(50);
-    }
-    
-    r1[i] /= sample; //average reading
-    printString = String("TC") + (i+1) + ": " + r1[i];
-    Serial.println(printString); //print reading
-  }
-  Serial.println("=================================");
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(2000);                       // wait for a second
+   Serial.println("###########################################");
+   
+   delay(1000);
 }
 
-
-
-
-/*~~~~~REFERENCES~~~~~
- * https://pythonforundergradengineers.com/python-arduino-potentiometer.html
- * https://www.arduino.cc/en/Reference/AnalogReference&
- * https://www.pyromation.com/downloads/data/emfk_f.pdf
- * 
- * /
- */
+// https://electropeak.com/learn/interfacing-max6675-k-type-thermocouple-module-with-arduino/
