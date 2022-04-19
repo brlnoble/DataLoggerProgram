@@ -34,7 +34,7 @@ def read_settings():
     global emailSend
     global emailAlert
     global port
-    readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
+    readInterval = 1 #int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
     maxRecords = int(GC.get_settings('MaxRecords', path))
@@ -75,19 +75,19 @@ def update_tc_nums():
             
     
 # ~~~~~Update settings window~~~~~
-def update_settings_display():
-    event, values = window.read(timeout=100)
-    window['interval'].update(value = GC.get_settings('Interval', path))
-    window['temp'].update(value = tempWarn)
-    window['logFile'].update(value = logFile)
-    window['maxRecords'].update(value = maxRecords)
-    window['email'].update(value = emailSend)
-    window['sPort'].update(value = port)
+# def update_settings_display():
+#     event, values = window.read(timeout=100)
+#     window['interval'].update(value = GC.get_settings('Interval', path))
+#     window['temp'].update(value = tempWarn)
+#     window['logFile'].update(value = logFile)
+#     window['maxRecords'].update(value = maxRecords)
+#     window['email'].update(value = emailSend)
+#     window['sPort'].update(value = port)
     
-    if emailAlert == 'True':
-        window['eBut'].update(value = True)
-    else:
-        window['eBut'].update(value = False)
+#     if emailAlert == 'True':
+#         window['eBut'].update(value = True)
+#     else:
+#         window['eBut'].update(value = False)
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -132,46 +132,46 @@ def update_graph_view():
     
     
 # ~~~~~Update recording status~~~~~
-def update_record(change):
+# def update_record(change):
     
-    if chargeRecord != 'N':    
-        #Alert the user it is recording
-        window['RecordAlert'].update('Currently Recording: ' + chargeRecord)
-        window['RecordAlert'].update(background_color='#02AB29')
+#     if chargeRecord != 'N':    
+#         #Alert the user it is recording
+#         window['RecordAlert'].update('Currently Recording: ' + chargeRecord)
+#         window['RecordAlert'].update(background_color='#02AB29')
         
-        #Update the button to stop recording
-        window['cRecord'].update('Stop Recording')
-        window['cRecord'].update(button_color='#F5273A')
+#         #Update the button to stop recording
+#         window['cRecord'].update('Stop Recording')
+#         window['cRecord'].update(button_color='#F5273A')
         
-        #Disable changing the input boxes
-        window['ChargeIn'].update(disabled=True)
-        window['TempIn'].update(disabled=True)
-        window['TimeIn'].update(disabled=True)
-    else:
-        #Remove alert for the user
-        window['RecordAlert'].update('')
-        window['RecordAlert'].update(background_color='#EEE')
+#         #Disable changing the input boxes
+#         window['ChargeIn'].update(disabled=True)
+#         window['TempIn'].update(disabled=True)
+#         window['TimeIn'].update(disabled=True)
+#     else:
+#         #Remove alert for the user
+#         window['RecordAlert'].update('')
+#         window['RecordAlert'].update(background_color='#EEE')
         
-        #Update the button to stop recording
-        window['cRecord'].update('Record')
-        window['cRecord'].update(button_color='#02AB29')
+#         #Update the button to stop recording
+#         window['cRecord'].update('Record')
+#         window['cRecord'].update(button_color='#02AB29')
         
-        #Disable changing the input boxes
-        window['ChargeIn'].update(disabled=False)
-        window['TempIn'].update(disabled=False)
-        window['TimeIn'].update(disabled=False)
+#         #Disable changing the input boxes
+#         window['ChargeIn'].update(disabled=False)
+#         window['TempIn'].update(disabled=False)
+#         window['TimeIn'].update(disabled=False)
         
-    if change:
-        #Update settings file
-        with open(path + 'Settings.txt', 'w') as f:
-            f.write('intervalReading = {}\n'.format(readInterval))
-            f.write('tempWarning = {}\n'.format(tempWarn))
-            f.write('logFile = {}\n'.format(logFile))
-            f.write('maxLogRecords = {}\n'.format(maxRecords))
-            f.write('recordCharge = {}\n'.format(chargeRecord))
-            f.write('emailTo = {}\n'.format(emailSend))
-            f.write('enableEmail = {}\n'.format(emailAlert))
-            f.write('port = {}'.format(port))
+#     if change:
+#         #Update settings file
+#         with open(path + 'Settings.txt', 'w') as f:
+#             f.write('intervalReading = {}\n'.format(readInterval))
+#             f.write('tempWarning = {}\n'.format(tempWarn))
+#             f.write('logFile = {}\n'.format(logFile))
+#             f.write('maxLogRecords = {}\n'.format(maxRecords))
+#             f.write('recordCharge = {}\n'.format(chargeRecord))
+#             f.write('emailTo = {}\n'.format(emailSend))
+#             f.write('enableEmail = {}\n'.format(emailAlert))
+#             f.write('port = {}'.format(port))
 
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
@@ -269,7 +269,7 @@ minZoom = 5
 left = 0
 right = 0
 maxTime = 0
-stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
+stepSize = 1 
 graphSize = (1200, 600)
 
 
@@ -307,29 +307,29 @@ wMain = [
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-wSet = [  
-            [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
+# wSet = [  
+#             [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
             
-            [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
-            [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
-            
-            
-            [sg.Text('',font=font,pad=(0,30))], #spacing
-            [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
-            
-            [sg.Text('Alert Emails:',size=(14,1), font=font), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
-            [sg.Checkbox('Enable Alerts',key='eBut',font=font,size=(10,2),enable_events=True)],
-            
-            [sg.Text('',font=font,pad=(0,30))], #spacing
-            [sg.Text('Log File (.csv):',size=(15,1), font=font), sg.Input(key='logFile', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Serial Port:',size=(15,1), font=font), sg.Input(key='sPort', enable_events=True,size=(15,1), font=font)],
-            
-            [sg.Text('',key='tips')],
-            [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=butFont, button_color='#F5273A'), sg.Push()],
+#             [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
+#             [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
             
             
-        ]
+#             [sg.Text('',font=font,pad=(0,30))], #spacing
+#             [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
+            
+#             [sg.Text('Alert Emails:',size=(14,1), font=font), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
+#             [sg.Checkbox('Enable Alerts',key='eBut',font=font,size=(10,2),enable_events=True)],
+            
+#             [sg.Text('',font=font,pad=(0,30))], #spacing
+#             [sg.Text('Log File (.csv):',size=(15,1), font=font), sg.Input(key='logFile', enable_events=True,size=(15,1), font=font)],
+#             [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
+#             [sg.Text('Serial Port:',size=(15,1), font=font), sg.Input(key='sPort', enable_events=True,size=(15,1), font=font)],
+            
+#             [sg.Text('',key='tips')],
+#             [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=butFont, button_color='#F5273A'), sg.Push()],
+            
+            
+#         ]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -349,11 +349,11 @@ tcGraph = [
         ]
 
 #Input boxes at top left
-inputFormat = [
-            [sg.Text('Charge Number:',size=(15,1), font=font), sg.Input(key='ChargeIn', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Temperature:',size=(15,1), font=font), sg.Input(key='TempIn', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Duration:',size=(15,1), font=font), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font)],
-    ]
+# inputFormat = [
+#             [sg.Text('Charge Number:',size=(15,1), font=font), sg.Input(key='ChargeIn', enable_events=True,size=(15,1), font=font)],
+#             [sg.Text('Temperature:',size=(15,1), font=font), sg.Input(key='TempIn', enable_events=True,size=(15,1), font=font)],
+#             [sg.Text('Duration:',size=(15,1), font=font), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font)],
+#     ]
 
 #Submit/exit boxes at top right
 topButFormat = [
@@ -373,9 +373,9 @@ scrollButFormat = [
 
 # ~~~~~MAIN LAYOUT OF THE WHOLE SCREEN~~~~~
 wLog = [  
-            [sg.Column([
-                [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='cRecord',size=(10,2), font=butFont, button_color='#02AB29')]])],
-                ],key='logInput')],
+            # [sg.Column([
+            #     [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='cRecord',size=(10,2), font=butFont, button_color='#02AB29')]])],
+            #     ],key='logInput')],
             [sg.Text('',font=butFont,key='cDesc')],
             
             #Plotting stuff
@@ -418,14 +418,14 @@ wCharge = [
 
 tab_group = [
     [sg.Tab("Main", wMain, key="Main",element_justification='c',background_color='#EEEEEE')],
-    [sg.Tab("Settings", wSet, key="Set",element_justification='c',background_color='#EEEEEE')],
+    # [sg.Tab("Settings", wSet, key="Set",element_justification='c',background_color='#EEEEEE')],
     [sg.Tab("Logging", wLog, key="Log",element_justification='c',background_color='#EEEEEE')],
     [sg.Tab("Charge", wCharge, key="Charge",element_justification='c',background_color='#EEEEEE')],
 ]
 
 layout = [
     [sg.Text(key='RecordAlert',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))],
-    [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,20)),sg.Button('Main Screen',size=(10,2), font=butFont, button_color='#F5273A',visible=False)],
+    [sg.Text('DATA LOGGER VIEWER', key='Title', font=titleFont,pad=(0,20)),sg.Button('Main Screen',size=(10,2), font=butFont, button_color='#F5273A',visible=False)],
     [sg.Text(key='Time',font=butFont)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
@@ -462,12 +462,12 @@ while True:
         #Check if it is time to update the TC readings
         if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
             
-            #inform user we are reading data
-            update_alert("READING DATA") 
-            window.refresh()
+            # #inform user we are reading data
+            # update_alert("READING DATA") 
+            # window.refresh()
             
-            #read TC, see if error is present
-            update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord)) 
+            # #read TC, see if error is present
+            # update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord)) 
             
             lastRead = currTime
             update_tc_nums()
@@ -501,9 +501,9 @@ while True:
             window['Main Screen'].update(visible=True)
             window['Title'].update(visible=False)
             window["Log"].select()
-            window['logInput'].update(visible = True)
+            # window['logInput'].update(visible = True)
             window['cDesc'].update(visible=False)
-            window['cRecord'].update(disabled=False)
+            # window['cRecord'].update(disabled=False)
             activeScreen = 'Log'
             
             if plotDisplay == False: #If not currently displaying plot, basically only run on startup
@@ -580,58 +580,58 @@ while True:
          
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~RECORDING A CHARGE~~~~~
-            elif event == 'ChargeIn' and values['ChargeIn'] and (values['ChargeIn'][-1] not in ('0123456789') or len(values['ChargeIn']) > 5):
-                window['ChargeIn'].update(values['ChargeIn'][:-1])
+            # elif event == 'ChargeIn' and values['ChargeIn'] and (values['ChargeIn'][-1] not in ('0123456789') or len(values['ChargeIn']) > 5):
+            #     window['ChargeIn'].update(values['ChargeIn'][:-1])
                 
-            elif event == 'TempIn' and values['TempIn'] and (values['TempIn'][-1] not in ('0123456789') or len(values['TempIn']) > 4):
-                window['TempIn'].update(values['TempIn'][:-1])
+            # elif event == 'TempIn' and values['TempIn'] and (values['TempIn'][-1] not in ('0123456789') or len(values['TempIn']) > 4):
+            #     window['TempIn'].update(values['TempIn'][:-1])
                 
-            elif event == 'TimeIn' and values['TimeIn'] and (values['TimeIn'][-1] not in ('0123456789') or len(values['TimeIn']) >4):
-                window['TimeIn'].update(values['TimeIn'][:-1])
+            # elif event == 'TimeIn' and values['TimeIn'] and (values['TimeIn'][-1] not in ('0123456789') or len(values['TimeIn']) >4):
+            #     window['TimeIn'].update(values['TimeIn'][:-1])
             
             
-            #Recording a new charge
-            elif event == 'cRecord' and chargeRecord == 'N':
-                #Verify inputs
-                cCheck = False
-                tCheck = False
-                dCheck = False
+            # #Recording a new charge
+            # elif event == 'cRecord' and chargeRecord == 'N':
+            #     #Verify inputs
+            #     cCheck = False
+            #     tCheck = False
+            #     dCheck = False
                 
-                if values['ChargeIn'] and len(values['ChargeIn']) == 5:
-                    if(GC.check_charge(values['ChargeIn'], path + 'Charges\\')):
-                        cCheck = True
-                    else:
-                        sg.popup('This charge number is already in use!',font=font,keep_on_top=True)
+            #     if values['ChargeIn'] and len(values['ChargeIn']) == 5:
+            #         if(GC.check_charge(values['ChargeIn'], path + 'Charges\\')):
+            #             cCheck = True
+            #         else:
+            #             sg.popup('This charge number is already in use!',font=font,keep_on_top=True)
                         
-                if values['TempIn'] and int(values['TempIn']) > 0:
-                    tCheck = True
-                    if len(values['TempIn']) < 4:
-                        values['TempIn'] = '0' + str(values['TempIn']) #zero pad for charge log
-                if values['TimeIn'] and 50 > int(values['TimeIn']) > 0:
-                    dCheck = True
+            #     if values['TempIn'] and int(values['TempIn']) > 0:
+            #         tCheck = True
+            #         if len(values['TempIn']) < 4:
+            #             values['TempIn'] = '0' + str(values['TempIn']) #zero pad for charge log
+            #     if values['TimeIn'] and 50 > int(values['TimeIn']) > 0:
+            #         dCheck = True
                 
-                #If all the inputs are good, record the charge    
-                if cCheck and tCheck and dCheck:
-                    chargeRecord = values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
+            #     #If all the inputs are good, record the charge    
+            #     if cCheck and tCheck and dCheck:
+            #         chargeRecord = values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
                     
-                    update_record(True)
+            #         update_record(True)
                     
                     
-                elif not cCheck:
-                    sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True)
-                elif not tCheck:
-                    sg.popup('Please input a temperature.',font=font,keep_on_top=True)
-                elif not dCheck:
-                    sg.popup('Please input a duration less than 50 hours.',font=font,keep_on_top=True)
+            #     elif not cCheck:
+            #         sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True)
+            #     elif not tCheck:
+            #         sg.popup('Please input a temperature.',font=font,keep_on_top=True)
+            #     elif not dCheck:
+            #         sg.popup('Please input a duration less than 50 hours.',font=font,keep_on_top=True)
             
                     
             
-            #If stopping charge recording
-            elif event == 'cRecord' and chargeRecord != 'N':
-                chargeRecord = 'N'
+            # #If stopping charge recording
+            # elif event == 'cRecord' and chargeRecord != 'N':
+            #     chargeRecord = 'N'
                 
-                update_record(True)
-                sg.popup('Recording cancelled.',font=font,keep_on_top=True)
+            #     update_record(True)
+            #     sg.popup('Recording cancelled.',font=font,keep_on_top=True)
             
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -643,7 +643,7 @@ while True:
             
         elif event == 'Select' and values['cList']:
             window["Log"].select()
-            window['logInput'].update(visible = False)
+            # window['logInput'].update(visible = False)
             window['cDesc'].update(visible=True)
             window['cDesc'].update('You are viewing: ' + str(values['cList'][0]))
             activeScreen = 'Log'
@@ -664,86 +664,85 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         elif event == "Settings": #Switch to settings window
-            window['Main Screen'].update(visible=True)
-            window['Title'].update(visible=False)
-            window["Set"].select()
-            update_settings_display()
-            activeScreen = 'Settings'
+            sg.popup("You may not change settings on this computer.",font=titleFont,keep_on_top=True)
+        #     window['Main Screen'].update(visible=True)
+        #     window['Title'].update(visible=False)
+        #     window["Set"].select()
+        #     update_settings_display()
+        #     activeScreen = 'Settings'
             
-        elif activeScreen == 'Settings':
+        # elif activeScreen == 'Settings':
         
-            if event == "Cancel": #Return from settings window
-                window["Main"].select()
-                window['Main Screen'].update(visible=False)
-                window['Title'].update(visible=True)
+        #     if event == "Cancel": #Return from settings window
+        #         window["Main"].select()
+        #         window['Main Screen'].update(visible=False)
+        #         window['Title'].update(visible=True)
                 
-            elif event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
-                window['interval'].update(values['interval'][:-1])
+        #     elif event == 'interval' and values['interval'] and values['interval'][-1] not in ('0123456789'):
+        #         window['interval'].update(values['interval'][:-1])
                 
-            elif event == 'temp' and values['temp'] and values['temp'][-1] not in ('0123456789'):
-                window['temp'].update(values['temp'][:-1])
+        #     elif event == 'temp' and values['temp'] and values['temp'][-1] not in ('0123456789'):
+        #         window['temp'].update(values['temp'][:-1])
                 
-            elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
-                window['maxRecords'].update(values['maxRecords'][:-1])
+        #     elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
+        #         window['maxRecords'].update(values['maxRecords'][:-1])
                 
                 
-            elif event == 'Submit':
+        #     elif event == 'Submit':
                 
-                #VERIFY THE FILE EXISTS
-                file_exists = GC.does_this_exist(values['logFile'])
+        #         #VERIFY THE FILE EXISTS
+        #         file_exists = GC.does_this_exist(values['logFile'])
                 
-                #VERIFY INTERVAL WAS INPUT
-                int_exists = True
-                if values['interval'] == '' or int(values['interval']) > 100:
-                    int_exists = False
+        #         #VERIFY INTERVAL WAS INPUT
+        #         int_exists = True
+        #         if values['interval'] == '' or int(values['interval']) > 100:
+        #             int_exists = False
                     
-                #VERIFY TEMP WAS INPUT
-                temp_exists = True
-                if values['temp'] == '' or int(values['temp']) > 3000:
-                    temp_exists = False
+        #         #VERIFY TEMP WAS INPUT
+        #         temp_exists = True
+        #         if values['temp'] == '' or int(values['temp']) > 3000:
+        #             temp_exists = False
                     
-                #VERIFY RECORDS WAS INPUT
-                maxR_exists = True
-                if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
-                    maxR_exists = False
+        #         #VERIFY RECORDS WAS INPUT
+        #         maxR_exists = True
+        #         if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
+        #             maxR_exists = False
                     
-                #VERIFY PORT WAS INPUT
-                port_exists = True
-                if values['sPort'] == '':
-                   port_exists = False
+        #         #VERIFY PORT WAS INPUT
+        #         port_exists = True
+        #         if values['sPort'] == '':
+        #            port_exists = False
                 
-                #SAVE THE FILE
-                if file_exists and int_exists and temp_exists and maxR_exists:
-                    with open(path + 'Settings.txt', 'w') as f:
-                        f.write('intervalReading = {}\n'.format(values['interval']))
-                        f.write('tempWarning = {}\n'.format(values['temp']))
-                        f.write('logFile = {}\n'.format(values['logFile']))
-                        f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
-                        f.write('recordCharge = {}\n'.format(chargeRecord))
-                        f.write('emailTo = {}\n'.format(values['email']))
-                        f.write('enableEmail = {}\n'.format(values['eBut']))
-                        f.write('port = {}'.format(values['sPort']))
-                    read_settings()
-                    sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
-                    window['Main Screen'].update(visible=False)
-                    window['Title'].update(visible=True)
-                    window["Main"].select()
+        #         #SAVE THE FILE
+        #         if file_exists and int_exists and temp_exists and maxR_exists:
+        #             with open(path + 'Settings.txt', 'w') as f:
+        #                 f.write('intervalReading = {}\n'.format(values['interval']))
+        #                 f.write('tempWarning = {}\n'.format(values['temp']))
+        #                 f.write('logFile = {}\n'.format(values['logFile']))
+        #                 f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
+        #                 f.write('recordCharge = {}\n'.format(chargeRecord))
+        #                 f.write('emailTo = {}\n'.format(values['email']))
+        #                 f.write('enableEmail = {}\n'.format(values['eBut']))
+        #                 f.write('port = {}'.format(values['sPort']))
+        #             read_settings()
+        #             sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
+        #             window['Main Screen'].update(visible=False)
+        #             window['Title'].update(visible=True)
+        #             window["Main"].select()
                     
                     
-                #ERROR MESSAGES
-                elif not file_exists:
-                    sg.popup('This file does not exist!',keep_on_top=True)
+        #         #ERROR MESSAGES
+        #         elif not file_exists:
+        #             sg.popup('This file does not exist!',keep_on_top=True)
                 
-                elif not int_exists:
-                    sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
+        #         elif not int_exists:
+        #             sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
                 
-                elif not temp_exists:
-                    sg.popup('Please input a temperature less than 3000°F',keep_on_top=True)
+        #         elif not temp_exists:
+        #             sg.popup('Please input a temperature less than 3000°F',keep_on_top=True)
                     
-                elif not maxR_exists:
-                    sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True)
-        
-        
+        #         elif not maxR_exists:
+        #             sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True)
         
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ERROR HANDLING  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -761,7 +760,7 @@ while True:
         elif str(err)[:10] == "[Errno 13]":
             sg.popup("~~ERROR~~\nThe log file is open! Please close it to continue.\nTrying again in 30s.",font=font,keep_on_top=True)
             lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-30)) #try again in 30s
-        else: #catch all
+        else:
             sg.popup("~~ERROR~~\n" + str(err),font=font,keep_on_top=True)
         
 window.close()
