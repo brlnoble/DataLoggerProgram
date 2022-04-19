@@ -34,7 +34,7 @@ def read_settings():
     global emailSend
     global emailAlert
     global port
-    readInterval = 1 #int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
+    readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
     logFile = GC.get_settings('LogFile', path)
     maxRecords = int(GC.get_settings('MaxRecords', path))
@@ -132,47 +132,39 @@ def update_graph_view():
     
     
 # ~~~~~Update recording status~~~~~
-# def update_record(change):
+def update_record(change):
     
-#     if chargeRecord != 'N':    
-#         #Alert the user it is recording
-#         window['RecordAlert'].update('Currently Recording: ' + chargeRecord)
-#         window['RecordAlert'].update(background_color='#02AB29')
+    if chargeRecord != 'N':    
+        #Alert the user it is recording
+        window['RecordAlert'].update('Currently Recording: ' + chargeRecord[3:])
+        window['RecordAlert'].update(background_color='#02AB29')
         
-#         #Update the button to stop recording
-#         window['cRecord'].update('Stop Recording')
-#         window['cRecord'].update(button_color='#F5273A')
+        #Update the button to stop recording
+        window['cRecord'].update('Stop Recording')
+        window['cRecord'].update(button_color='#F5273A')
         
-#         #Disable changing the input boxes
-#         window['ChargeIn'].update(disabled=True)
-#         window['TempIn'].update(disabled=True)
-#         window['TimeIn'].update(disabled=True)
-#     else:
-#         #Remove alert for the user
-#         window['RecordAlert'].update('')
-#         window['RecordAlert'].update(background_color='#EEE')
+        #Disable changing the input boxes
+        window['ChargeIn'].update(disabled=True)
+        window['TempIn'].update(disabled=True)
+        window['TimeIn'].update(disabled=True)
+    else:
+        #Remove alert for the user
+        window['RecordAlert'].update('')
+        window['RecordAlert'].update(background_color='#EEE')
         
-#         #Update the button to stop recording
-#         window['cRecord'].update('Record')
-#         window['cRecord'].update(button_color='#02AB29')
+        #Update the button to stop recording
+        window['cRecord'].update('Record')
+        window['cRecord'].update(button_color='#02AB29')
         
-#         #Disable changing the input boxes
-#         window['ChargeIn'].update(disabled=False)
-#         window['TempIn'].update(disabled=False)
-#         window['TimeIn'].update(disabled=False)
+        #Disable changing the input boxes
+        window['ChargeIn'].update(disabled=False)
+        window['TempIn'].update(disabled=False)
+        window['TimeIn'].update(disabled=False)
         
-#     if change:
-#         #Update settings file
-#         with open(path + 'Settings.txt', 'w') as f:
-#             f.write('intervalReading = {}\n'.format(readInterval))
-#             f.write('tempWarning = {}\n'.format(tempWarn))
-#             f.write('logFile = {}\n'.format(logFile))
-#             f.write('maxLogRecords = {}\n'.format(maxRecords))
-#             f.write('recordCharge = {}\n'.format(chargeRecord))
-#             f.write('emailTo = {}\n'.format(emailSend))
-#             f.write('enableEmail = {}\n'.format(emailAlert))
-#             f.write('port = {}'.format(port))
-
+    if change:
+        #Update settings file
+        GC.update_settings(path, readInterval, tempWarn, logFile, maxRecords, chargeRecord, emailSend, emailAlert, port)
+        
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
 def display_graph(fileName):
@@ -227,9 +219,6 @@ def display_graph(fileName):
     plt.ylim([0,1200]) #initial limits Y
     plt.grid(visible=True)
     
-    #Adjust the legend to be above the graph
-    #l4 = plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6,frameon=False)
-    
     #Display the plot
     global plotDisplay
     plotDisplay = True #flag to prevent moving plot before it is shown
@@ -253,9 +242,15 @@ sg.theme_background_color('#EEE')
 
 # ~~~~~VARIABLES~~~~~
 read_settings() #Get current settings
+
+if chargeRecord != "N": #cancel any charge that was recording before
+    chargeRecord = "N"
+    GC.update_settings(path, readInterval, tempWarn, logFile, maxRecords, chargeRecord, emailSend, emailAlert, port)
+
 currTime = datetime.datetime.fromtimestamp(time()) #used for clock
 lastRead = currTime - datetime.timedelta(seconds=(readInterval*60))
-
+emailTry = bool(emailAlert) #if we should be sending emails
+chargeEnd = currTime
 
 plotDisplay = False #flag for the plot display
 chargeDisplay = False #flag for the charge view
@@ -269,7 +264,7 @@ minZoom = 5
 left = 0
 right = 0
 maxTime = 0
-stepSize = 1 
+stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
 graphSize = (1200, 600)
 
 
@@ -355,11 +350,6 @@ tcGraph = [
 #             [sg.Text('Duration:',size=(15,1), font=font), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font)],
 #     ]
 
-#Submit/exit boxes at top right
-topButFormat = [
-            
-    ]
-
 #Zoom buttons
 zoomButFormat = [
             [sg.Button('+',key="ZoomIn",size=(5,1), font=iconFont), sg.Button('-',key="ZoomOut",size=(5,1), font=iconFont)]
@@ -430,7 +420,7 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
-window = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c').Finalize()
+window = sg.Window("Data Logger Viewer", layout, no_titlebar = False, keep_on_top=False, location=(0, 0), element_justification='c').Finalize()
 window.Maximize()
 
 style = ttk.Style()
@@ -443,7 +433,6 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MAIN LOOP  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# event, values = window.read(timeout=100)
 
 
 while True:
@@ -460,18 +449,18 @@ while True:
         
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #Check if it is time to update the TC readings
-        if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+        if currTime - datetime.timedelta(seconds=(10)) > lastRead:
             
-            # #inform user we are reading data
-            # update_alert("READING DATA") 
-            # window.refresh()
+            #inform user we are reading data
+            update_alert("READING DATA") 
+            window.refresh()
             
-            # #read TC, see if error is present
-            # update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord)) 
+            #read TC, see if error is present
+            # update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord[3:])) 
             
             lastRead = currTime
             update_tc_nums()
-            
+            update_alert("")
             #only update graph if we are viewing the live plot and not charges
             if plotDisplay and not chargeDisplay:
                 #adjust view if looking at most recent point !!!!!!!!!DOESNT WORK!!!!!!!!!
@@ -481,6 +470,15 @@ while True:
                 plt.clf()
                 display_graph(logFile)
                 update_graph_view()
+                
+            #see if a charge is recording and needs to be finished
+            # if chargeRecord != "N": 
+            #     if currTime > chargeEnd:
+            #         chargeRecord = 'N'
+            #         chargeEnd = currTime
+            #         update_record(True)
+            #         print("1")
+                
                 
                 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -612,8 +610,8 @@ while True:
                 
             #     #If all the inputs are good, record the charge    
             #     if cCheck and tCheck and dCheck:
-            #         chargeRecord = values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
-                    
+            #         chargeRecord = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
+            #         chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
             #         update_record(True)
                     
                     
@@ -664,11 +662,11 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         elif event == "Settings": #Switch to settings window
-            sg.popup("You may not change settings on this computer.",font=titleFont,keep_on_top=True)
+            sg.popup("You may not change settings on this computer.",font=font,keep_on_top=True)
         #     window['Main Screen'].update(visible=True)
         #     window['Title'].update(visible=False)
         #     window["Set"].select()
-        #     update_settings_display()
+        #     # update_settings_display()
         #     activeScreen = 'Settings'
             
         # elif activeScreen == 'Settings':
@@ -715,15 +713,7 @@ while True:
                 
         #         #SAVE THE FILE
         #         if file_exists and int_exists and temp_exists and maxR_exists:
-        #             with open(path + 'Settings.txt', 'w') as f:
-        #                 f.write('intervalReading = {}\n'.format(values['interval']))
-        #                 f.write('tempWarning = {}\n'.format(values['temp']))
-        #                 f.write('logFile = {}\n'.format(values['logFile']))
-        #                 f.write('maxLogRecords = {}\n'.format(values['maxRecords']))
-        #                 f.write('recordCharge = {}\n'.format(chargeRecord))
-        #                 f.write('emailTo = {}\n'.format(values['email']))
-        #                 f.write('enableEmail = {}\n'.format(values['eBut']))
-        #                 f.write('port = {}'.format(values['sPort']))
+        #             GC.update_settings(path, values['interval'], values['temp'], values['logFile'], values['maxRecords'], chargeRecord, values['email'], values['eBut'], values['sPort'])
         #             read_settings()
         #             sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
         #             window['Main Screen'].update(visible=False)
@@ -744,6 +734,8 @@ while True:
         #         elif not maxR_exists:
         #             sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True)
         
+        
+        
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ERROR HANDLING  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
@@ -760,7 +752,7 @@ while True:
         elif str(err)[:10] == "[Errno 13]":
             sg.popup("~~ERROR~~\nThe log file is open! Please close it to continue.\nTrying again in 30s.",font=font,keep_on_top=True)
             lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-30)) #try again in 30s
-        else:
+        else: #catch all
             sg.popup("~~ERROR~~\n" + str(err),font=font,keep_on_top=True)
         
 window.close()
@@ -769,9 +761,9 @@ window.close()
 
 
 # ~~~~~ References ~~~~~
-# https://github.com/PySimpleGUI/PySimpleGUI/issues/3946                        Tab groups and hiding tabs
-# https://stackoverflow.com/questions/29990995/arduino-switch-with-chars        Serial read with python
+# https://github.com/PySimpleGUI/PySimpleGUI/issues/3946                                        Tab groups and hiding tabs
+# https://stackoverflow.com/questions/29990995/arduino-switch-with-chars                        Serial read with python
+# https://electropeak.com/learn/interfacing-max6675-k-type-thermocouple-module-with-arduino/    Read thermocouples
 
 # ~~~~~ Compile ~~~~~
-#pyinstaller -wF --splash=splashLoad.jpg FullProgram.py
 #pyinstaller -wF --splash=splashLoad.jpg --icon=test.ico FullProgram.py
