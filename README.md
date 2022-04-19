@@ -7,18 +7,20 @@ The goal for this project was to create a simple data logger to record and graph
 Using an Arduino Uno and Python, I hope to complete this in as simple a manner as possible to ensure ease of repairability for after I complete my internship.
 
 ## General Goals
-- [ ] Read data from thermocouples
-- [X] Record data at a given interval to a .csv file
+- [X] Read data from thermocouples (using six MAX6675 K-type thermocouple amplifiers)
+- [ ] Record data at a given interval to a .csv file
 - [X] Save settings in a .txt file for access and modification
 - [X] Simple and intuitive UI based upon PySimpleGUI
-- [X] Allow users to start and stop charge recording to save graphs
+- [ ] Allow users to start and stop charge recording to save graphs
 - [X] Access and use program from computer
 - [X] Email alerts when temperature exceeds a set limit
+- [ ] Main program for recording, changing settings, and viewing (FullProgram.py)
+- [ ] Viewer program only for seeing current readouts and past charges (ViewingProgram.py)
 
 
 
 ## Program Screens
-- [ ] Main screen with options to:
+- [X] Main screen with options to:
   - [X] Change current settings
   - [X] View current readout (numerics) at locations within furnace (see Furnace.png, open side is door)
   - [X] View current readout button (graphically)
@@ -53,3 +55,12 @@ Error reading data
 ## Current Charge Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicChargeScreen-08-04-22.jpg" width="400"> 
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLogScreen-08-04-22.jpg" width="800">
+
+## Error Handling
+- [X] Serial communication:
+  - [X] Notify user if no Arduino is connected on the selected port
+  - [X] Notify if unable to send signal to Arduino
+  - [X] Notify if unable to receive signal from Arduino
+- [X] Inform user if log file is open and cannot be written to
+- [X] Charge cannot be viewed because of missing data
+- [ ] Thermocouples not reading values, returning NaN
