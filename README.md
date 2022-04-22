@@ -8,13 +8,13 @@ Using an Arduino Uno and Python, I hope to complete this in as simple a manner a
 
 ## General Goals
 - [X] Read data from thermocouples (using six MAX6675 K-type thermocouple amplifiers)
-- [ ] Record data at a given interval to a .csv file
+- [X] Record data at a given interval to a .csv file
 - [X] Save settings in a .txt file for access and modification
 - [X] Simple and intuitive UI based upon PySimpleGUI
-- [ ] Allow users to start and stop charge recording to save graphs
+- [X] Allow users to start and stop charge recording to save graphs
 - [X] Access and use program from computer
 - [X] Email alerts when temperature exceeds a set limit
-- [ ] Main program for recording, changing settings, and viewing (FullProgram.py)
+- [X] Main program for recording, changing settings, and viewing (FullProgram.py)
 - [ ] Viewer program only for seeing current readouts and past charges (ViewingProgram.py)
 
 
