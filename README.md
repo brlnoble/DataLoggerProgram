@@ -56,6 +56,9 @@ Error reading data
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicChargeScreen-08-04-22.jpg" width="400"> 
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLogScreen-08-04-22.jpg" width="800">
 
+## First Trial Run 22-04-22
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/FirstTrial-22-04-22.jpg" width="400"> 
+
 ## Error Handling
 - [X] Serial communication:
   - [X] Notify user if no Arduino is connected on the selected port
