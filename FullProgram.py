@@ -480,7 +480,6 @@ while True:
                     chargeRecord = 'N'
                     chargeEnd = currTime
                     update_record(True)
-                    print("1")
                 
                 
                 
@@ -726,7 +725,7 @@ while True:
                 #ERROR MESSAGES
                 elif not file_exists:
                     sg.popup('This file does not exist!',keep_on_top=True)
-                
+                    
                 elif not int_exists:
                     sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
                 
@@ -748,14 +747,14 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            sg.popup("~~ERROR~~\nCharge file contains no headers.",font=font,keep_on_top=True)
+            sg.popup("~~err4~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True)
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            sg.popup("~~ERROR~~\nInvalid date in charge file.",font=font,keep_on_top=True)
+            sg.popup("~~err5~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True)
         elif str(err)[:10] == "[Errno 13]":
-            sg.popup("~~ERROR~~\nThe log file is open! Please close it to continue.\nTrying again in 30s.",font=font,keep_on_top=True)
-            lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-30)) #try again in 30s
+            sg.popup("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 30s.",font=font,keep_on_top=True)
+            lastRead = currTime - datetime.timedelta(seconds=(30)) #try again in 30s
         else: #catch all
-            sg.popup("~~ERROR~~\n" + str(err),font=font,keep_on_top=True)
+            sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True)
         
 window.close()
 
@@ -766,7 +765,7 @@ window.close()
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/3946                                                Tab groups and hiding tabs
 # https://stackoverflow.com/questions/29990995/arduino-switch-with-chars                                Serial read with python
 # https://electropeak.com/learn/interfacing-max6675-k-type-thermocouple-module-with-arduino/            Read thermocouples
-# https://stackoverflow.com/questions/48134269/python-pyinstaller-bundle-image-in-gui-to-onefile-exe    Include photo in exe
+# https://stackoverflow.com/questions/48134269/python-pyinstaller-bundle-image-in-gui-to-onefile-exe    Include photo in EXE
 
 # ~~~~~ Compile ~~~~~
-#pyinstaller -wF --splash=splashLoad.jpg --icon=test.ico FullProgram.py
+#pyinstaller -wF --splash=splashLoad.jpg --icon=FireIcon.ico FullProgram.py

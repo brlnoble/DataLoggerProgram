@@ -62,15 +62,7 @@ def verify_settings(path):
         return True
     
     #Create file that could not be found
-    with open(path + 'Settings.txt', 'w') as f:
-       f.write('intervalReading = {}\n'.format(10))
-       f.write('tempWarning = {}\n'.format(1300))
-       f.write('logFile = {}'.format('AllTempLogs.csv\n'))
-       f.write('maxLogRecords = {}\n'.format(1000))
-       f.write('recordCharge = N\n')
-       f.write('emailTo = {}\n'.format('bbrindle@uniondrawn.com; intern@uniondrawn.com'))
-       f.write('enableEmail = {}\n'.format(True))
-       f.write('port = {}'.format('COM4'))
+    update_settings(path, 10, 1300, 'AllTempLogs.csv', 5000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'COM4')
     return False
 
 
@@ -111,7 +103,7 @@ def check_charge(charge,path):
     return True
 
 
-# ~~~~Send email~~~~~
+# ~~~~~Send email~~~~~
 def send_email(TC,temp,time):
     sendTo = get_settings('Email', get_path())
     
@@ -127,6 +119,18 @@ def send_email(TC,temp,time):
         print("Unable to send")
         return False
     
+# ~~~~~Update settings~~~~~
+def update_settings(path,intRead,tWarn,logFile,maxRecords,chargRec,emailTo,emailEnable,port):
+    with open(path + 'Settings.txt', 'w') as f:
+       f.write('intervalReading = {}\n'.format(intRead))
+       f.write('tempWarning = {}\n'.format(tWarn))
+       f.write('logFile = {}\n'.format(logFile))
+       f.write('maxLogRecords = {}\n'.format(maxRecords))
+       f.write('recordCharge = {}\n'.format(chargRec))
+       f.write('emailTo = {}\n'.format(emailTo))
+       f.write('enableEmail = {}\n'.format(emailEnable))
+       f.write('port = {}'.format(port))
+    
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -134,24 +138,26 @@ def send_email(TC,temp,time):
 # ~~~~~Read thermocouples~~~~~
 def read_tc(path, logFile, port, currTime, charge):
     tList = [currTime,0,0,0,0,0,0]
-    # print(path)
-    # print(logFile)
-    # print(port)
-    # print(currTime)
-    # print(charge)
+    
+    #see if the charge file needs to be created
+    if charge != "" and not does_this_exist(path+"Charges\\" + charge + ".csv"):
+        print("grrr")
+        with open(path+"Charges\\" + charge + ".csv",'w',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
     try:
         arduino = serial.Serial(port=port, baudrate=9600, timeout=3)
-        sleep(4) #wait for connection to establish
+        sleep(2) #wait for connection to establish
         
     #unable to connect to port    
     except:
-        tList = [currTime,-111,-111,-111,-111,-111,-111]
+        # tList = [currTime,-0111.1,-0111.1,-0111.1,-0111.1,-0111.1,-0111.1]
         
-        with open(path+logFile,'a',newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(tList)
+        # with open(path+logFile,'a',newline='') as f:
+        #     writer = csv.writer(f)
+        #     writer.writerow(tList)
         
-        if charge != 'N':
+        if charge != '':
             with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(tList)
@@ -164,13 +170,13 @@ def read_tc(path, logFile, port, currTime, charge):
         
     #unable to send data to port    
     except:
-        tList = [currTime,-222,-222,-222,-222,-222,-222]
+        tList = [currTime,-0222.2,-222.2,-0222.2,-0222.2,-0222.2,-0222.2]
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(tList)
             
-        if charge != 'N':
+        if charge != '':
             with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(tList)
@@ -180,31 +186,39 @@ def read_tc(path, logFile, port, currTime, charge):
     
     try:
         # for i in range(0,6):
-        sleep(1) #wait half a second before reading
+        sleep(0.5) #wait half a second before reading
         readings = arduino.readline().decode('UTF-8')[1:]
         arduino.close()
         
         #Clean up readings
         readings = readings.split("/")
         for i in range(1,7):
-            tList[i] = float(readings[i-1])
+            if readings[i-1] == "NaN":
+                tList[i] = -0555.55 #thermocouple disconnected
+            else:
+                tList[i] = float(readings[i-1])
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(tList)
+            
+        if charge != '':
+            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(tList)
         
         return '' #NO ERROR, READING SUCCESS
     
     #unable to read data from the port
     except:
         arduino.close()
-        tList = [currTime,-333,-333,-333,-333,-333,-333]
+        tList = [currTime,-0333.3,-0333.3,-0333.3,-0333.3,-0333.3,-0333.3]
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(tList)
             
-        if charge != 'N':
+        if charge != '':
             with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(tList)
