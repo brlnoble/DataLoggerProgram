@@ -56,7 +56,7 @@ void loop() {
             
             for(int i = 0; i<6; i++) {
               returnValue += "/";
-              if (anPins[i] = "NaN")
+              if (anPins[i] == " NAN")
               {
                 returnValue += "000.0";
               }
