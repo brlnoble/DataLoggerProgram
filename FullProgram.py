@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import pyi_splash #cannot from from Spyder, only when compiled to EXE
 
 import GeneralCommands as GC #Custom file
 
@@ -23,6 +24,7 @@ if not GC.verify_logs(path):
 
 #Imbed image as Base64 string so the EXE can be a standalone file
 furnacePic = b"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"
+fireIcon = b'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAuBJREFUSEvF109IFFEcB/Dv7Mzqrn/XDQxqjSDo0EoUUUG0FXWxIC0KzC5FdIgudcoyo6yQ8lAX+2dmgaAm2EWNhCByIdBC8+BB18WoVPQws390c9eZeTGz7ejs7Mju6Oa7vffm/T7vz2923lJYo0LpuPQqz0eIj6eC3W53n9Pp3LPKqBxueHi43+Vy7Y3FVuB0ojFsKa7ALMuSdKw0PqbdbpfNGEyzLMunBBOCjM+diBw8DlB6qaKNaLfbGQCCIdjy6S2sH14D4zPg2gdSmq9hOKexCmZPFBP9BP7nPemHLe53sHY1KJBAbAjUtaUZJgQF14+qEHGOgb++K72wpbcD1u6XamR8Glz7oLqNkGWTLeUztt05DerPrBrxTiFY0wjeuVtup3+OIbv+FgJ1rbq7kDJcUFmiDeadktvCx87KL2Zmd4tc97X0gWRYEuIpwRQfge1mqS4c3xG6XIPw4RMrgEURMJlgCnLIv1+RNBwuKUfoYpVxOP/heQSuPgUVCiL/wTltoN8TQNikaQ9dqIxuf4KS1FbbqstALYQxd+YastvqlDBkEwth/xiYWseSH79FxfemF/SPEfDF2g9dcvDtU6Dm51TzJht8EA6Nym3MvSLtmigKYuFGUAEOvuYvmv6k4NyGSjDeIdVgvqJf+bQwTYXARCZgEYF59Zbz23YheLfJGMz8GkFu/ZXFwdYI+JPflToz8+87QxPghXr1wdpm8Fu3G4OlUbbqUlALETkAcXAQDnjUcKzWWQhMZkafM2fA1/rVeHJJI03ctJLRpIiD4NKBP64DvFky5n/SDXG9Y2WwNNrsGURO4w2AFsGXf0u84lcOgKcwW/0MCzv2JUSlxqSSa+lo6V3Oe3wJ2DwEsXgymtXSGUtlMA+iZwsCjzpAcm26qCE4Fo0Kh2Ae7QFtfQ+TXwA/fwSRnWUgWTnLgrHO+BVjrS57WLPrrbQV6cR1L/RxB/R//8IklR2r9NBfLy1iLgM4NkgAAAAASUVORK5CYII='
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -252,8 +254,9 @@ if chargeRecord != "N": #cancel any charge that was recording before
 
 currTime = datetime.datetime.fromtimestamp(time()) #used for clock
 lastRead = currTime - datetime.timedelta(seconds=(readInterval*60))
+closeTime = currTime + datetime.timedelta(seconds=20*60*60)
 emailTry = bool(emailAlert) #if we should be sending emails
-chargeEnd = currTime
+chargeEnd = currTime #time to close the program (so it doesn't record forever)
 
 plotDisplay = False #flag for the plot display
 chargeDisplay = False #flag for the charge view
@@ -261,14 +264,18 @@ activeScreen  = 'Main' #helps speed up the main loop
 
 
 #Axes limits
-zoom = 10
-maxZoom = 50
+zoom = 30
+maxZoom = 80
 minZoom = 5
 left = 0
 right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
 graphSize = (1200, 600)
+
+
+#Check log file size, make new one if the current is too full
+GC.check_logs(path, logFile, maxRecords, currTime.strftime("%d-%B-%Y"))
 
 
 
@@ -403,6 +410,16 @@ wCharge = [
     ]
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  RECORD WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Notify user when the program is recording data
+recLayout = [
+            [sg.Column(layout=[
+                [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
+                [sg.Text('    RECORDING DATA    ',key='RecordingAlertScreen',font=('Arial',40,'bold'),background_color='#F5273A',text_color='#FFF',justification='c'),],
+                [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
+                ] ,background_color='#F5273A',element_justification='c',vertical_alignment='c')],
+    ]
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -423,11 +440,17 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
-window = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c').Finalize()
+window = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize() #
 window.Maximize()
 
 style = ttk.Style()
 style.layout('TNotebook.Tab', []) # Hide tab bar
+
+
+
+# ~~~~~Close splash screen~~~~~
+pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
+
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -439,6 +462,9 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 
 
 while True:
+    if currTime > closeTime and chargeRecord == 'N':
+        break #!!!!! Just for the trial run!!!!!
+    
     try:
         event, values = window.read(timeout=100)
     
@@ -455,18 +481,18 @@ while True:
         if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
             
             #inform user we are reading data
-            update_alert("READING DATA") 
-            window.refresh()
-            
+            # update_alert("READING DATA") 
+            # window.refresh()
+            recWin = sg.Window("Data Logger Recording", recLayout, no_titlebar = True, keep_on_top=True, element_justification='c').Finalize()
             #read TC, see if error is present
             update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord[3:])) 
-            
+            recWin.close()
             lastRead = currTime
             update_tc_nums()
             
             #only update graph if we are viewing the live plot and not charges
             if plotDisplay and not chargeDisplay:
-                #adjust view if looking at most recent point !!!!!!!!!DOESNT WORK!!!!!!!!!
+                #adjust view if looking at most recent point
                 if right == maxTime :
                     right += 1
                     left -= 1
@@ -510,7 +536,7 @@ while True:
                 display_graph(logFile)
                 
                 #~~~Setup initial axes~~~
-                zoom = 10
+                zoom = 30
                 right = max(x) #most recent reading
                 maxTime = right #global storage of above for Home button
                 left = right - zoom #make view to be towards the end of readings
@@ -615,6 +641,7 @@ while True:
                     chargeRecord = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
                     chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
                     update_record(True)
+                    closeTime = chargeEnd + datetime.timedelta(seconds=2*60*60) #close program 2 hours after charge is set to record
                     
                     
                 elif not cCheck:
@@ -649,17 +676,18 @@ while True:
             activeScreen = 'Log'
             
             if plotDisplay == False: #If not currently displaying plot
-                chargeDisplay = True
-                display_graph('Charges\\' + str(values['cList'][0]) + '.csv')
-                
-                #~~~Setup initial axes~~~
-                zoom = 10
-                right = max(x) #most recent reading
-                maxTime = right #global storage of above for Home button
-                left = right - zoom #make view to be towards the end of readings
-                window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
-                window['Slide'].update(value=maxTime) #Set slider to right side of graph
-                update_graph_view()
+                plt.clf()
+            chargeDisplay = True
+            display_graph('Charges\\' + str(values['cList'][0]) + '.csv')
+            
+            #~~~Setup initial axes~~~
+            zoom = 30
+            right = max(x) #most recent reading
+            maxTime = right #global storage of above for Home button
+            left = right - zoom #make view to be towards the end of readings
+            window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
+            window['Slide'].update(value=maxTime) #Set slider to right side of graph
+            update_graph_view()
             
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -768,4 +796,4 @@ window.close()
 # https://stackoverflow.com/questions/48134269/python-pyinstaller-bundle-image-in-gui-to-onefile-exe    Include photo in EXE
 
 # ~~~~~ Compile ~~~~~
-#pyinstaller -wF --splash=splashLoad.jpg --icon=FireIcon.ico FullProgram.py
+#pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico FullProgram.py

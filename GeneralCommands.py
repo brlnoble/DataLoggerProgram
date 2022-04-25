@@ -116,7 +116,6 @@ def send_email(TC,temp,time):
         mail.Send()
         return True
     except:
-        print("Unable to send")
         return False
     
 # ~~~~~Update settings~~~~~
@@ -135,13 +134,24 @@ def update_settings(path,intRead,tWarn,logFile,maxRecords,chargRec,emailTo,email
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# ~~~~~Check log file length~~~~~
+def check_logs(path,logFile,maxLogs,currDate):
+    csvFile = open(path + logFile)
+    rowCount = sum(1 for row in csvFile)
+    csvFile.close()
+    
+    #If the file has more lines than the maximum, remake the file
+    if rowCount > maxLogs:
+        os.rename(path+logFile, path + "Charges\\" + "LogsUpTo--" + currDate + ".csv")
+        verify_logs(path)
+
 # ~~~~~Read thermocouples~~~~~
 def read_tc(path, logFile, port, currTime, charge):
     tList = [currTime,0,0,0,0,0,0]
     
     #see if the charge file needs to be created
     if charge != "" and not does_this_exist(path+"Charges\\" + charge + ".csv"):
-        print("grrr")
         with open(path+"Charges\\" + charge + ".csv",'w',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
