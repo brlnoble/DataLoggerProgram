@@ -52,9 +52,12 @@ def does_this_exist(fileName):
     file_exists = os.path.exists(fileName)
     if not file_exists:
         path = get_path()
-        file_exists = os.path.exists(path + '\\' + fileName)
+        file_exists = os.path.exists(path + fileName)
     return file_exists
 
+# ~~~~~Make folder~~~~~
+def make_folder(folderPath):
+    os.makedirs(folderPath)
 
 # ~~~~~Make settings file if not present~~~~~
 def verify_settings(path):
@@ -200,7 +203,7 @@ def read_tc(path, logFile, port, currTime, charge):
     # ~~~~~~~~~~~~~~~~~~~~~~~~~Receive signal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     try:
         # for i in range(0,6):
-        sleep(0.5) #wait half a second before reading
+        sleep(.5) #wait half a second before reading
         readings = arduino.readline().decode('UTF-8')[1:]
         arduino.close()
         

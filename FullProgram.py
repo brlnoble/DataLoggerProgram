@@ -5,7 +5,7 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# import pyi_splash #cannot from from Spyder, only when compiled to EXE
+import pyi_splash #cannot from from Spyder, only when compiled to EXE
 
 import GeneralCommands as GC #Custom file
 
@@ -421,13 +421,15 @@ wCharge = [
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  RECORD WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Notify user when the program is recording data
-recLayout = [
-            [sg.Column(layout=[
-                [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
-                [sg.Text('    RECORDING DATA    ',key='RecordingAlertScreen',font=('Arial',40,'bold'),background_color='#F5273A',text_color='#FFF',justification='c'),],
-                [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
-                ] ,background_color='#F5273A',element_justification='c',vertical_alignment='c')],
-    ]
+def recWindow():
+    recLayout = [
+                [sg.Column(layout=[
+                    [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
+                    [sg.Text('    RECORDING DATA    ',key='RecordingAlertScreen',font=('Arial',40,'bold'),background_color='#F5273A',text_color='#FFF',justification='c'),],
+                    [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
+                    ] ,background_color='#F5273A',element_justification='c',vertical_alignment='c')],
+        ]
+    return sg.Window("Data Logger Recording", recLayout, no_titlebar = True, keep_on_top=True, element_justification='c')
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -457,7 +459,7 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 
 
 # ~~~~~Close splash screen~~~~~
-# pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
+pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 
 
 
@@ -491,7 +493,8 @@ while True:
             #inform user we are reading data
             # update_alert("READING DATA") 
             # window.refresh()
-            recWin = sg.Window("Data Logger Recording", recLayout, no_titlebar = True, keep_on_top=True, element_justification='c').Finalize()
+            recWin = recWindow()
+            recWin.Finalize()
             #read TC, see if error is present
             update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord[3:])) 
             recWin.close()
@@ -602,10 +605,12 @@ while True:
                 update_graph_view()
             
             elif event == 'saveBut':
+                if not GC.does_this_exist("Figures\\"):
+                    GC.make_folder(path + "Figures\\")
                 plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
                 plt.savefig(path + "Figures\\" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
                 plt.legend('',frameon=False)
-                sg.popup_no_wait("Image saved.",font=font,non_blocking=True,keep_on_top=True)
+                sg.popup_no_wait("Image saved in Figures folder.\n" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png",font=font,non_blocking=True,keep_on_top=True)
          
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~RECORDING A CHARGE~~~~~
@@ -630,7 +635,7 @@ while True:
                     if(GC.check_charge(values['ChargeIn'], path + 'Charges\\')):
                         cCheck = True
                     else:
-                        sg.popup('This charge number is already in use!',font=font,keep_on_top=True)
+                        sg.popup('This charge number is already in use!',font=font,keep_on_top=True,non_blocking=True)
                         
                 if values['TempIn'] and int(values['TempIn']) > 0:
                     tCheck = True
@@ -648,11 +653,11 @@ while True:
                     
                     
                 elif not cCheck:
-                    sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True)
+                    sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True,non_blocking=True)
                 elif not tCheck:
-                    sg.popup('Please input a temperature.',font=font,keep_on_top=True)
+                    sg.popup('Please input a temperature.',font=font,keep_on_top=True,non_blocking=True)
                 elif not dCheck:
-                    sg.popup('Please input a duration less than 50 hours.',font=font,keep_on_top=True)
+                    sg.popup('Please input a duration less than 50 hours.',font=font,keep_on_top=True,non_blocking=True)
             
                     
             
@@ -661,7 +666,7 @@ while True:
                 chargeRecord = 'N'
                 
                 update_record(True)
-                sg.popup('Recording cancelled.',font=font,keep_on_top=True)
+                sg.popup('Recording cancelled.',font=font,keep_on_top=True,non_blocking=True)
             
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -755,16 +760,16 @@ while True:
                     
                 #ERROR MESSAGES
                 elif not file_exists:
-                    sg.popup('This file does not exist!',keep_on_top=True)
+                    sg.popup('This file does not exist!',keep_on_top=True,non_blocking=True)
                     
                 elif not int_exists:
-                    sg.popup('Please input an interval less than 100 minutes',keep_on_top=True)
+                    sg.popup('Please input an interval less than 100 minutes',keep_on_top=True,non_blocking=True)
                 
                 elif not temp_exists:
-                    sg.popup('Please input a temperature less than 3000°F',keep_on_top=True)
+                    sg.popup('Please input a temperature less than 3000°F',keep_on_top=True,non_blocking=True)
                     
                 elif not maxR_exists:
-                    sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True)
+                    sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True,non_blocking=True)
         
         
         
@@ -778,14 +783,16 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            sg.popup("~~err4~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True)
+            sg.popup("~~err4~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            sg.popup("~~err5~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True)
+            sg.popup("~~err5~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err)[:10] == "[Errno 13]":
-            sg.popup("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 30s.",font=font,keep_on_top=True)
-            lastRead = currTime - datetime.timedelta(seconds=(30)) #try again in 30s
+            sg.popup_timed("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
+            recWin.close()
+            currTime = datetime.datetime.fromtimestamp(time())
+            lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
         else: #catch all
-            sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True)
+            sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
         
 window.close()
 

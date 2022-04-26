@@ -479,7 +479,7 @@ while True:
         
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #Check if it is time to update the TC readings
-        if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+        if currTime - datetime.timedelta(seconds=(60)) > lastRead:
             
             #inform user we are reading data
             # update_alert("READING DATA") 
@@ -594,10 +594,12 @@ while True:
                 update_graph_view()
             
             elif event == 'saveBut':
+                if not GC.does_this_exist("Figures\\"):
+                    GC.make_folder(path + "Figures\\")
                 plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
                 plt.savefig(path + "Figures\\" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
                 plt.legend('',frameon=False)
-                sg.popup_no_wait("Image saved.",font=font,non_blocking=True,keep_on_top=True)
+                sg.popup_no_wait("Image saved in Figures folder.\n" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png",font=font,non_blocking=True,keep_on_top=True)
          
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~RECORDING A CHARGE~~~~~
@@ -688,7 +690,7 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         elif event == "Settings": #Switch to settings window
-            sg.popup("You may not change settings on this computer.",font=titleFont,keep_on_top=True)
+            sg.popup("You may not change settings on this computer.",font=titleFont,keep_on_top=True,non_blocking=True)
         #     window['Main Screen'].update(visible=True)
         #     window['Title'].update(visible=False)
         #     window["Set"].select()
@@ -772,14 +774,15 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            sg.popup("~~err4~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True)
+            sg.popup("~~err4~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            sg.popup("~~err5~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True)
+            sg.popup("~~err5~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err)[:10] == "[Errno 13]":
-            sg.popup("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 30s.",font=font,keep_on_top=True)
-            lastRead = currTime - datetime.timedelta(seconds=(30)) #try again in 30s
+            sg.popup_timed("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
+            currTime = datetime.datetime.fromtimestamp(time())
+            lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
         else: #catch all
-            sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True)
+            sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
         
 window.close()
 
