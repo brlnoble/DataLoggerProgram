@@ -44,24 +44,24 @@ Using an Arduino Uno and Python, I hope to complete this in as simple a manner a
 ## Current Main Screen
 Reading as normal
 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreen-14-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreen-14-04-22.jpg" width="800">
 Error reading data
 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicMainScreenErr-14-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreenErr-14-04-22.jpg" width="800">
 
 ## Current Settings Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-14-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicSettingsScreen-14-04-22.jpg" width="800">
 
 ## Current Logging Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-26-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicLoggingScreen-26-04-22.jpg" width="800">
 
 ## Current Charge Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicChargeScreen-08-04-22.jpg" width="400"> 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLogScreen-08-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeScreen-08-04-22.jpg" width="400"> 
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicLogScreen-08-04-22.jpg" width="800">
 
 ## First Trial Run 22-04-22
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/FirstTrial-22-04-22.jpg" width="400"> 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/26-April-22%20-%2007-39-35%20AM.png" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/FirstTrial-22-04-22.jpg" width="400"> 
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/26-April-22%20-%2007-39-35%20AM.png" width="800">
 
 ## Error Handling
 - [X] Serial communication:
