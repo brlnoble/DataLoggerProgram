@@ -44,7 +44,7 @@ Using an Arduino Uno and Python, I hope to complete this in as simple a manner a
 ## Current Main Screen
 Reading as normal
 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreen-14-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreen-26-04-22.jpg" width="800">
 Error reading data
 
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreenErr-14-04-22.jpg" width="800">
