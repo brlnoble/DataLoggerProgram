@@ -350,7 +350,8 @@ tcGraph = [
             [sg.Text('TC4: ',font=butFont,text_color='#444'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],
             [sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=tcFont,key='TC5L',text_color='#333')],
             [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6L',text_color='#333')],
-            
+            [sg.Text()],
+            [sg.Button('Save Graph',key='saveBut',font=butFont,button_color="#F57627",size=(10,2))]
         ]
 
 #Input boxes at top left
@@ -592,9 +593,11 @@ while True:
                 left = values['Slide'] - zoom
                 update_graph_view()
             
-            elif event == 'C Plot':
-                plt.clf()
-                update_graph_view()
+            elif event == 'saveBut':
+                plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
+                plt.savefig(path + "Figures\\" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
+                plt.legend('',frameon=False)
+                sg.popup_no_wait("Image saved.",font=font,non_blocking=True,keep_on_top=True)
          
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~RECORDING A CHARGE~~~~~

@@ -146,6 +146,8 @@ def check_logs(path,logFile,maxLogs,currDate):
         os.rename(path+logFile, path + "Charges\\" + "LogsUpTo--" + currDate + ".csv")
         verify_logs(path)
 
+
+
 # ~~~~~Read thermocouples~~~~~
 def read_tc(path, logFile, port, currTime, charge):
     tList = [currTime,0,0,0,0,0,0]
@@ -155,6 +157,8 @@ def read_tc(path, logFile, port, currTime, charge):
         with open(path+"Charges\\" + charge + ".csv",'w',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
+            
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~Open COM port~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     try:
         arduino = serial.Serial(port=port, baudrate=9600, timeout=3)
         sleep(2) #wait for connection to establish
@@ -174,7 +178,7 @@ def read_tc(path, logFile, port, currTime, charge):
                 
         return 'err1: Unable to open port ' + str(port)
     
-    
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~Send signal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     try:
         arduino.write(bytes("R", 'utf-8')) #inform the Arduino it should read code
         
@@ -193,7 +197,7 @@ def read_tc(path, logFile, port, currTime, charge):
                 
         return 'err2: Unable to write to port ' + str(port)
     
-    
+    # ~~~~~~~~~~~~~~~~~~~~~~~~~Receive signal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     try:
         # for i in range(0,6):
         sleep(0.5) #wait half a second before reading
@@ -203,10 +207,7 @@ def read_tc(path, logFile, port, currTime, charge):
         #Clean up readings
         readings = readings.split("/")
         for i in range(1,7):
-            if readings[i-1] == "NaN":
-                tList[i] = -0555.55 #thermocouple disconnected
-            else:
-                tList[i] = float(readings[i-1])
+            tList[i] = float(readings[i-1])                
         
         with open(path+logFile,'a',newline='') as f:
             writer = csv.writer(f)
@@ -218,6 +219,7 @@ def read_tc(path, logFile, port, currTime, charge):
                 writer.writerow(tList)
         
         return '' #NO ERROR, READING SUCCESS
+    
     
     #unable to read data from the port
     except:

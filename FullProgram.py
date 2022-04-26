@@ -5,7 +5,7 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import pyi_splash #cannot from from Spyder, only when compiled to EXE
+# import pyi_splash #cannot from from Spyder, only when compiled to EXE
 
 import GeneralCommands as GC #Custom file
 
@@ -77,6 +77,12 @@ def update_tc_nums():
         else: #!!!Temperature over limit!!!
             window['TC' + str(tc)].update(background_color='#F5273A')
             update_alert('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
+            
+            global emailTry
+            
+            if emailTry:
+                GC.send_email(tc, round(df['Temp' + str(tc)].values[-1],1), currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
+                emailTry = False
             
     
 # ~~~~~Update settings window~~~~~
@@ -350,6 +356,8 @@ tcGraph = [
             [sg.Text('TC4: ',font=butFont,text_color='#444'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],
             [sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=tcFont,key='TC5L',text_color='#333')],
             [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6L',text_color='#333')],
+            [sg.Text()],
+            [sg.Button('Save Graph',key='saveBut',font=butFont,button_color="#F57627",size=(10,2))]
             
         ]
 
@@ -449,7 +457,7 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 
 
 # ~~~~~Close splash screen~~~~~
-pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
+# pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 
 
 
@@ -506,6 +514,7 @@ while True:
                     chargeRecord = 'N'
                     chargeEnd = currTime
                     update_record(True)
+                    
                 
                 
                 
@@ -547,14 +556,6 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~BUTTON CLICK EVENTS~~~~~
         elif activeScreen == 'Log':
-            
-            # if emailTry:
-            #     if GC.send_email('TC1', tempWarn, currTime.strftime("%d %B, %Y - %I:%M:%S %p")):
-            #         sg.popup('Email sent successfully.',font=font,keep_on_top=True)
-            #         emailTry = False
-            #     else:
-            #         sg.popup('Failed to send email.',font=font,keep_on_top=True)
-            #         emailTry = False
             
             if event == 'Left' and plotDisplay:
                 #Move the plot left
@@ -600,9 +601,11 @@ while True:
                 left = values['Slide'] - zoom
                 update_graph_view()
             
-            elif event == 'C Plot':
-                plt.clf()
-                update_graph_view()
+            elif event == 'saveBut':
+                plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
+                plt.savefig(path + "Figures\\" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
+                plt.legend('',frameon=False)
+                sg.popup_no_wait("Image saved.",font=font,non_blocking=True,keep_on_top=True)
          
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~RECORDING A CHARGE~~~~~
