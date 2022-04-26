@@ -15,7 +15,7 @@ Using an Arduino Uno and Python, I hope to complete this in as simple a manner a
 - [X] Access and use program from computer
 - [X] Email alerts when temperature exceeds a set limit
 - [X] Main program for recording, changing settings, and viewing (FullProgram.py)
-- [ ] Viewer program only for seeing current readouts and past charges (ViewingProgram.py)
+- [X] Viewer program only for seeing current readouts and past charges (ViewingProgram.py)
 
 
 
@@ -36,6 +36,10 @@ Using an Arduino Uno and Python, I hope to complete this in as simple a manner a
   - [X] Interactive menu to change view and return home
   - [X] Allow user to scroll through data
   - [X] Show readout of selected data
+  - [X] Save plot as an image
+- [X] Selection screen for previous charges
+  - [X] List past charges
+  - [X] When selected, pulls up data for viewing in the logging screen
  
 ## Current Main Screen
 Reading as normal
@@ -49,8 +53,7 @@ Error reading data
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicSettingsScreen-14-04-22.jpg" width="800">
 
 ## Current Logging Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-08-04-22.jpg" width="800">
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreenRecord-11-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicLoggingScreen-26-04-22.jpg" width="800">
 
 ## Current Charge Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/PicChargeScreen-08-04-22.jpg" width="400"> 
@@ -58,6 +61,7 @@ Error reading data
 
 ## First Trial Run 22-04-22
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/FirstTrial-22-04-22.jpg" width="400"> 
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/26-April-22%20-%2007-39-35%20AM.png" width="800">
 
 ## Error Handling
 - [X] Serial communication:
@@ -66,4 +70,4 @@ Error reading data
   - [X] Notify if unable to receive signal from Arduino
 - [X] Inform user if log file is open and cannot be written to
 - [X] Charge cannot be viewed because of missing data
-- [ ] Thermocouples not reading values, returning NaN
+- [X] Thermocouples not reading values, returning NaN
