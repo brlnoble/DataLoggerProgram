@@ -93,7 +93,7 @@ def get_charges(path):
     
     #Collect all files in folder
     files = [f.strip('.csv') for f in os.listdir(path) if os.path.exists(path + f)] #collect all files in the folder
-    return files
+    return sorted(files,reverse=True) #Return list newest to oldest
     
 
 # ~~~~~Compare charges~~~~~

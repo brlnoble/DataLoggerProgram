@@ -781,6 +781,8 @@ while True:
             sg.popup_timed("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
             currTime = datetime.datetime.fromtimestamp(time())
             lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
+        elif str(err) == "float division by zero":
+            sg.popup("~~err5~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.",font=font,keep_on_top=True,non_blocking=True)
         else: #catch all
             sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
         
