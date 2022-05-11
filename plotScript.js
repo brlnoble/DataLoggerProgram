@@ -82,9 +82,18 @@ function makeChart(csvFile) {
       ]
     }
   });
+  
+  document.getElementById("TC1").textContent=tc1Data[tc1Data.length-1];
+  document.getElementById("TC2").textContent=tc2Data[tc2Data.length-1];
+  document.getElementById("TC3").textContent=tc3Data[tc3Data.length-1];
+  document.getElementById("TC4").textContent=tc4Data[tc4Data.length-1];
+  document.getElementById("TC5").textContent=tc5Data[tc5Data.length-1];
+  document.getElementById("TC6").textContent=tc6Data[tc6Data.length-1];
+  document.getElementById("LastRead").textContent=timeLabels[timeLabels.length-1];
 }
 
 // Request data using D3
 d3
-  .csv("./LogProgram/AllTempLogs.csv")
+  .csv("./AllTempLogs.csv")
   .then(makeChart);
+  
