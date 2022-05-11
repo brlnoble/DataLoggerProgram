@@ -16,14 +16,19 @@ body {
     display: inline-block;
     font-size: 20px;
     padding: 20px;
+    color: white;
 }
 
 .tcList {
     display: flex;
     justify-content: center;
+    background-color: #1D2873;
 }
 
 #graph {
+    margin-top: 50px;
     height: 600px;
-    width: 1000px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
 }
