@@ -86,5 +86,5 @@ function makeChart(csvFile) {
 
 // Request data using D3
 d3
-  .csv("./AllTempLogs.csv")
+  .csv("./LogProgram/AllTempLogs.csv")
   .then(makeChart);
