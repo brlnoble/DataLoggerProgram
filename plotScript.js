@@ -94,5 +94,5 @@ function makeChart(csvFile) {
 
 // Request data using D3
 d3
-  .csv("./OnlineLog.csv")
+  .csv("./OnlineLog.csv?" + new Date().getTime())
   .then(makeChart);
