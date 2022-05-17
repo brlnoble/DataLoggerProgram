@@ -477,7 +477,7 @@ pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 
 while True:
     if currTime > closeTime and chargeRecord == 'N':
-        break #!!!!! Just for the trial run!!!!!
+        break
     
     try:
         event, values = window.read(timeout=100)
@@ -493,14 +493,14 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #Check if it is time to update the TC readings
         if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
-            
             #inform user we are reading data
-            # update_alert("READING DATA") 
-            # window.refresh()
             recWin = recWindow()
             recWin.Finalize()
             #read TC, see if error is present
-            update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord[3:])) 
+            update_alert(GC.read_tc(path, logFile, port, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord[3:]))
+            if GC.upload_Data(path, logFile) == 'err7: Unable to upload to Github':
+                sg.popup_no_wait('err7: Unable to upload to Github\nData is still recording but not uploading online.',font=font,non_blocking=True,keep_on_top=True,auto_close_duration=5)
+            
             recWin.close()
             lastRead = currTime
             update_tc_nums()

@@ -4,6 +4,7 @@ import csv
 import win32com.client
 import serial
 from time import sleep
+from github import Github
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
@@ -244,4 +245,37 @@ def read_tc(path, logFile, port, currTime, charge):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
     
+def upload_Data(path, logFile):
+    try:
+        g = Github("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") #token key
+    
+        repo = g.get_user().get_repo("DataLogger") #Repository
+        all_files = []
+        contents = repo.get_contents("")
+    
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(repo.get_contents(file_content.path))
+            else:
+                file = file_content
+                all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
+    
+        with open(path + logFile, 'r') as file: #file to open
+            content = file.read()
+    
+        #Upload to Github
+        git_file = logFile
+        if git_file in all_files:
+            contents = repo.get_contents(git_file)
+            repo.update_file(contents.path, "committing files", content, contents.sha, branch="main")
+            print(git_file + ' UPDATED')
+        else:
+            repo.create_file(git_file, "committing files", content, branch="master")
+            print(git_file + ' CREATED')
+            
+        return 'Uploaded to Github'
+        
+    except:
+        return 'err7: Unable to upload to Github'
     
