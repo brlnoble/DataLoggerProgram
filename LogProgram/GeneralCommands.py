@@ -247,7 +247,7 @@ def read_tc(path, logFile, port, currTime, charge):
     
 def upload_Data(path, logFile):
     try:
-        g = Github("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") #token key
+        g = Github("*****") #token key
     
         repo = g.get_user().get_repo("DataLogger") #Repository
         all_files = []
