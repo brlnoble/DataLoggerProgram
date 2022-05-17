@@ -246,8 +246,25 @@ def read_tc(path, logFile, port, currTime, charge):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
     
 def upload_Data(path, logFile):
+    
+    csvFile = []
+    header = []
+    with open(path+logFile, 'r', newline='') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            csvFile.append(row)
+
+    header = csvFile[0]
+    csvFile = csvFile[-50:]
+    
+    with open(path+'OnlineLog.csv','w',newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        for row in csvFile:
+            writer.writerow(row)
+    
     try:
-        g = Github("*****") #token key
+        g = Github("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") #token key
     
         repo = g.get_user().get_repo("DataLogger") #Repository
         all_files = []
@@ -261,11 +278,11 @@ def upload_Data(path, logFile):
                 file = file_content
                 all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
     
-        with open(path + logFile, 'r') as file: #file to open
+        with open(path + 'OnlineLog.csv', 'r') as file: #file to open
             content = file.read()
     
         #Upload to Github
-        git_file = logFile
+        git_file = 'OnlineLog.csv'
         if git_file in all_files:
             contents = repo.get_contents(git_file)
             repo.update_file(contents.path, "committing files", content, contents.sha, branch="main")
