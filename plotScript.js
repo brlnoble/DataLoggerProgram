@@ -91,6 +91,8 @@ function makeChart(csvFile) {
   document.getElementById("TC6").textContent=tc6Data[tc6Data.length-1];
   document.getElementById("LastRead").textContent=timeLabels[timeLabels.length-1];
   
+  setTimeout(yourFunction, 60000); //Rerun the script every 60s
+  window.location = window.location.href+'?eraseCache=true';
 }
 
 // Request data using D3
