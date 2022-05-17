@@ -1,4 +1,4 @@
-function clearCahce() {
+function clearCache() {
     window.location = window.location.href+'?eraseCache=true';
 }
 
