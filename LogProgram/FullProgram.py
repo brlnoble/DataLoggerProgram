@@ -51,14 +51,18 @@ def read_settings():
     
 # ~~~~~Alert across top~~~~~
 def update_alert(msg):
+    print(window['RecordAlert'].get())
+    print(window['RecordAlert'].get()[:20])
     if msg != '':
         #Alert the user of an issue
         window['RecordAlert'].update(msg)
         window['RecordAlert'].update(background_color='#F5273A')
-    else:
+        
+    elif window['RecordAlert'].get()[:20] != 'Currently Recording:':
         #Hide alert
         window['RecordAlert'].update(msg)
         window['RecordAlert'].update(background_color='#EEE')
+        
 
 
 # ~~~~~UPDATE THERMOCOUPLE READINGS~~~~~
