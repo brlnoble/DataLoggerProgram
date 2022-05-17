@@ -1,7 +1,3 @@
-function clearCache() {
-    window.location = window.location.href+'?eraseCache=true';
-}
-
 function makeChart(csvFile) {
 
   var timeLabels = csvFile.map(function(d) {
@@ -94,8 +90,6 @@ function makeChart(csvFile) {
   //document.getElementById("TC5").textContent=tc5Data[tc5Data.length-1];
   document.getElementById("TC6").textContent=tc6Data[tc6Data.length-1];
   document.getElementById("LastRead").textContent=timeLabels[timeLabels.length-1];
-  
-  setTimeout(clearCache, 60000); //Rerun the script every 60s
 }
 
 // Request data using D3
