@@ -93,6 +93,11 @@ function makeChart(csvFile) {
 }
 
 // Request data using D3
-d3
-  .csv("./OnlineLog.csv?" + new Date().getTime())
-  .then(makeChart);
+function getCSV() { 
+  d3
+    .csv("./OnlineLog.csv?" + new Date().getTime())
+    .then(makeChart);
+  setTimeout(getCSV, 60000);
+}
+
+getCSV();
