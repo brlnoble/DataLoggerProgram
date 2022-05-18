@@ -95,7 +95,7 @@ function makeChart(csvFile) {
 // Request data using D3
 function getCSV() { 
   d3
-    .csv("https://github.com/UDS-Intern/DataLogger/blob/main/OnlineLog.csv?" + new Date().getTime())
+    .csv("https://github.com/UDS-Intern/DataLogger/blob/026eaec82d10109ca5b0a1c5724ceda71f15be25/OnlineLog.csv?" + new Date().getTime())
     .then(makeChart);
   setTimeout(getCSV, 60000);
 }
