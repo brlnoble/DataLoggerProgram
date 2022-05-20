@@ -25,8 +25,6 @@ def remove_prefix(text, prefix):
 # ~~~~~Get the system settings~~~~~
 def get_settings(selection, path):
     currSettings = []
-    if path == 'Pi':
-        path = get_path()
     with open(path + 'Settings.txt', 'r') as f:
         currSettings = f.readlines()
     if selection == 'Interval':
@@ -66,7 +64,7 @@ def verify_settings(path):
         return True
     
     #Create file that could not be found
-    update_settings(path, 10, 1300, 'AllTempLogs.csv', 5000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'COM4')
+    update_settings(path, 10, 1300, 'AllTempLogs.csv', 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'COM4')
     return False
 
 
@@ -146,9 +144,26 @@ def check_logs(path,logFile,maxLogs,currDate):
     csvFile.close()
     
     #If the file has more lines than the maximum, remake the file
+    newFile = "Charges\\" + "00000--Logs" + currDate + ".csv"
     if rowCount > maxLogs:
-        os.rename(path+logFile, path + "Charges\\" + "LogsUpTo--" + currDate + ".csv")
-        verify_logs(path)
+        os.rename(path+logFile, path + newFile)        
+        
+    #Make the new file
+    csvFile = []
+    header = []
+    with open(path+newFile, 'r', newline='') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            csvFile.append(row)
+
+    header = csvFile[0]
+    csvFile = csvFile[-80:]
+    
+    with open(path+'AllTempLogs.csv','w',newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        for row in csvFile:
+            writer.writerow(row)
 
 
 
@@ -264,9 +279,9 @@ def upload_Data(path, logFile):
             writer.writerow(row)
     
     try:
-        g = Github("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") #token key
+        g = Github("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") #token key
     
-        repo = g.get_user().get_repo("DataLogger") #Repository
+        repo = g.get_user().get_repo("View") #Repository
         all_files = []
         contents = repo.get_contents("")
     
