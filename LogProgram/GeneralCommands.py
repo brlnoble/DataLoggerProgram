@@ -144,26 +144,26 @@ def check_logs(path,logFile,maxLogs,currDate):
     csvFile.close()
     
     #If the file has more lines than the maximum, remake the file
-    newFile = "Charges\\" + "00000--Logs" + currDate + ".csv"
+    newFile = "Charges\\" + "00000 -- Logs-- " + currDate + ".csv"
     if rowCount > maxLogs:
         os.rename(path+logFile, path + newFile)        
         
-    #Make the new file
-    csvFile = []
-    header = []
-    with open(path+newFile, 'r', newline='') as f:
-        reader = csv.reader(f)
-        for row in reader:
-            csvFile.append(row)
-
-    header = csvFile[0]
-    csvFile = csvFile[-80:]
+        #Make the new file
+        csvFile = []
+        header = []
+        with open(path+newFile, 'r', newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                csvFile.append(row)
     
-    with open(path+'AllTempLogs.csv','w',newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
-        for row in csvFile:
-            writer.writerow(row)
+        header = csvFile[0]
+        csvFile = csvFile[-80:]
+        
+        with open(path+'AllTempLogs.csv','w',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            for row in csvFile:
+                writer.writerow(row)
 
 
 
@@ -183,13 +183,7 @@ def read_tc(path, logFile, port, currTime, charge):
         sleep(2) #wait for connection to establish
         
     #unable to connect to port    
-    except:
-        # tList = [currTime,-0111.1,-0111.1,-0111.1,-0111.1,-0111.1,-0111.1]
-        
-        # with open(path+logFile,'a',newline='') as f:
-        #     writer = csv.writer(f)
-        #     writer.writerow(tList)
-        
+    except:        
         if charge != '':
             with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
                 writer = csv.writer(f)
@@ -279,7 +273,7 @@ def upload_Data(path, logFile):
             writer.writerow(row)
     
     try:
-        g = Github("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") #token key
+        g = Github("******") #token key
     
         repo = g.get_user().get_repo("View") #Repository
         all_files = []
