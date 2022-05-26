@@ -1,0 +1,5 @@
+https://www.codedonut.com/raspberry-pi/mount-network-share-raspberry-pi/
+
+https://www.abrandao.com/2022/01/fix-mount-error95-operation-not-supported-smb/
+
+https://forums.raspberrypi.com/viewtopic.php?f=91&t=251034&p=1538145&hilit=fstab#p1538145
