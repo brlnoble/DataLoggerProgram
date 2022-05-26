@@ -1,4 +1,4 @@
-import RPI.GPIO as GPIO
+import RPi.GPIO as GPIO
 from time import sleep
 
 GPIO.setmode(GPIO.BOARD)
@@ -23,20 +23,30 @@ tcRead  =[0,0,0,0,0]
 
 def readTC(TC):
 	read = 0
-	
+	GPIO.output(SCK,GPIO.HIGH) #See if this fixes things
+	GPIO.output(CS,GPIO.LOW)	
+
 	for j in range(15,-1,-1):
 		GPIO.output(SCK,GPIO.LOW)
 		sleep(0.01)
 		read |= (GPIO.input(TC) << j)
 		GPIO.output(SCK,GPIO.HIGH)
 		sleep(0.01)
+
+	GPIO.output(CS,GPIO.HIGH)
 	return read
 
 
-#Check if the thing works lol
-reading = readTC(TC1)
-print('Reading: ' + str(reading)) #Should be 
+#Only checking if the one thermocouple works so far
+reading = readTC(TC4)
+print('Reading: ' + str(reading))
 reading >>= 3
 print('R-Shift 3: ' + str(reading))
 reading *= 0.25
 print('1/4 R: ' + str(reading))
+reading *= 9/5
+reading += 32
+print(f'Fahrenheit: {reading:.2f}')
+
+GPIO.cleanup()
+
