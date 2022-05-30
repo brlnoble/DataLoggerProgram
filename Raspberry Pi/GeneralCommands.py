@@ -1,18 +1,13 @@
 import os
-import sys
 import csv
-import win32com.client
-import serial
+#import win32com.client
 from time import sleep
+import RPi.GPIO as GPIO
 from github import Github
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
-    if getattr(sys, 'frozen', False): #If an executable, it needs to use this or it takes the temp folder as current path
-        path = os.path.dirname(sys.executable)
-    elif __file__: #if running as a python script
-        path = os.path.dirname(__file__)
-    return path + '\\'
+    return '/diskstation1/share/1 - Mill/DATA/Brandon Stuff/CODE/Pi Logger/' #Path on RPi
 
 
 # ~~~~~Removes the beginning of a string
@@ -25,7 +20,7 @@ def remove_prefix(text, prefix):
 # ~~~~~Get the system settings~~~~~
 def get_settings(selection, path):
     currSettings = []
-    with open(path + 'Settings.txt', 'r') as f:
+    with open(path + 'Program/Settings.txt', 'r') as f:
         currSettings = f.readlines()
     if selection == 'Interval':
         return remove_prefix(currSettings[0],'intervalReading = ').strip()
@@ -44,13 +39,8 @@ def get_settings(selection, path):
     
 
 # ~~~~~Check if a file exists~~~~~
-def does_this_exist(fileName):
-    #VERIFY THE FILE EXISTS
-    file_exists = os.path.exists(fileName)
-    if not file_exists:
-        path = get_path()
-        file_exists = os.path.exists(path + fileName)
-    return file_exists
+def does_this_exist(path,fileName):
+    return os.path.exists(path + fileName)
 
 # ~~~~~Make folder~~~~~
 def make_folder(folderPath):
@@ -58,34 +48,33 @@ def make_folder(folderPath):
 
 # ~~~~~Make settings file if not present~~~~~
 def verify_settings(path):
-    if does_this_exist(path + 'Settings.txt'):
+    if does_this_exist(path + 'Program/Settings.txt'):
         return True
     
     #Create file that could not be found
-    update_settings(path, 10, 1300, 'AllTempLogs.csv', 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'UNKOWN')
+    update_settings(path+'Program/', 10, 1300, 'AllTempLogs.csv', 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'UNKOWN')
     return False
 
 
 # ~~~~~Make Log file if not present~~~~~
 def verify_logs(path):
-    logFile = 'AllTempLogs.csv'
-    if does_this_exist(path + logFile):
+    if does_this_exist(path + 'Program/AllTempLogs.csv'):
         return True
     
-    with open(path + logFile, 'w', newline='') as f:
+    with open(path + 'Program/AllTempLogs.csv', 'w', newline='') as f:
         
         writer = csv.writer(f)
         writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
-        writer.writerow(['01/01/2022 00:03',1,1,1,1,1,1])
+        writer.writerow(['01/01/2022 00:01',1,1,1,1,1,1])
         writer.writerow(['01/01/2022 00:02',2,2,2,2,2,2])
-        writer.writerow(['01/01/2022 00:01',3,3,3,3,3,3])
+        writer.writerow(['01/01/2022 00:03',3,3,3,3,3,3])
     return False
     
     
 # ~~~~~Get saved charges~~~~~
 def get_charges(path):
     #Make sure folder exists
-    if not does_this_exist(path):
+    if not does_this_exist(path+'Charges/'):
         os.mkdir(path) #create folder if not present
     
     #Collect all files in folder
@@ -94,7 +83,7 @@ def get_charges(path):
     
 
 # ~~~~~Compare charges~~~~~
-def check_charge(charge,path):
+def check_charge(path,charge):
     files = get_charges(path)
     
     for c in files:
@@ -104,22 +93,22 @@ def check_charge(charge,path):
 
 
 # ~~~~~Send email~~~~~
-def send_email(TC,temp,time):
-    sendTo = get_settings('Email', get_path())
-    
-    try:
-        outlook = win32com.client.Dispatch('outlook.application')
-        mail = outlook.CreateItem(0)
-        mail.To = sendTo
-        mail.Subject = 'Temperature Alert'
-        mail.Body = "Thermocouple {} has exceeded {}°F at {}".format(TC,temp,time)
-        mail.Send()
-        return True
-    except:
-        return False
+#def send_email(TC,temp,time):
+#    sendTo = get_settings('Email', get_path())
+#    
+#    try:
+#        outlook = win32com.client.Dispatch('outlook.application')
+#        mail = outlook.CreateItem(0)
+#        mail.To = sendTo
+#        mail.Subject = 'Temperature Alert'
+#        mail.Body = "Thermocouple {} has exceeded {}°F at {}".format(TC,temp,time)
+#        mail.Send()
+#        return True
+#    except:
+#        return False
     
 # ~~~~~Update settings~~~~~
-def update_settings(path,intRead,tWarn,logFile,maxRecords,chargRec,emailTo,emailEnable,Github):
+def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,github):
     with open(path + 'Settings.txt', 'w') as f:
        f.write('intervalReading = {}\n'.format(intRead))
        f.write('tempWarning = {}\n'.format(tWarn))
@@ -127,109 +116,126 @@ def update_settings(path,intRead,tWarn,logFile,maxRecords,chargRec,emailTo,email
        f.write('recordCharge = {}\n'.format(chargRec))
        f.write('emailTo = {}\n'.format(emailTo))
        f.write('enableEmail = {}\n'.format(emailEnable))
-       f.write('github = {}'.format(Github))
+       f.write('github = {}'.format(github))
     
-    
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ~~~~~Check log file length~~~~~
-def check_logs(path,logFile,maxLogs,currDate):
-    csvFile = open(path + logFile)
+def check_logs(path,maxLogs,currDate):
+    csvFile = open(path + 'Program/AllTempLogs.csv')
     rowCount = sum(1 for row in csvFile)
     csvFile.close()
     
     #If the file has more lines than the maximum, remake the file
+    newFile = "Charges//" + "00000 -- Logs-- " + currDate + ".csv"
     if rowCount > maxLogs:
-        os.rename(path+logFile, path + "Charges\\" + "LogsUpTo--" + currDate + ".csv")
-        verify_logs(path)
+        os.rename(path+'Program/AllTempLogs.csv', path + newFile)        
+        
+        #Make the new file
+        csvFile = []
+        header = []
+        with open(path+newFile, 'r', newline='') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                csvFile.append(row)
+    
+        header = csvFile[0]
+        csvFile = csvFile[-80:]
+        
+        with open(path+'Program/AllTempLogs.csv','w',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(header)
+            for row in csvFile:
+                writer.writerow(row)
+        
+        
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#~~~~~Read the TC and record to the network~~~~~
+def readTC(path,charge,currTime):
+    GPIO.setmode(GPIO.BOARD)
+
+    #Initialize pin numbers for TC inputs
+    TC1 = 16
+    TC2 = 18
+    TC3 = 22
+    TC4 = 32
+    TC5 = 11
+    TC6 = 36
+    tcList = [TC1,TC2,TC3,TC4,TC5,TC6] #array of inputs
+
+    #Initialize pin for amplifer controls
+    CS = 29
+    SCK = 31
+
+    GPIO.setup(tcList, GPIO.IN) #Setup inputs
+    GPIO.setup([CS,SCK], GPIO.OUT) #Setup outputs
+    GPIO.output(CS,GPIO.HIGH) #start chip select as high
+
+    #Array for outputs
+    tcRead  =['','0','0','0','0','0','0']
 
 
+    for i in range(0,len(tcList)):
+        read = 0
+        GPIO.output(SCK,GPIO.HIGH)
+        sleep(0.1)
+        GPIO.output(CS,GPIO.LOW)
+        sleep(0.1) 
 
-# ~~~~~Read thermocouples~~~~~
-def read_tc(path, logFile, port, currTime, charge):
-    tList = [currTime,0,0,0,0,0,0]
+        for j in range(15,-1,-1):
+            GPIO.output(SCK,GPIO.LOW)
+            sleep(0.02)
+            read |= (GPIO.input(tcList[i]) << j)
+            GPIO.output(SCK,GPIO.HIGH)
+            sleep(0.02)
+
+        GPIO.output(CS,GPIO.HIGH)
+        sleep(0.1)
+		#Convert to Fahrenheit
+        read >>= 5
+        read *= 9/5
+        read += 32
+        tcRead[i+1] = f'{read:.2f}'
+
+    tcRead[0] = currTime #Sets time for array
     
-    #see if the charge file needs to be created
-    if charge != "" and not does_this_exist(path+"Charges\\" + charge + ".csv"):
-        with open(path+"Charges\\" + charge + ".csv",'w',newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6'])
-            
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~Open COM port~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #Write to CSV log
+    with open(path+'Program/AllTempLogs.csv','a',newline='') as f:
+        writer = csv.writer(f)
+        writer.writerow(tcRead)
+
+    #Check if there is a charge file
     try:
-        arduino = serial.Serial(port=port, baudrate=9600, timeout=3)
-        sleep(2) #wait for connection to establish
-        
-    #unable to connect to port    
-    except:
-        
-        if charge != '':
-            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(tList)
-                
-        return 'err1: Unable to open port ' + str(port)
-    
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~Send signal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    try:
-        arduino.write(bytes("R", 'utf-8')) #inform the Arduino it should read code
-        
-    #unable to send data to port    
-    except:
-        tList = [currTime,-0222.2,-222.2,-0222.2,-0222.2,-0222.2,-0222.2]
-        
-        with open(path+logFile,'a',newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(tList)
-            
-        if charge != '':
-            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(tList)
-                
-        return 'err2: Unable to write to port ' + str(port)
-    
-    # ~~~~~~~~~~~~~~~~~~~~~~~~~Receive signal~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    try:
-        # for i in range(0,6):
-        sleep(.5) #wait half a second before reading
-        readings = arduino.readline().decode('UTF-8')[1:]
-        arduino.close()
-        
-        #Clean up readings
-        readings = readings.split("/")
-        for i in range(1,7):
-            tList[i] = float(readings[i-1])                
-        
-        with open(path+logFile,'a',newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(tList)
-            
-        if charge != '':
-            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(tList)
-        
-        return '' #NO ERROR, READING SUCCESS
-    
-    
-    #unable to read data from the port
-    except:
-        arduino.close()
-        tList = [currTime,-0333.3,-0333.3,-0333.3,-0333.3,-0333.3,-0333.3]
-        
-        with open(path+logFile,'a',newline='') as f:
-            writer = csv.writer(f)
-            writer.writerow(tList)
-            
-        if charge != '':
-            with open(path+"Charges\\" + charge + ".csv",'a',newline='') as f:
-                writer = csv.writer(f)
-                writer.writerow(tList)
-                
-        return 'err3: Unable to read from port ' + str(port)
+        if charge not in ['N','Y']:
+            header = []
+            if not does_this_exist(path+'Charges/',charge):
+                header = ['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6']
+                with open(path+'Charges/'+charge,'a',newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(header)
+                    writer.writerow(tcRead)
+
+            else:
+                with open(path+'Charges/'+charge,'a',newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerow(tcRead)
+
+    except Exception as err:
+        GPIO.cleanup()
+        return err
+
+    #If the charge has finished
+    if charge == 'Y':
+        GPIO.cleanup()
+        if (tcRead[4] + tcRead[6])/2 < 100.00:
+            return True
+        return False
+
+    #Clear the GPIO so they are not in use
+    GPIO.cleanup()
+    return 'Read successful' 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -243,7 +249,7 @@ def upload_Data(path, currTime):
     try:
         csvFile = []
         header = []
-        with open(path+'AllTempLogs.csv', 'r', newline='') as f:
+        with open(path+'Program/AllTempLogs.csv', 'r', newline='') as f:
             reader = csv.reader(f)
             for row in reader:
                 csvFile.append(row)
@@ -251,7 +257,7 @@ def upload_Data(path, currTime):
         header = csvFile[0]
         csvFile = csvFile[-50:]
         
-        with open(path+'OnlineLog.csv','w',newline='') as f:
+        with open(path+'Program/OnlineLog.csv','w',newline='') as f:
             writer = csv.writer(f)
             writer.writerow(header)
             for row in csvFile:
@@ -285,7 +291,7 @@ def upload_Data(path, currTime):
                 file = file_content
                 all_files.append(str(file).replace('ContentFile(path="','').replace('")',''))
     
-        with open(path + 'OnlineLog.csv', 'r') as file: #file to open
+        with open(path + 'Program/OnlineLog.csv', 'r') as file: #file to open
             content = file.read()
     
         #Upload to Github
@@ -302,4 +308,3 @@ def upload_Data(path, currTime):
         
     except Exception as err:
         return 'ERROR: ' + str(err)
-    
