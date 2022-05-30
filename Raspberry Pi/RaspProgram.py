@@ -1,6 +1,7 @@
 from time import time
 import datetime
 import GeneralCommands as GC #Custom file
+import os
 
 #Current directory path
 path = GC.get_path()
@@ -11,6 +12,7 @@ GC.verify_settings(path)
 #Make log file if it does not exist
 GC.verify_logs(path)
 
+currTime = datetime.datetime.fromtimestamp(time()) #Used for clock
 
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
@@ -38,18 +40,16 @@ def read_settings():
         chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
 
 
-#Setup variables for the program
-currTime = datetime.datetime.fromtimestamp(time()) #Used for clock
-lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
-lastCheck = path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
-chargeEnd = 'N' #time to stop recording charge, originally set as nothing
-
-
-#See if logs need to be archived
-GC.check_logs(path, logFile, maxRecords, currTime.strftime("%d-%B-%Y"))
-
 #Get current settings
 read_settings()
+
+#See if logs need to be archived
+GC.check_logs(path, maxRecords, currTime.strftime("%d-%B-%Y"))
+
+#Setup variables for the program
+lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
+lastCheck = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
+chargeEnd = 'N' #time to stop recording charge, originally set as nothing
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -61,19 +61,19 @@ while True:
 
     #Check if we should read the settings (have they been modified)
     #Check every 10s
-    if currTime - datetime.timedelta(seconds=10) > lastCheck:
-        if path.getmtime(path + "Program/Settings.txt") > lastCheck:
+    if currTime - datetime.timedelta(seconds=10) > datetime.datetime.fromtimestamp(lastCheck):
+        if os.path.getmtime(path + "Program/Settings.txt") > lastCheck:
             read_settings()
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
-    if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+    if currTime - datetime.timedelta(seconds=(readInterval*1)) > lastRead:
         #Record data
-        currRead = GC.read_tc(path, logFile, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord)
-        GC.upload_Data(path, currTime)
+        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
+        #!!!!!GC.upload_Data(path, currTime)
         lastRead = currTime
-
+        print('Read - ' + currTime.strftime("%I:%M:%S %p"))
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If the charge has finished, stop recording to the charge log
         if chargeEnd not in ['N','Y'] and currTime > chargeEnd:
