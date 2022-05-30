@@ -1,5 +1,6 @@
 intervalReading = 10
 tempWarning = 1300
+logFile = AllTempLogs.csv
 maxLogRecords = 1000
 recordCharge = N
 emailTo = intern@uniondrawn.com
