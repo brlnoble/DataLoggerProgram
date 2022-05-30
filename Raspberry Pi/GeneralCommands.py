@@ -48,7 +48,7 @@ def make_folder(folderPath):
 
 # ~~~~~Make settings file if not present~~~~~
 def verify_settings(path):
-    if does_this_exist(path + 'Program/Settings.txt'):
+    if does_this_exist(path,'Program/Settings.txt'):
         return True
     
     #Create file that could not be found
@@ -58,7 +58,7 @@ def verify_settings(path):
 
 # ~~~~~Make Log file if not present~~~~~
 def verify_logs(path):
-    if does_this_exist(path + 'Program/AllTempLogs.csv'):
+    if does_this_exist(path,'Program/AllTempLogs.csv'):
         return True
     
     with open(path + 'Program/AllTempLogs.csv', 'w', newline='') as f:
