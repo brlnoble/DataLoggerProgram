@@ -26,52 +26,69 @@ def read_settings():
     global chargeEnd
     readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
     tempWarn = int(GC.get_settings('MaxTemp', path))
-    logFile = 'AllTempLogs.csv'
     maxRecords = int(GC.get_settings('MaxRecords', path))
     chargeRecord = GC.get_settings('Record', path)
     emailSend = GC.get_settings('Email', path)
     emailAlert = GC.get_settings('EmailAlert', path)
     github = str(GC.get_settings('Github', path))
-    
+
+    #Check if the program should be recording
     if chargeRecord != 'N':
-        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety 
+        #time to end the charge at, 1 hour extra safety
+        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
 
 
-currTime = datetime.datetime.fromtimestamp(time()) #used for clock
-lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #last time data was read
-lastCheck = path.getmtime(path + "Settings.txt")
-chargeEnd = currTime #time to stop recording charge
+#Setup variables for the program
+currTime = datetime.datetime.fromtimestamp(time()) #Used for clock
+lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
+lastCheck = path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
+chargeEnd = 'N' #time to stop recording charge, originally set as nothing
 
 
-#See if logs need to be dumped
+#See if logs need to be archived
 GC.check_logs(path, logFile, maxRecords, currTime.strftime("%d-%B-%Y"))
 
-read_settings() #Get current settings
+#Get current settings
+read_settings()
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~MAIN LOOP~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 while True:
-    currTime = datetime.datetime.fromtimestamp(time()) #current time
-    
-    #If the recording has finished, close the program
-    if currTime > chargeEnd:
-        break
-    
-    #Check if we should read the settings (have they been modified)    
+    currTime = datetime.datetime.fromtimestamp(time())
+
+    #Check if we should read the settings (have they been modified)
+    #Check every 10s
     if currTime - datetime.timedelta(seconds=10) > lastCheck:
-        if path.getmtime(path + "Settings.txt") > lastCheck:
+        if path.getmtime(path + "Program/Settings.txt") > lastCheck:
             read_settings()
-    
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
-        GC.read_tc(path, logFile, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord[3:]) #Record data
+        #Record data
+        currRead = GC.read_tc(path, logFile, currTime.strftime("%d %B, %Y - %I:%M:%S %p"),chargeRecord)
         GC.upload_Data(path, currTime)
-        
-        #Check if a charge should stop recording
-        if chargeRecord != 'N': 
-            if currTime > chargeEnd:
+        lastRead = currTime
+
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        #If the charge has finished, stop recording to the charge log
+        if chargeEnd not in ['N','Y'] and currTime > chargeEnd:
+            #Update the settings now that the recording has finished
+            chargeRecord = 'Y' #Will keep recording to all log file
+            GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        #If charge is done, see if we can close the program
+        elif chargeEnd == 'Y':
+            #If temperature is below 100F, stop recording to the all log file
+            if currRead:
                 chargeRecord = 'N'
-                chargeEnd = currTime
-                
-                #Update the settings now that the charge has stopped recording
-                GC.update_settings(path, readInterval, tempWarn, logFile, maxRecords, chargeRecord, emailSend, emailAlert, github)
+                GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+
+                #Close program
+                break
+
