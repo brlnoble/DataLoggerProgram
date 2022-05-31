@@ -36,7 +36,8 @@ def read_settings():
     github = str(GC.get_settings('Github', path))
 
     #Check if the program should be recording
-    if chargeRecord != 'N':
+    if chargeRecord not in ['N','Y']:
+        chargeRecord = chargeRecord[3:] + ".csv" 
         #time to end the charge at, 1 hour extra safety
         chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
 
@@ -49,7 +50,8 @@ GC.check_logs(path, maxRecords, currTime.strftime("%d-%B-%Y"))
 
 #Setup variables for the program
 lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
-lastCheck = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
+lastEdit = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
+lastCheck = currTime
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~MAIN LOOP~~~~~~~~~~~~~~~~~~~~
@@ -60,9 +62,12 @@ while True:
 
     #Check if we should read the settings (have they been modified)
     #Check every 10s
-    if currTime - datetime.timedelta(seconds=10) > datetime.datetime.fromtimestamp(lastCheck):
-        if os.path.getmtime(path + "Program/Settings.txt") > lastCheck:
+    if currTime - datetime.timedelta(seconds=10) > lastCheck:
+        if os.path.getmtime(path + "Program/Settings.txt") > lastEdit:
+            print('SETTINGS CHANGED')
             read_settings()
+            lastCheck = currTime
+            lastEdit = os.path.getmtime(path+'Program/Settings.txt')
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
