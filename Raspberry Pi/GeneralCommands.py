@@ -175,6 +175,8 @@ def readTC(path,charge,currTime):
         read >>= 5
         read *= 9/5
         read += 32
+        if read >= 1870.00:
+            read = 00.00
         tcRead[i+1] = f'{read:.2f}'
 
     tcRead[0] = currTime #Sets time for array
