@@ -1,6 +1,5 @@
 import os
 import csv
-#import win32com.client
 from time import sleep
 import RPi.GPIO as GPIO
 from github import Github
@@ -126,7 +125,7 @@ def check_logs(path,maxLogs,currDate):
     csvFile.close()
     
     #If the file has more lines than the maximum, remake the file
-    newFile = "Charges//" + "00000 -- Logs-- " + currDate + ".csv"
+    newFile = "Charges//" + "99999 -- Logs-- " + currDate + ".csv"
     if rowCount > maxLogs:
         os.rename(path+'Program/AllTempLogs.csv', path + newFile)        
         
@@ -200,11 +199,14 @@ def readTC(path,charge,currTime):
         tcRead[i+1] = f'{read:.2f}'
 
     tcRead[0] = currTime #Sets time for array
-    
-    #Write to CSV log
-    with open(path+'Program/AllTempLogs.csv','a',newline='') as f:
-        writer = csv.writer(f)
-        writer.writerow(tcRead)
+    try:
+        #Write to CSV log
+        with open(path+'Program/AllTempLogs.csv','a',newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow(tcRead)
+
+    except Exception as err:
+        return err
 
     #Check if there is a charge file
     try:
@@ -277,6 +279,7 @@ def upload_Data(path, currTime):
         contents = repo.get_contents("")
         print(repo)
     except Exception as err:
+	error_log(err,currTime)
         return "ERROR: " + str(err)
 
     #######################################################################
@@ -307,4 +310,13 @@ def upload_Data(path, currTime):
         return 'Uploaded to Github'
         
     except Exception as err:
+	error_log(err,currTime)
         return 'ERROR: ' + str(err)
+    
+
+
+
+# ~~~~~Error Log~~~~~
+def error_log(err,currTime):
+    with open(path+'Program/Error-Logs.txt','a') as f:
+        f.writeline(currTime + ' ----- ' + err)
