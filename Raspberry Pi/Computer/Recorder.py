@@ -612,7 +612,7 @@ while True:
                 dCheck = False
                 
                 if values['ChargeIn'] and len(values['ChargeIn']) == 5:
-                    if(RC.check_charge(values['ChargeIn'], path + 'Charges\\')):
+                    if(RC.check_charge(path + 'Charges/',values['ChargeIn'])):
                         cCheck = True
                     else:
                         sg.popup('This charge number is already in use!',font=font,keep_on_top=True,non_blocking=True)
@@ -720,10 +720,6 @@ while True:
                 if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
                     maxR_exists = False
                     
-                #VERIFY PORT WAS INPUT
-                port_exists = True
-                if values['sPort'] == '':
-                   port_exists = False
                 
                 #SAVE THE FILE
                 if int_exists and temp_exists and maxR_exists:
@@ -785,4 +781,4 @@ window.close()
 # https://stackoverflow.com/a/5721805                                                                   Refresh page with Javascript
 
 # ~~~~~ Compile ~~~~~
-#pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico FullProgram.py
+#pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico Recorder.py
