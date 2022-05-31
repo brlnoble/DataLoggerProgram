@@ -1,68 +1,98 @@
-import RPi.GPIO as GPIO
-from time import sleep
 from time import time
 import datetime
-import csv
+import GeneralCommands as GC #Custom file
+import os
 
-GPIO.setmode(GPIO.BOARD)
+#Current directory path
+path = GC.get_path()
 
-#Initialize pin numbers for TC inputs
-TC1 = 16
-TC2 = 18
-TC3 = 22
-TC4 = 32
-TC5 = 11
-TC6 = 36
-tcList = [TC1,TC2,TC3,TC4,TC5,TC6] #array of inputs
+#Make settings if it does not exist
+GC.verify_settings(path)
 
-#Initialize pin for amplifer controls
-CS = 29
-SCK = 31
+#Make log file if it does not exist
+GC.verify_logs(path)
 
-GPIO.setup(tcList, GPIO.IN) #Setup inputs
-GPIO.setup([CS,SCK], GPIO.OUT) #Setup outputs
-GPIO.output(CS,GPIO.HIGH) #start chip select as high
+currTime = datetime.datetime.fromtimestamp(time()) #Used for clock
+chargeEnd = 'N' #Declaring for future use
 
-#Array for outputs
-tcRead  =['','0','0','0','0','0','0']
+# ~~~~~READ IN SETTING FILE~~~~~
+def read_settings():
+    #interval in minutes between reading the data
+    global readInterval #make sure we change the global variables
+    global tempWarn
+    global logFile
+    global maxRecords
+    global chargeRecord
+    global emailSend
+    global emailAlert
+    global github
+    global chargeEnd
+    readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
+    tempWarn = int(GC.get_settings('MaxTemp', path))
+    maxRecords = int(GC.get_settings('MaxRecords', path))
+    chargeRecord = GC.get_settings('Record', path)
+    emailSend = GC.get_settings('Email', path)
+    emailAlert = GC.get_settings('EmailAlert', path)
+    github = str(GC.get_settings('Github', path))
 
-#Variables
-path ='/diskstation1/share/1 - Mill/DATA/Brandon Stuff/CODE/' 
+    #Check if the program should be recording
+    if chargeRecord != 'N':
+        #time to end the charge at, 1 hour extra safety
+        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
 
-def readTC(tcList):
-	for i in range(0,len(tcList)):
-		read = 0
-		GPIO.output(SCK,GPIO.HIGH) #See if this fixes things
-		GPIO.output(CS,GPIO.LOW)
-	 
-		for j in range(15,-1,-1):
-			GPIO.output(SCK,GPIO.LOW)
-			sleep(0.01)
-			read |= (GPIO.input(tcList[i]) << j)
-			GPIO.output(SCK,GPIO.HIGH)
-			sleep(0.01)
 
-		GPIO.output(CS,GPIO.HIGH)
+#Get current settings
+read_settings()
 
-		#Convert to Fahrenheit
-		read >>= 5
-		read *= 9/5
-		read += 32
-		tcRead[i+1] = f'{read:.2f}'
+#See if logs need to be archived
+GC.check_logs(path, maxRecords, currTime.strftime("%d-%B-%Y"))
 
-currTime=datetime.datetime.fromtimestamp(time()).strftime("%d %B, %Y - %I:%M:%S %p")
-tcRead[0] = currTime 
-#Check if the thing works lol
-readTC(tcList)
+#Setup variables for the program
+lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
+lastCheck = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
 
-print('----- '+currTime+' -----')
-for i in range(0,len(tcRead)):
-	print(tcRead[i])
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~MAIN LOOP~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#Write to CSV log
-with open(path+'OnlineLog.csv','a',newline='') as f:
-	writer = csv.writer(f)
-	writer.writerow(tcRead)
+while True:
+    currTime = datetime.datetime.fromtimestamp(time())
 
-#Clear the GPIO so they are not in use
-GPIO.cleanup()
+    #Check if we should read the settings (have they been modified)
+    #Check every 10s
+    if currTime - datetime.timedelta(seconds=10) > datetime.datetime.fromtimestamp(lastCheck):
+        if os.path.getmtime(path + "Program/Settings.txt") > lastCheck:
+            read_settings()
+
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    #Check if we should read the TC
+    if currTime - datetime.timedelta(seconds=(readInterval*1)) > lastRead:
+        #Record data
+        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
+
+        #If an error occured, add it to the log
+        if currRead not in [True,False,'Read successful']:
+            GC.error_log(currRead,currTime)
+
+        #!!!!!GC.upload_Data(path, currTime)
+        lastRead = currTime
+        print('Read - ' + currTime.strftime("%I:%M:%S %p"))
+
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        #If the charge has finished, stop recording to the charge log
+        if chargeEnd not in ['N','Y'] and currTime > chargeEnd:
+            #Update the settings now that the recording has finished
+            chargeRecord = 'Y' #Will keep recording to all log file
+            GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        #If charge is done, see if we can close the program
+        elif chargeEnd == 'Y':
+            #If temperature is below 100F, stop recording to the all log file
+            if currRead:
+                chargeRecord = 'N'
+                GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+
+                #Close program
+                break
