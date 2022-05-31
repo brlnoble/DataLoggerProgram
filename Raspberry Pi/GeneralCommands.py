@@ -69,27 +69,6 @@ def verify_logs(path):
         writer.writerow(['01/01/2022 00:03',3,3,3,3,3,3])
     return False
     
-    
-# ~~~~~Get saved charges~~~~~
-def get_charges(path):
-    #Make sure folder exists
-    if not does_this_exist(path+'Charges/'):
-        os.mkdir(path) #create folder if not present
-    
-    #Collect all files in folder
-    files = [f.strip('.csv') for f in os.listdir(path) if os.path.exists(path + f)] #collect all files in the folder
-    return sorted(files,reverse=True) #Return list newest to oldest
-    
-
-# ~~~~~Compare charges~~~~~
-def check_charge(path,charge):
-    files = get_charges(path)
-    
-    for c in files:
-        if str(charge) == c[:5]:
-            return False
-    return True
-
 
 # ~~~~~Send email~~~~~
 #def send_email(TC,temp,time):
@@ -279,7 +258,7 @@ def upload_Data(path, currTime):
         contents = repo.get_contents("")
         print(repo)
     except Exception as err:
-	error_log(err,currTime)
+        error_log(path,err,currTime)
         return "ERROR: " + str(err)
 
     #######################################################################
@@ -310,13 +289,13 @@ def upload_Data(path, currTime):
         return 'Uploaded to Github'
         
     except Exception as err:
-	error_log(err,currTime)
+        error_log(path,err,currTime)
         return 'ERROR: ' + str(err)
     
 
 
 
 # ~~~~~Error Log~~~~~
-def error_log(err,currTime):
+def error_log(path,err,currTime):
     with open(path+'Program/Error-Logs.txt','a') as f:
         f.writeline(currTime + ' ----- ' + err)
