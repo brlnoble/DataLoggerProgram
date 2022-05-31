@@ -67,13 +67,13 @@ while True:
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
-    if currTime - datetime.timedelta(seconds=(readInterval*1)) > lastRead:
+    if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
         #Record data
         currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
 
         #If an error occured, add it to the log
         if currRead not in [True,False,'Read successful']:
-            GC.error_log(currRead,currTime)
+            GC.error_log(path,currRead,currTime)
 
         #!!!!!GC.upload_Data(path, currTime)
         lastRead = currTime
