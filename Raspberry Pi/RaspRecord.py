@@ -39,7 +39,9 @@ def read_settings():
     if chargeRecord not in ['N','Y']:
         chargeRecord = chargeRecord[3:] + ".csv" 
         #time to end the charge at, 1 hour extra safety
-        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
+        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60)) 
+        print (chargeRecord)
+        print (chargeEnd)
 
 
 #Get current settings
@@ -80,17 +82,16 @@ while True:
         if currRead not in [True,False,'Read successful']:
             GC.error_log(path,currRead,currTime)
 
-        #!!!!!GC.upload_Data(path, currTime)
+        GC.upload_Data(path, currTime)
         lastRead = currTime
         print('Read - ' + currTime.strftime("%I:%M:%S %p"))
 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If the charge has finished, stop recording to the charge log
-        if chargeEnd not in ['N','Y'] and currTime > chargeEnd:
+        if chargeRecord not in ['N','Y'] and currTime > chargeEnd:
             #Update the settings now that the recording has finished
             chargeRecord = 'Y' #Will keep recording to all log file
             GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
-
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If charge is done, see if we can close the program
         elif chargeEnd == 'Y':
