@@ -208,11 +208,13 @@ def readTC(path,charge,currTime):
     except Exception as err:
         GPIO.cleanup()
         return err
+    print(f'{float(tcRead[4]):.2f}')
+    print(f'{float(tcRead[6]):.2f}')
 
     #If the charge has finished
     if charge == 'Y':
         GPIO.cleanup()
-        if (tcRead[4] + tcRead[6])/2 < 100.00:
+        if (float(tcRead[4]) + float(tcRead[6]))/2 < 100.00:
             return True
         return False
 
@@ -299,5 +301,6 @@ def upload_Data(path, currTime):
 
 # ~~~~~Error Log~~~~~
 def error_log(path,err,currTime):
-    with open(path+'Program/Error-Logs.txt','a') as f:
-        f.writeline(currTime + ' ----- ' + err)
+    print(err)
+#    with open(path+'Program/Error-Logs.txt','a') as f:
+ #       f.write(str(currTime) + ' ----- ' + err)
