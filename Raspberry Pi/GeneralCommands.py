@@ -87,7 +87,7 @@ def verify_logs(path):
     
 # ~~~~~Update settings~~~~~
 def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,github):
-    with open(path + 'Settings.txt', 'w') as f:
+    with open(path + 'Program/Settings.txt', 'w') as f:
        f.write('intervalReading = {}\n'.format(intRead))
        f.write('tempWarning = {}\n'.format(tWarn))
        f.write('maxLogRecords = {}\n'.format(maxRecords))
