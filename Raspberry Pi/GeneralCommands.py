@@ -117,7 +117,7 @@ def check_logs(path,maxLogs,currDate):
                 csvFile.append(row)
     
         header = csvFile[0]
-        csvFile = csvFile[-80:]
+        csvFile = csvFile[-80:] #keep last 80 lines of the file
         
         with open(path+'Program/AllTempLogs.csv','w',newline='') as f:
             writer = csv.writer(f)
@@ -154,18 +154,18 @@ def readTC(path,charge,currTime):
     #Array for outputs
     tcRead  =['','0','0','0','0','0','0']
 
-
+    #~~~Read the TC's~~~
     for i in range(0,len(tcList)):
         read = 0
         GPIO.output(SCK,GPIO.HIGH)
         sleep(0.1)
         GPIO.output(CS,GPIO.LOW)
         sleep(0.1) 
-
+        #Read each of the 16 bits one at a time
         for j in range(15,-1,-1):
             GPIO.output(SCK,GPIO.LOW)
             sleep(0.02)
-            read |= (GPIO.input(tcList[i]) << j)
+            read |= (GPIO.input(tcList[i]) << j) #Bit shift to calculate value
             GPIO.output(SCK,GPIO.HIGH)
             sleep(0.02)
 
@@ -175,11 +175,13 @@ def readTC(path,charge,currTime):
         read >>= 5
         read *= 9/5
         read += 32
-        if read >= 1870.00:
+        if read >= 1870.00: #Cannot sense over this temperature - means furnace is off
             read = 00.00
-        tcRead[i+1] = f'{read:.2f}'
+        tcRead[i+1] = f'{read:.2f}' #Set value as 00.00 format
 
     tcRead[0] = currTime #Sets time for array
+    
+    #Try to write to the log, otherwise return error
     try:
         #Write to CSV log
         with open(path+'Program/AllTempLogs.csv','a',newline='') as f:
@@ -193,6 +195,7 @@ def readTC(path,charge,currTime):
     try:
         if charge not in ['N','Y']:
             header = []
+            #If charge file does not exist, create it and add header + data
             if not does_this_exist(path+'Charges/',charge):
                 header = ['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6']
                 with open(path+'Charges/'+charge,'a',newline='') as f:
@@ -200,6 +203,7 @@ def readTC(path,charge,currTime):
                     writer.writerow(header)
                     writer.writerow(tcRead)
 
+            #If charge file does exist, append data
             else:
                 with open(path+'Charges/'+charge,'a',newline='') as f:
                     writer = csv.writer(f)
@@ -208,12 +212,11 @@ def readTC(path,charge,currTime):
     except Exception as err:
         GPIO.cleanup()
         return err
-    print(f'{float(tcRead[4]):.2f}')
-    print(f'{float(tcRead[6]):.2f}')
 
     #If the charge has finished
     if charge == 'Y':
         GPIO.cleanup()
+        #If the furnace has cooled down, inform program to close and shutdown RPi
         if (float(tcRead[4]) + float(tcRead[6]))/2 < 100.00:
             return True
         return False
@@ -248,7 +251,7 @@ def upload_Data(path, currTime):
             for row in csvFile:
                 writer.writerow(row)
     except Exception as err:
-        return 'ERROR: ' + str(err)
+        return str(err)
     
     #######################################################################
     #Try to connect to Github
@@ -260,10 +263,8 @@ def upload_Data(path, currTime):
         repo = g.get_user().get_repo("View") #Repository
         all_files = []
         contents = repo.get_contents("")
-        print(repo)
     except Exception as err:
-        error_log(path,err,currTime)
-        return "ERROR: " + str(err)
+        return str(err)
 
     #######################################################################
     #Try to upload the file to Github
@@ -293,14 +294,32 @@ def upload_Data(path, currTime):
         return 'Uploaded to Github'
         
     except Exception as err:
-        error_log(path,err,currTime)
-        return 'ERROR: ' + str(err)
+        return str(err)
     
 
 
 
 # ~~~~~Error Log~~~~~
 def error_log(path,err,currTime):
-    print(err)
-#    with open(path+'Program/Error-Logs.txt','a') as f:
- #       f.write(str(currTime) + ' ----- ' + err)
+    #Cannot access opened file
+    if str(err)[:10] == "[Errno 16]":
+
+        #Check if AllTempLogs
+        if err[-16:-1] == "AllTempLogs.csv":
+            err = 'ERR 01: AllTempLogs is open'
+
+        #Check if OnlineLog
+        elif err[-14:-1] == "OnlineLog.csv":
+            err = 'ERR 02: OnlineLog is open'
+
+    #If incorrect Github token
+    elif str(err)[:3] == "401":
+        err = 'ERR 03: Invalid Github token'
+
+    print (err+': '+currTime.strftime("%I:%M:%S %p"))
+
+    #~~~Write to the error log file~~~
+    with open(path+'Program/Error-Logs.txt','a') as f:
+        f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ' + str(err)+'\n')
+
+    return err
