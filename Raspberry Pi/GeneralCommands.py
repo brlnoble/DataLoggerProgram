@@ -69,27 +69,6 @@ def verify_logs(path):
         writer.writerow(['01/01/2022 00:03',3,3,3,3,3,3])
     return False
     
-    
-# ~~~~~Get saved charges~~~~~
-def get_charges(path):
-    #Make sure folder exists
-    if not does_this_exist(path+'Charges/'):
-        os.mkdir(path) #create folder if not present
-    
-    #Collect all files in folder
-    files = [f.strip('.csv') for f in os.listdir(path) if os.path.exists(path + f)] #collect all files in the folder
-    return sorted(files,reverse=True) #Return list newest to oldest
-    
-
-# ~~~~~Compare charges~~~~~
-def check_charge(path,charge):
-    files = get_charges(path)
-    
-    for c in files:
-        if str(charge) == c[:5]:
-            return False
-    return True
-
 
 # ~~~~~Send email~~~~~
 #def send_email(TC,temp,time):
@@ -108,7 +87,7 @@ def check_charge(path,charge):
     
 # ~~~~~Update settings~~~~~
 def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,github):
-    with open(path + 'Settings.txt', 'w') as f:
+    with open(path + 'Program/Settings.txt', 'w') as f:
        f.write('intervalReading = {}\n'.format(intRead))
        f.write('tempWarning = {}\n'.format(tWarn))
        f.write('maxLogRecords = {}\n'.format(maxRecords))
@@ -196,6 +175,8 @@ def readTC(path,charge,currTime):
         read >>= 5
         read *= 9/5
         read += 32
+        if read >= 1870.00:
+            read = 00.00
         tcRead[i+1] = f'{read:.2f}'
 
     tcRead[0] = currTime #Sets time for array
@@ -227,11 +208,13 @@ def readTC(path,charge,currTime):
     except Exception as err:
         GPIO.cleanup()
         return err
+    print(f'{float(tcRead[4]):.2f}')
+    print(f'{float(tcRead[6]):.2f}')
 
     #If the charge has finished
     if charge == 'Y':
         GPIO.cleanup()
-        if (tcRead[4] + tcRead[6])/2 < 100.00:
+        if (float(tcRead[4]) + float(tcRead[6]))/2 < 100.00:
             return True
         return False
 
@@ -279,7 +262,7 @@ def upload_Data(path, currTime):
         contents = repo.get_contents("")
         print(repo)
     except Exception as err:
-	error_log(err,currTime)
+        error_log(path,err,currTime)
         return "ERROR: " + str(err)
 
     #######################################################################
@@ -310,13 +293,14 @@ def upload_Data(path, currTime):
         return 'Uploaded to Github'
         
     except Exception as err:
-	error_log(err,currTime)
+        error_log(path,err,currTime)
         return 'ERROR: ' + str(err)
     
 
 
 
 # ~~~~~Error Log~~~~~
-def error_log(err,currTime):
-    with open(path+'Program/Error-Logs.txt','a') as f:
-        f.writeline(currTime + ' ----- ' + err)
+def error_log(path,err,currTime):
+    print(err)
+#    with open(path+'Program/Error-Logs.txt','a') as f:
+ #       f.write(str(currTime) + ' ----- ' + err)

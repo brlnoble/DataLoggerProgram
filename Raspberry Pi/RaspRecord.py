@@ -13,6 +13,7 @@ GC.verify_settings(path)
 GC.verify_logs(path)
 
 currTime = datetime.datetime.fromtimestamp(time()) #Used for clock
+chargeEnd = 'N' #Declaring for future use
 
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
@@ -35,9 +36,12 @@ def read_settings():
     github = str(GC.get_settings('Github', path))
 
     #Check if the program should be recording
-    if chargeRecord != 'N':
+    if chargeRecord not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
         chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
+        chargeRecord = chargeRecord[3:] + ".csv"
+        print ('Charge: '+str(chargeRecord))
+        print ('END: '+str(chargeEnd))
 
 
 #Get current settings
@@ -48,9 +52,8 @@ GC.check_logs(path, maxRecords, currTime.strftime("%d-%B-%Y"))
 
 #Setup variables for the program
 lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
-lastCheck = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
-chargeEnd = 'N' #time to stop recording charge, originally set as nothing
-
+lastEdit = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
+lastCheck = currTime
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~MAIN LOOP~~~~~~~~~~~~~~~~~~~~
@@ -61,29 +64,37 @@ while True:
 
     #Check if we should read the settings (have they been modified)
     #Check every 10s
-    if currTime - datetime.timedelta(seconds=10) > datetime.datetime.fromtimestamp(lastCheck):
-        if os.path.getmtime(path + "Program/Settings.txt") > lastCheck:
+    if currTime - datetime.timedelta(seconds=10) > lastCheck:
+        if os.path.getmtime(path + "Program/Settings.txt") > lastEdit:
+            print('SETTINGS CHANGED')
             read_settings()
+            lastCheck = currTime
+            lastEdit = os.path.getmtime(path+'Program/Settings.txt')
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
-    if currTime - datetime.timedelta(seconds=(readInterval*1)) > lastRead:
+    if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
         #Record data
         currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
-        #!!!!!GC.upload_Data(path, currTime)
+
+        #If an error occured, add it to the log
+        if currRead not in [True,False,'Read successful']:
+            GC.error_log(path,currRead,currTime)
+
+        GC.upload_Data(path, currTime)
         lastRead = currTime
         print('Read - ' + currTime.strftime("%I:%M:%S %p"))
+
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If the charge has finished, stop recording to the charge log
-        if chargeEnd not in ['N','Y'] and currTime > chargeEnd:
+        if chargeRecord not in ['N','Y'] and currTime > chargeEnd:
             #Update the settings now that the recording has finished
             chargeRecord = 'Y' #Will keep recording to all log file
             GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
-
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If charge is done, see if we can close the program
-        elif chargeEnd == 'Y':
+        elif chargeRecord == 'Y':
             #If temperature is below 100F, stop recording to the all log file
             if currRead:
                 chargeRecord = 'N'
@@ -91,4 +102,3 @@ while True:
 
                 #Close program
                 break
-
