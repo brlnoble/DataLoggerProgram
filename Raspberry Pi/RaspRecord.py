@@ -15,6 +15,7 @@ GC.verify_logs(path)
 currTime = datetime.datetime.fromtimestamp(time()) #Used for clock
 chargeEnd = 'N' #Declaring for future use
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
     #interval in minutes between reading the data
@@ -38,26 +39,48 @@ def read_settings():
     #Check if the program should be recording
     if chargeRecord not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
-        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
+        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60)) 
         chargeRecord = chargeRecord[3:] + ".csv"
         print ('Charge: '+str(chargeRecord))
         print ('END: '+str(chargeEnd))
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~Error handling~~~~~
+def errors(err):
+    #Sort through the errors and see what the problem is
+    errMsg = GC.error_log(path,err,currTime)
+
+    #AllTempLogs is open
+    if errMsg[:6] == "ERR 01":
+        lastRead = currTime + datetime.timedelta(seconds=10) #try again in 10s
+
+    #OnlineLog is open
+    elif errMsg[:6] == "ERR 02":
+        lastRead = currTime
+
+    #Incorrect Github token
+    elif errMsg[:6] == "ERR 03":
+        lastRead = currTime
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #Get current settings
 read_settings()
 
 #See if logs need to be archived
-GC.check_logs(path, maxRecords, currTime.strftime("%d-%B-%Y"))
+GC.check_logs(path, maxRecords, currTime.strftime("%d-%b-%y"))
 
 #Setup variables for the program
 lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
 lastEdit = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
 lastCheck = currTime
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~MAIN LOOP~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 while True:
     currTime = datetime.datetime.fromtimestamp(time())
@@ -75,17 +98,21 @@ while True:
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+        print ("~~~~~~~~~~")
         #Record data
-        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
+        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d-%b-%y - %I:%M:%S %p"))
 
         #If an error occured, add it to the log
         if currRead not in [True,False,'Read successful']:
-            GC.error_log(path,currRead,currTime)
+            errors(currRead)
+        else:
+            git = GC.upload_Data(path, currTime)
+            lastRead = currTime
+            print('Read - ' + currTime.strftime("%I:%M:%S %p"))
 
-        GC.upload_Data(path, currTime)
-        lastRead = currTime
-        print('Read - ' + currTime.strftime("%I:%M:%S %p"))
-
+        #If error with Github
+        if git != "Uploaded to Github":
+            errors(git)
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If the charge has finished, stop recording to the charge log
         if chargeRecord not in ['N','Y'] and currTime > chargeEnd:
