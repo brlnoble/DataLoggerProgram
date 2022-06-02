@@ -37,11 +37,11 @@ def read_settings():
 
     #Check if the program should be recording
     if chargeRecord not in ['N','Y']:
-        chargeRecord = chargeRecord[3:] + ".csv" 
         #time to end the charge at, 1 hour extra safety
-        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60)) 
-        print (chargeRecord)
-        print (chargeEnd)
+        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
+        chargeRecord = chargeRecord[3:] + ".csv"
+        print ('Charge: '+str(chargeRecord))
+        print ('END: '+str(chargeEnd))
 
 
 #Get current settings
@@ -94,7 +94,7 @@ while True:
             GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If charge is done, see if we can close the program
-        elif chargeEnd == 'Y':
+        elif chargeRecord == 'Y':
             #If temperature is below 100F, stop recording to the all log file
             if currRead:
                 chargeRecord = 'N'
