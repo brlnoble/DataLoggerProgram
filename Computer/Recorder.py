@@ -5,7 +5,7 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-# import pyi_splash #cannot from Spyder, only when compiled to EXE
+import pyi_splash #cannot from Spyder, only when compiled to EXE
 
 import RecorderCommands as RC #Custom file
 
@@ -48,13 +48,13 @@ def read_settings():
 def update_alert(msg):
     if msg != '':
         #Alert the user of an issue
-        window['RecordAlert'].update(msg)
-        window['RecordAlert'].update(background_color='#F5273A')
+        window['ErrorAlert'].update(msg)
+        window['ErrorAlert'].update(background_color='#F5273A')
         
-    elif window['RecordAlert'].get()[:20] != 'Currently Recording:':
+    else:
         #Hide alert
-        window['RecordAlert'].update(msg)
-        window['RecordAlert'].update(background_color='#EEE')
+        window['ErrorAlert'].update('')
+        window['ErrorAlert'].update(background_color='#EEE')
         
 
 
@@ -75,11 +75,6 @@ def update_tc_nums():
             window['TC' + str(tc)].update(background_color='#F5273A')
             update_alert('THERMOCOUPLE TC{} OVER LIMIT'.format(tc))
             
-            global emailTry
-            
-            if emailTry:
-                RC.send_email(tc, round(df['Temp' + str(tc)].values[-1],1), currTime.strftime("%d %B, %Y - %I:%M:%S %p"))
-                emailTry = False
             
     
 # ~~~~~Update settings window~~~~~
@@ -118,7 +113,7 @@ def update_tc_graph():
         window['TC2L'].update(str(round(df.Temp2[right],1)) + '°F')
         window['TC3L'].update(str(round(df.Temp3[right],1)) + '°F')
         window['TC4L'].update(str(round(df.Temp4[right],1)) + '°F')
-        window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
+        #window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
         window['TC6L'].update(str(round(df.Temp6[right],1)) + '°F')
     else:
         window['TC_TL'].update('Reading: \nUnavailable')
@@ -126,7 +121,7 @@ def update_tc_graph():
         window['TC2L'].update('000.00' + '°F')
         window['TC3L'].update('000.00' + '°F')
         window['TC4L'].update('000.00' + '°F')
-        window['TC5L'].update('000.00' + '°F')
+        #window['TC5L'].update('000.00' + '°F')
         window['TC6L'].update('000.00' + '°F')
     
     
@@ -188,7 +183,7 @@ def display_graph(fileName):
     global df
     df = pd.read_csv(fileName,parse_dates=['Time'], dayfirst=True)
     global dates
-    dates = df['Time'].dt.strftime("%d/%b/%y \n %I:%M:%S %p")
+    dates = df['Time'].dt.strftime("%d-%b-%y \n %I:%M:%S %p")
     global x
     x = list(range(0,len(dates)))
         
@@ -205,8 +200,8 @@ def display_graph(fileName):
     y = df.Temp4
     plt.plot(x,y,linewidth=2,marker='o',label='TC4',color='#444')
     #thermocouple 5
-    y = df.Temp5
-    plt.plot(x,y,linewidth=2,marker='o',label='TC5',color='#00B366')
+    # y = df.Temp5
+    # plt.plot(x,y,linewidth=2,marker='o',label='TC5',color='#00B366')
     #thermocouple 6
     y = df.Temp6
     plt.plot(x,y,linewidth=2,marker='o',label='TC6',color='#AA00AA')
@@ -289,7 +284,7 @@ wMain = [
             [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font,pad=(0,30))],
             
             [sg.Push(),sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont), 
-             sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont), 
+             sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont,text_color='#EEE'), 
              sg.Push(), sg.Text('TC4:',font=butFont),sg.Text('000.0',key='TC4', font=tcFont),sg.Push(),sg.Push()],
             
             [sg.Image(furnacePic,pad=(0,0))],
@@ -340,7 +335,7 @@ tcGraph = [
             [sg.Text('TC2: ',font=butFont,text_color='#FFAA00'),sg.Text('2',font=tcFont,key='TC2L',text_color='#333')],
             [sg.Text('TC3: ',font=butFont,text_color='#365BB0'),sg.Text('3',font=tcFont,key='TC3L',text_color='#333')],
             [sg.Text('TC4: ',font=butFont,text_color='#444'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],
-            [sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=tcFont,key='TC5L',text_color='#333')],
+            #[sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=tcFont,key='TC5L',text_color='#333')],
             [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6L',text_color='#333')],
             [sg.Text()],
             [sg.Button('Save Graph',key='saveBut',font=butFont,button_color="#F57627",size=(10,2))]
@@ -370,7 +365,7 @@ wLog = [
             [sg.Column([
                 [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='cRecord',size=(10,2), font=butFont, button_color='#02AB29')]])],
                 ],key='logInput')],
-            [sg.Text('',font=butFont,key='cDesc')],
+            [sg.Text('',font=font,key='cDesc')],
             
             #Plotting stuff
             [sg.Canvas(key='controls_cv')], #idk why this has to be here
@@ -431,6 +426,7 @@ tab_group = [
 
 layout = [
     [sg.Text(key='RecordAlert',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))],
+    [sg.Text(key='ErrorAlert',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))],
     [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,20)),sg.Button('Main Screen',size=(10,2), font=butFont, button_color='#F5273A',visible=False)],
     [sg.Text(key='Time',font=butFont)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
@@ -450,7 +446,7 @@ if chargeRecord not in ['Y','N']:
     window['TimeIn'].update(chargeRecord[0:2])
 
 # ~~~~~Close splash screen~~~~~
-# pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
+pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 
 
 
@@ -753,19 +749,19 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            sg.popup("~~err4~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 04~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            sg.popup("~~err5~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 05~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err)[:10] == "[Errno 13]":
-            sg.popup_timed("~~err6~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
+            sg.popup_timed("~~ERR 06~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
             currTime = datetime.datetime.fromtimestamp(time())
             lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
         elif str(err) == "float division by zero":
-            sg.popup("~~err5~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 07~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.",font=font,keep_on_top=True,non_blocking=True)
         elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-            sg.popup("~~err6~~\nCharge cannot be displayed. Not enough data.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 08~~\nCharge cannot be displayed. Not enough data.",font=font,keep_on_top=True,non_blocking=True)
         else: #catch all
-            sg.popup("~~err0~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 00~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
         
 window.close()
 
