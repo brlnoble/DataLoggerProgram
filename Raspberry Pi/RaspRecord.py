@@ -39,7 +39,7 @@ def read_settings():
     #Check if the program should be recording
     if chargeRecord not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
-        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60)) 
+        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
         chargeRecord = chargeRecord[3:] + ".csv"
         print ('Charge: '+str(chargeRecord))
         print ('END: '+str(chargeEnd))
@@ -59,8 +59,12 @@ def errors(err):
     elif errMsg[:6] == "ERR 02":
         lastRead = currTime
 
-    #Incorrect Github token
+    #Charge file is open
     elif errMsg[:6] == "ERR 03":
+        lastRead = currTime
+
+    #Incorrect Github token
+    elif errMsg[:6] == "ERR 04":
         lastRead = currTime
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,6 +80,9 @@ GC.check_logs(path, maxRecords, currTime.strftime("%d-%b-%y"))
 lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
 lastEdit = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
 lastCheck = currTime
+
+#Turn on recording light
+GC.record_light(True)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -126,6 +133,9 @@ while True:
             if currRead:
                 chargeRecord = 'N'
                 GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+
+                #Turn off recording light
+                GC.record_light=False
 
                 #Close program
                 break
