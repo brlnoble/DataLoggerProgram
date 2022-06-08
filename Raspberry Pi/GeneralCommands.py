@@ -6,7 +6,7 @@ from github import Github
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
-    return '/diskstation1/share/1 - Mill/DATA/Brandon Stuff/CODE/Pi Logger/' #Path on RPi
+    return '/diskstation1/share/1 - Mill/Data Logger/' #Path on RPi
 
 
 # ~~~~~Removes the beginning of a string
@@ -139,7 +139,7 @@ def readTC(path,charge,currTime):
     TC2 = 18
     TC3 = 22
     TC4 = 32
-    TC5 = 11
+    TC5 = 37
     TC6 = 36
     tcList = [TC1,TC2,TC3,TC4,TC5,TC6] #array of inputs
 
@@ -210,19 +210,15 @@ def readTC(path,charge,currTime):
                     writer.writerow(tcRead)
 
     except Exception as err:
-        GPIO.cleanup()
         return err
 
     #If the charge has finished
     if charge == 'Y':
-        GPIO.cleanup()
         #If the furnace has cooled down, inform program to close and shutdown RPi
         if (float(tcRead[4]) + float(tcRead[6]))/2 < 100.00:
             return True
         return False
 
-    #Clear the GPIO so they are not in use
-    GPIO.cleanup()
     return 'Read successful' 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -305,21 +301,42 @@ def error_log(path,err,currTime):
     if str(err)[:10] == "[Errno 16]":
 
         #Check if AllTempLogs
-        if err[-16:-1] == "AllTempLogs.csv":
+        if str(err)[-16:-1] == "AllTempLogs.csv":
             err = 'ERR 01: AllTempLogs is open'
 
         #Check if OnlineLog
-        elif err[-14:-1] == "OnlineLog.csv":
+        elif str(err)[-14:-1] == "OnlineLog.csv":
             err = 'ERR 02: OnlineLog is open'
+
+        #Check if it is the charg file
+        elif str(err)[-27:-1] == get_settings("Record")[3:]:
+            err = 'ERR 03: Charge log file is open'
 
     #If incorrect Github token
     elif str(err)[:3] == "401":
-        err = 'ERR 03: Invalid Github token'
+        err = 'ERR 04: Invalid Github token'
 
-    print (err+': '+currTime.strftime("%I:%M:%S %p"))
+    print (str(err)+': '+currTime.strftime("%I:%M:%S %p"))
 
     #~~~Write to the error log file~~~
     with open(path+'Program/Error-Logs.txt','a') as f:
         f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ' + str(err)+'\n')
 
     return err
+
+
+# ~~~~~Recording Light~~~~~
+def record_light(state):
+    GPIO.cleanup()
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(11,GPIO.OUT) #LED
+    GPIO.setup(3,GPIO.OUT) #FAN
+
+    if state:
+        GPIO.output(11,GPIO.HIGH)
+        GPIO.output(3,GPIO.HIGH)
+        print ('....RECORD START....')
+    else:
+        GPIO.output(11,GPIO.LOW)
+        GPIO.output(3,GPIO.LOW)
+        print ('....RECORD STOP....')
