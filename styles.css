@@ -17,7 +17,7 @@ body {
 .TC li {
     display: inline-block;
     font-size: 20px;
-    padding: 10px;
+    padding: 5px;
     color: white;
 }
 
@@ -42,4 +42,9 @@ hr {
 
 h1 {
     margin-top: 0;
+    margin-bottom: 5px;
+}
+
+p {
+    margin: 5px;
 }
