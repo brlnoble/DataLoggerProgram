@@ -2,7 +2,7 @@ import os
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
-    return '//DISKSTATION1/mill/1 - Mill/DATA/Brandon Stuff/CODE/Pi Logger/' #Path on RPi
+    return '//DISKSTATION1/mill/1 - Mill/Data Logger/' #Path on RPi
 
 
 # ~~~~~Removes the beginning of a string
@@ -51,7 +51,7 @@ def verify_settings(path):
         return True
     
     #Create file that could not be found
-    update_settings(path+'Program/', 10, 1300, 'AllTempLogs.csv', 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'UNKOWN')
+    update_settings(path+'Program/', 10, 1300, 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'UNKOWN')
     return False
     
     
