@@ -39,7 +39,7 @@ function makeChart(csvFile) {
   })
   
   //Create an array for the high temperature warning
-  var tcHData = new Array(tc1Data.length).fill("1300");
+  //var tcHData = new Array(tc1Data.length).fill("1300");
   
   //Update the numeric text at the top of the screen
   document.getElementById("TC1").textContent=tc1Data[tc1Data.length-1];
@@ -109,13 +109,13 @@ function makeChart(csvFile) {
           borderColor: "#AA00AA",
           label: "TC6"
         },
-        {
-          data: tcHData,
-          fill: true,
-          borderColor: "#00B366",
-          label: "HIGH",
-          pointStyle: "line"
-        },
+        //{
+        //  data: tcHData,
+        //  fill: true,
+        //  borderColor: "#00B366",
+        //  label: "HIGH",
+        //  pointStyle: "line"
+        //},
       ]
     }
   });
