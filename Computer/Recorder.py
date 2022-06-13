@@ -189,22 +189,27 @@ def display_graph(fileName):
         
     #thermocouple 1
     y = df.Temp1
-    plt.plot(x,y,linewidth=2,marker='o',label='TC1',color='#FF0000') 
+    plt.plot(x,y,linewidth=2,marker='o',label='TC1',color='#FF0000')
+    maxVal = max(y)
     #thermocouple 2
     y = df.Temp2
     plt.plot(x,y,linewidth=2,marker='o',label='TC2',color='#FFAA00')
+    maxVal = maxVal if maxVal > max(y) else max(y)
     #thermocouple 3
     y = df.Temp3
     plt.plot(x,y,linewidth=2,marker='o',label='TC3',color='#365BB0')
+    maxVal = maxVal if maxVal > max(y) else max(y)
     #thermocouple 4
     y = df.Temp4
     plt.plot(x,y,linewidth=2,marker='o',label='TC4',color='#444')
+    maxVal = maxVal if maxVal > max(y) else max(y)
     #thermocouple 5
     # y = df.Temp5
     # plt.plot(x,y,linewidth=2,marker='o',label='TC5',color='#00B366')
     #thermocouple 6
     y = df.Temp6
     plt.plot(x,y,linewidth=2,marker='o',label='TC6',color='#AA00AA')
+    maxVal = maxVal if maxVal > max(y) else max(y)
     
     update_tc_graph() #adds the readings on the right
     
@@ -218,7 +223,10 @@ def display_graph(fileName):
     plt.gca().spines['right'].set_linewidth(5)
     plt.gca().spines['right'].set_linestyle((0,(1,5)))
     #plt.xlim(left,right) #initial limits X
-    plt.ylim([0,1200]) #initial limits Y
+    
+    #Check y limits
+    ylimit = 800 if 800 > maxVal else int(-1 * maxVal // 100 * -1) * 100
+    plt.ylim(0,ylimit) #initial limits Y
     plt.grid(visible=True)
     
     #Display the plot
@@ -259,7 +267,7 @@ activeScreen  = 'Main' #helps speed up the main loop
 
 #Axes limits
 zoom = 30
-maxZoom = 80
+maxZoom = 120
 minZoom = 5
 left = 0
 right = 0
@@ -608,7 +616,7 @@ while True:
                 dCheck = False
                 
                 if values['ChargeIn'] and len(values['ChargeIn']) == 5:
-                    if(RC.check_charge(path + 'Charges/',values['ChargeIn'])):
+                    if(RC.check_charge(path,values['ChargeIn'])):
                         cCheck = True
                     else:
                         sg.popup('This charge number is already in use!',font=font,keep_on_top=True,non_blocking=True)

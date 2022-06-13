@@ -70,7 +70,6 @@ def get_charges(path):
 # ~~~~~Compare charges~~~~~
 def check_charge(path,charge):
     files = get_charges(path)
-    
     for c in files:
         if str(charge) == c[:5]:
             return False
