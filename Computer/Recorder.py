@@ -113,7 +113,6 @@ def update_tc_graph():
         window['TC2L'].update(str(round(df.Temp2[right],1)) + '°F')
         window['TC3L'].update(str(round(df.Temp3[right],1)) + '°F')
         window['TC4L'].update(str(round(df.Temp4[right],1)) + '°F')
-        #window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
         window['TC6L'].update(str(round(df.Temp6[right],1)) + '°F')
     else:
         window['TC_TL'].update('Reading: \nUnavailable')
@@ -121,7 +120,6 @@ def update_tc_graph():
         window['TC2L'].update('000.00' + '°F')
         window['TC3L'].update('000.00' + '°F')
         window['TC4L'].update('000.00' + '°F')
-        #window['TC5L'].update('000.00' + '°F')
         window['TC6L'].update('000.00' + '°F')
     
     
@@ -201,11 +199,8 @@ def display_graph(fileName):
     maxVal = maxVal if maxVal > max(y) else max(y)
     #thermocouple 4
     y = df.Temp4
-    plt.plot(x,y,linewidth=2,marker='o',label='TC4',color='#444')
+    plt.plot(x,y,linewidth=2,marker='o',label='TC4',color='#00B366')
     maxVal = maxVal if maxVal > max(y) else max(y)
-    #thermocouple 5
-    # y = df.Temp5
-    # plt.plot(x,y,linewidth=2,marker='o',label='TC5',color='#00B366')
     #thermocouple 6
     y = df.Temp6
     plt.plot(x,y,linewidth=2,marker='o',label='TC6',color='#AA00AA')
@@ -342,8 +337,7 @@ tcGraph = [
             [sg.Text('TC1: ',font=butFont,text_color='#FF0000'),sg.Text('1',font=tcFont,key='TC1L',text_color='#333')],
             [sg.Text('TC2: ',font=butFont,text_color='#FFAA00'),sg.Text('2',font=tcFont,key='TC2L',text_color='#333')],
             [sg.Text('TC3: ',font=butFont,text_color='#365BB0'),sg.Text('3',font=tcFont,key='TC3L',text_color='#333')],
-            [sg.Text('TC4: ',font=butFont,text_color='#444'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],
-            #[sg.Text('TC5: ',font=butFont,text_color='#00B366'),sg.Text('5',font=tcFont,key='TC5L',text_color='#333')],
+            [sg.Text('TC4: ',font=butFont,text_color='#00B366'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],,
             [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6L',text_color='#333')],
             [sg.Text()],
             [sg.Button('Save Graph',key='saveBut',font=butFont,button_color="#F57627",size=(10,2))]
