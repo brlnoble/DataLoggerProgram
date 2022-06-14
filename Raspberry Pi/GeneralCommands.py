@@ -71,19 +71,26 @@ def verify_logs(path):
     
 
 # ~~~~~Send email~~~~~
-#def send_email(TC,temp,time):
-#    sendTo = get_settings('Email', get_path())
-#    
-#    try:
-#        outlook = win32com.client.Dispatch('outlook.application')
-#        mail = outlook.CreateItem(0)
-#        mail.To = sendTo
-#        mail.Subject = 'Temperature Alert'
-#        mail.Body = "Thermocouple {} has exceeded {}°F at {}".format(TC,temp,time)
-#        mail.Send()
-#        return True
-#    except:
-#        return False
+def send_email(TC,temp,time,warn):
+    sendTo = get_settings('Email', get_path())
+    try:
+        import smtplib, ssl
+        sender = '#####@uniondrawn.com'
+        receivers = get_settings('Email',get_path())
+        context = ssl.create_default_context()
+
+        message = "From: Data Logger <#####@uniondrawn.com>"
+        message += "\nSubject: Data Logger Alert"
+        message += "\n\nThermocouple: \t{}\nTemperature: \t{} F\nTime: \t\t{}"
+        message += "\n\nThe furnace is set to alert when it exceeds {} F. You can change this in the data logger settings."
+        message += "\n\n~~~This is a generated message from the data logger. Please do not reply.~~~"
+
+        with smtplib.SMTP_SSL("securemail.megamailservers.com",465,context=context) as server:
+            server.login("#####@uniondrawn.com","#####")
+            server.sendmail(sender, receivers, message.format(TC,temp,time,warn))
+        return True
+    except:
+        return False
     
 # ~~~~~Update settings~~~~~
 def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,github):
