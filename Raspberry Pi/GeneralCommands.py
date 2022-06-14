@@ -80,10 +80,10 @@ def send_email(TC,temp,time,warn):
         context = ssl.create_default_context()
 
         message = "From: Data Logger <#####@uniondrawn.com>"
-        message += "\nSubject: Data Logger Alert"
+        message += "\nSubject: Temperature Alert"
         message += "\n\nThermocouple: \t{}\nTemperature: \t{} F\nTime: \t\t{}"
         message += "\n\nThe furnace is set to alert when it exceeds {} F. You can change this in the data logger settings."
-        message += "\n\n~~~This is a generated message from the data logger. Please do not reply.~~~"
+        message += "\n\n\n~~~This is a generated message from the data logger. Please do not reply.~~~"
 
         with smtplib.SMTP_SSL("securemail.megamailservers.com",465,context=context) as server:
             server.login("#####@uniondrawn.com","#####")
@@ -138,7 +138,7 @@ def check_logs(path,maxLogs,currDate):
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~~~~Read the TC and record to the network~~~~~
-def readTC(path,charge,currTime):
+def readTC(path,charge,currTime,tempWarn):
     GPIO.setmode(GPIO.BOARD)
 
     #Initialize pin numbers for TC inputs
@@ -226,6 +226,10 @@ def readTC(path,charge,currTime):
             return True
         return False
 
+    #See if any of the thermocouples are over the temperature limit
+    for i in range(1,len(tcRead)):
+        if float(tcRead[i]) > float(tempWarn):
+            return "Overtemp {} {}".format(i,tcRead[i])
     return 'Read successful' 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
