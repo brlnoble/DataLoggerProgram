@@ -589,7 +589,7 @@ while True:
                 update_graph_view()
             
             elif event == 'saveBut':
-                if not RC.does_this_exist("Figures\\"):
+                if not RC.does_this_exist(path,"Figures\\"):
                     RC.make_folder(path + "Figures\\")
                 plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
                 plt.savefig(path + "Figures\\" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
