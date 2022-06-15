@@ -140,7 +140,7 @@ def check_logs(path,maxLogs,currDate):
 #~~~~~Read the TC and record to the network~~~~~
 def readTC(path,charge,currTime,tempWarn):
     GPIO.setmode(GPIO.BOARD)
-
+    
     #Initialize pin numbers for TC inputs
     TC1 = 16
     TC2 = 18
@@ -149,43 +149,41 @@ def readTC(path,charge,currTime,tempWarn):
     TC5 = 37
     TC6 = 36
     tcList = [TC1,TC2,TC3,TC4,TC5,TC6] #array of inputs
-
+    
     #Initialize pin for amplifer controls
     CS = 29
     SCK = 31
-
+    
     GPIO.setup(tcList, GPIO.IN) #Setup inputs
     GPIO.setup([CS,SCK], GPIO.OUT) #Setup outputs
-    GPIO.output(CS,GPIO.HIGH) #start chip select as high
-
+    GPIO.output(CS,GPIO.LOW) #start chip select as low (read mode)
+    
     #Array for outputs
-    tcRead  =['','0','0','0','0','0','0']
-
+    tcRead = ['',0,0,0,0,0,0]
+    
     #~~~Read the TC's~~~
-    for i in range(0,len(tcList)):
-        read = 0
-        GPIO.output(SCK,GPIO.HIGH)
+    for j in range(15,-1,-1): #Read each of the 16 bits one at a 
+        GPIO.output(SCK,GPIO.HIGH) #Output bit
+        sleep(0.02)
+        
+        #Read the corresponding bit for each thermocouple
+        for i in range(0,len(tcList)):
+            tcRead[i+1] |= (GPIO.input(tcList[i]) << j)
+        
+        GPIO.output(SCK,GPIO.LOW) #Reset clock
         sleep(0.1)
-        GPIO.output(CS,GPIO.LOW)
-        sleep(0.1) 
-        #Read each of the 16 bits one at a time
-        for j in range(15,-1,-1):
-            GPIO.output(SCK,GPIO.LOW)
-            sleep(0.02)
-            read |= (GPIO.input(tcList[i]) << j) #Bit shift to calculate value
-            GPIO.output(SCK,GPIO.HIGH)
-            sleep(0.02)
-
-        GPIO.output(CS,GPIO.HIGH)
-        sleep(0.1)
-		#Convert to Fahrenheit
-        read >>= 5
-        read *= 9/5
-        read += 32
-        if read >= 1870.00: #Cannot sense over this temperature - means furnace is off
-            read = 00.00
-        tcRead[i+1] = f'{read:.2f}' #Set value as 00.00 format
-
+    
+    GPIO.output(CS,GPIO.HIGH) #Stop reading values
+        
+    	#Convert to Fahrenheit
+    for i in range(1,len(tcRead)):
+        tcRead[i] >>= 5
+        tcRead[i] *= 9/5
+        tcRead[i] += 32
+        if tcRead[i] >= 1870.00: #Cannot sense over this temperature - means furnace is off
+            tcRead[i] = 00.00
+        tcRead[i] = f'{tcRead[i]:.2f}' #Format value as 00.00
+    
     tcRead[0] = currTime #Sets time for array
     
     #Try to write to the log, otherwise return error
