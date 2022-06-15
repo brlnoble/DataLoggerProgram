@@ -39,7 +39,8 @@ def read_settings():
     #Check if the program should be recording
     if chargeRecord not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
-        chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
+        if chargeEnd == "N":
+            chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
         chargeRecord = chargeRecord[3:] + ".csv"
         print ('Charge: '+str(chargeRecord))
         print ('END: '+str(chargeEnd))
