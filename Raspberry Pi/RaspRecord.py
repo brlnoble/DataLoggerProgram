@@ -48,30 +48,40 @@ def read_settings():
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~Error handling~~~~~
 def errors(err):
-    #Sort through the errors and see what the problem is
-    errMsg = GC.error_log(path,err,currTime)
+    #Check if high temp alert
+    if str(err)[:8] == "Overtemp":
+        err = str(err)
+        print (err)
+        global emailTry
+        if emailTry:
+            GC.send_email(err[9:10],err[11:],currTime.strftime("%d-%b-%y - %I:%M:%S %p"),tempWarn)
+            emailTry = False
+    else:
+        #Sort through the errors and see what the problem is
+        errMsg = GC.error_log(path,err,currTime)
 
-    #AllTempLogs is open
-    if errMsg[:6] == "ERR 01":
-        lastRead = currTime + datetime.timedelta(seconds=10) #try again in 10s
+        #AllTempLogs is open
+        if errMsg[:6] == "ERR 01":
+            lastRead = currTime + datetime.timedelta(seconds=10) #try again in 10s
 
-    #OnlineLog is open
-    elif errMsg[:6] == "ERR 02":
-        lastRead = currTime
+        #OnlineLog is open
+        elif errMsg[:6] == "ERR 02":
+            lastRead = currTime
 
-    #Charge file is open
-    elif errMsg[:6] == "ERR 03":
-        lastRead = currTime
+        #Charge file is open
+        elif errMsg[:6] == "ERR 03":
+            lastRead = currTime
 
-    #Incorrect Github token
-    elif errMsg[:6] == "ERR 04":
-        lastRead = currTime
+        #Incorrect Github token
+        elif errMsg[:6] == "ERR 04":
+            lastRead = currTime
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #Get current settings
 read_settings()
+emailTry = emailAlert
 
 #See if logs need to be archived
 GC.check_logs(path, maxRecords, currTime.strftime("%d-%b-%y"))
@@ -107,19 +117,24 @@ while True:
     if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
         print ("~~~~~~~~~~")
         #Record data
-        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d-%b-%y - %I:%M:%S %p"))
+        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d-%b-%y - %I:%M:%S %p"),tempWarn)
 
         #If an error occured, add it to the log
-        if currRead not in [True,False,'Read successful']:
+        if currRead not in [True,False,'Read successful'] and str(currRead)[:8] != "Overtemp":
             errors(currRead)
+
         else:
+            #If there is a thermocouple over the temperature limit
+            if str(currRead)[:8] == "Overtemp":
+                errors(currRead)
+
             git = GC.upload_Data(path, currTime)
             lastRead = currTime
             print('Read - ' + currTime.strftime("%I:%M:%S %p"))
 
-        #If error with Github
-        if git != "Uploaded to Github":
-            errors(git)
+            #If error with Github
+            if git != "Uploaded to Github":
+                errors(git)
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If the charge has finished, stop recording to the charge log
         if chargeRecord not in ['N','Y'] and currTime > chargeEnd:
