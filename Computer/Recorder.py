@@ -93,12 +93,9 @@ def update_settings_display():
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
-def draw_figure_w_toolbar(canvas, fig, canvas_toolbar):
+def draw_figure_w_toolbar(canvas, fig):
     if canvas.children:
         for child in canvas.winfo_children():
-            child.destroy()
-    if canvas_toolbar.children:
-        for child in canvas_toolbar.winfo_children():
             child.destroy()
     figure_canvas_agg = FigureCanvasTkAgg(fig, master=canvas)
     figure_canvas_agg.draw()
@@ -113,6 +110,7 @@ def update_tc_graph():
         window['TC2L'].update(str(round(df.Temp2[right],1)) + '°F')
         window['TC3L'].update(str(round(df.Temp3[right],1)) + '°F')
         window['TC4L'].update(str(round(df.Temp4[right],1)) + '°F')
+        #window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
         window['TC6L'].update(str(round(df.Temp6[right],1)) + '°F')
     else:
         window['TC_TL'].update('Reading: \nUnavailable')
@@ -120,6 +118,7 @@ def update_tc_graph():
         window['TC2L'].update('000.00' + '°F')
         window['TC3L'].update('000.00' + '°F')
         window['TC4L'].update('000.00' + '°F')
+        #window['TC5L'].update('000.00' + '°F')
         window['TC6L'].update('000.00' + '°F')
     
     
@@ -127,7 +126,10 @@ def update_tc_graph():
 def update_graph_view():
     plt.xlim(left,right) #size of viewport
     plt.locator_params(axis='x', nbins=(maxTime/(right-left))*10) #makes sure there are only 10 x-axis ticks at a time
-    draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #redraw graph
+    #Update axis without redrawing entire graph
+    plt.ion()
+    fig.canvas.draw()
+    
     update_tc_graph() #update TC text on right of graph
     
     
@@ -152,11 +154,11 @@ def update_record(change):
         window['RecordAlert'].update('')
         window['RecordAlert'].update(background_color='#EEE')
         
-        #Update the button to stop recording
+        #Update the button to start recording
         window['cRecord'].update('Record')
         window['cRecord'].update(button_color='#02AB29')
         
-        #Disable changing the input boxes
+        #Enable changing the input boxes
         window['ChargeIn'].update(disabled=False)
         window['TempIn'].update(disabled=False)
         window['TimeIn'].update(disabled=False)
@@ -227,7 +229,7 @@ def display_graph(fileName):
     #Display the plot
     global plotDisplay
     plotDisplay = True #flag to prevent moving plot before it is shown
-    draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig, window['controls_cv'].TKCanvas) #idk what half this does but its necessary
+    draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig) #idk what half this does but its necessary
     
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
@@ -283,8 +285,7 @@ butCol = [
 #LAYOUT FOR ENTIRE WINDOW
 wMain = [  
             [sg.Column(butCol)],
-            [sg.Text('',font=font,pad=(0,20))], #spacing
-            [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font,pad=(0,30))],
+                        [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font,pad=(0,30))],
             
             [sg.Push(),sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont), 
              sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont,text_color='#EEE'), 
@@ -298,6 +299,7 @@ wMain = [
             
             [sg.Text('',font=font)], #spacing
             [sg.Button('Exit Program',key='Exit',size=(20,3), font=butFont, button_color='#F5273A')],
+            [sg.Push(),sg.Push(),sg.Button('Error Log',font=butFont,button_color='#333')], #Button for opening up error log
         ]
 
 
@@ -337,7 +339,7 @@ tcGraph = [
             [sg.Text('TC1: ',font=butFont,text_color='#FF0000'),sg.Text('1',font=tcFont,key='TC1L',text_color='#333')],
             [sg.Text('TC2: ',font=butFont,text_color='#FFAA00'),sg.Text('2',font=tcFont,key='TC2L',text_color='#333')],
             [sg.Text('TC3: ',font=butFont,text_color='#365BB0'),sg.Text('3',font=tcFont,key='TC3L',text_color='#333')],
-            [sg.Text('TC4: ',font=butFont,text_color='#00B366'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],,
+            [sg.Text('TC4: ',font=butFont,text_color='#00B366'),sg.Text('4',font=tcFont,key='TC4L',text_color='#333')],
             [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6L',text_color='#333')],
             [sg.Text()],
             [sg.Button('Save Graph',key='saveBut',font=butFont,button_color="#F57627",size=(10,2))]
@@ -368,10 +370,7 @@ wLog = [
                 [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='cRecord',size=(10,2), font=butFont, button_color='#02AB29')]])],
                 ],key='logInput')],
             [sg.Text('',font=font,key='cDesc')],
-            
-            #Plotting stuff
-            [sg.Canvas(key='controls_cv')], #idk why this has to be here
-            
+                       
             #WHERE THE MAGIC HAPPENS
             [sg.Column(
                 layout=[
@@ -397,7 +396,7 @@ wCharge = [
                 [sg.Text('Charge -- Temp -- Date',font=tcFont)],
                 [sg.Text(''),sg.Listbox(values=RC.get_charges(path),size=(27,15),font=('Courier New',16,'bold'),key='cList')] #the text is to align the title and box
             ] )],
-            [sg.Button('Select',font=butFont,size=(10,2),button_color='#02AB29')]
+            [sg.Button('View',font=butFont,size=(10,2),button_color='#02AB29')]
     ]
 
 
@@ -557,7 +556,7 @@ while True:
                 
             elif event == 'Home' and plotDisplay:
                 #Return to home view
-                zoom = 10
+                zoom = 30
                 left = maxTime - zoom
                 right = maxTime
                 window['Slide'].update(value=right) #Return slider to right side
@@ -654,7 +653,7 @@ while True:
             window['Charge'].select()
             activeScreen = 'Charge'
             
-        elif event == 'Select' and values['cList']:
+        elif event == 'View' and values['cList']:
             window["Log"].select()
             window['logInput'].update(visible = False)
             window['cDesc'].update(visible=True)
@@ -751,19 +750,27 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            sg.popup("~~ERR 04~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 05~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+        
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            sg.popup("~~ERR 05~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 06~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+        
         elif str(err)[:10] == "[Errno 13]":
-            sg.popup_timed("~~ERR 06~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
+            sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
             currTime = datetime.datetime.fromtimestamp(time())
             lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
+        
         elif str(err) == "float division by zero":
-            sg.popup("~~ERR 07~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.",font=font,keep_on_top=True,non_blocking=True)
+        
         elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-            sg.popup("~~ERR 08~~\nCharge cannot be displayed. Not enough data.",font=font,keep_on_top=True,non_blocking=True)
+            sg.popup("~~ERR 09~~\nCharge cannot be displayed. Not enough data.",font=font,keep_on_top=True,non_blocking=True)
+        
         else: #catch all
             sg.popup("~~ERR 00~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
+            #~~~Write to the error log file~~~
+            with open(path+'Program/Error-Logs.txt','a') as f:
+                f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ' + str(err)+'\n')
         
 window.close()
 
@@ -772,11 +779,10 @@ window.close()
 
 # ~~~~~ References ~~~~~
 # https://github.com/PySimpleGUI/PySimpleGUI/issues/3946                                                Tab groups and hiding tabs
-# https://stackoverflow.com/questions/29990995/arduino-switch-with-chars                                Serial read with python
-# https://electropeak.com/learn/interfacing-max6675-k-type-thermocouple-module-with-arduino/            Read thermocouples
 # https://stackoverflow.com/questions/48134269/python-pyinstaller-bundle-image-in-gui-to-onefile-exe    Include photo in EXE
 # https://stackoverflow.com/a/63445581                                                                  Upload file to Github
 # https://stackoverflow.com/a/5721805                                                                   Refresh page with Javascript
+# https://www.geeksforgeeks.org/how-to-update-a-plot-on-same-figure-during-the-loop/                    Fixed scrolling bug
 
 # ~~~~~ Compile ~~~~~
 #pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico Recorder.py
