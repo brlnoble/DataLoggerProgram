@@ -13,10 +13,7 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
 - [X] Simple and intuitive computer program UI based upon PySimpleGUI
 - [X] Allow users to start and stop charge recording to save graphs
 - [X] Access and use program from computer
-- [ ] Email alerts when temperature exceeds a set limit
-- [X] ~~Main program for recording, changing settings, and viewing (FullProgram.py)~~
-- [X] ~~Viewer program only for seeing current readouts and past charges (ViewingProgram.py)~~
-
+- [X] Email alerts when temperature exceeds a set limit
 
 
 ## Program Screens
@@ -25,11 +22,13 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
   - [X] View current readout (numerics) at locations within furnace (see Furnace.png, open side is door)
   - [X] View current readout button (graphically)
   - [X] Open an old graph for viewing
+  - [X] Open error logs
 - [X] Settings menu to change parameters
   - [X] Recording interval step (minutes between data points)
   - [X] High temperature warning (to alert user)
   - [X] Change log file location
   - [X] Change maximum records saved in log file
+  - [X] Email settings
 - [X] Graphical view of current readout
   - [X] Live update graph
   - [X] Allow user to record a charge (input charge number)
@@ -42,19 +41,17 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
   - [X] When selected, pulls up data for viewing in the logging screen
  
 ## Current Main Screen
-
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreen-26-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreen-16-06-22.jpg" width="900">
 
 ## Current Settings Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicSettingsScreen-14-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicSettingsScreen-16-06-22.jpg" width="900">
 
 ## Current Logging Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicLoggingScreen-26-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/ViewScreenGIF.gif" width="900">
 
 ## Current Charge Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeScreen-08-04-22.jpg" width="400"> 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicLogScreen-08-04-22.jpg" width="800">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeSelectScreen-16-06-22.jpg" width="900"> 
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeViewScreen-16-06-22.jpg" width="900">
 
-## First Trial Run 22-04-22
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/FirstTrial-22-04-22.jpg" width="400"> 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/26-April-22%20-%2007-39-35%20AM.png" width="800">
+## Photo of the Installed Unit
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/Unit.jpg" width="900">
