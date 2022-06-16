@@ -239,8 +239,8 @@ def display_graph(fileName):
 #Window theme
 sg.theme('DefaultNoMoreNagging')
 font = ("Arial, 16")
-butFont = ('Airal', 16, 'bold')
-iconFont = ('Calibri',20)
+butFont = ('Arial', 16, 'bold')
+iconFont = ('Segoe UI Symbol',20,'bold')
 tcFont = ('Courier New',16,'bold')
 titleFont = ('Arial', 26, 'bold')
 sg.theme_text_element_background_color(color = '#EEE')
@@ -356,12 +356,12 @@ inputFormat = [
 
 #Zoom buttons
 zoomButFormat = [
-            [sg.Button('+',key="ZoomIn",size=(5,1), font=iconFont), sg.Button('-',key="ZoomOut",size=(5,1), font=iconFont)]
+            [sg.Button('➕',key="ZoomIn",size=(5,1), font=iconFont), sg.Button('➖',key="ZoomOut",size=(5,1), font=iconFont)]
     ]
 
 #Scroll/homwe buttons
 scrollButFormat = [
-            [sg.Button('<--',key="Left",size=(10,1), font=iconFont),sg.Button('⌂',key='Home', size=(10,1), font=iconFont), sg.Button('-->',key="Right",size=(10,1), font=iconFont)],
+            [sg.Button('⮜',key="Left",size=(10,1), font=iconFont),sg.Button('🏠',key='Home', size=(10,1), font=iconFont), sg.Button('⮞',key="Right",size=(10,1), font=iconFont)],
     ]
 
 
