@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from sys import exc_info
 import pyi_splash #cannot from Spyder, only when compiled to EXE
 
 import RecorderCommands as RC #Custom file
@@ -401,17 +402,14 @@ wCharge = [
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  RECORD WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#Notify user when the program is recording data
-def recWindow():
-    recLayout = [
-                [sg.Column(layout=[
-                    [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
-                    [sg.Text('    RECORDING DATA    ',key='RecordingAlertScreen',font=('Arial',40,'bold'),background_color='#F5273A',text_color='#FFF',justification='c'),],
-                    [sg.Text('',font=('Arial',40,'bold'),background_color='#F5273A',expand_y=True)],
-                    ] ,background_color='#F5273A',element_justification='c',vertical_alignment='c')],
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ERRLOG WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Open up the error log in a new window
+def errWindow():
+    errLayout = [
+            [sg.Text('Error Logs',font=titleFont)],
+            [sg.Listbox(values=RC.get_err(path),size=(75,20),font=font)]
         ]
-    return sg.Window("Data Logger Recording", recLayout, no_titlebar = True, keep_on_top=True, element_justification='c')
+    return sg.Window("Data Logger Recording", errLayout, no_titlebar = False, keep_on_top=True, element_justification='c')
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -506,6 +504,11 @@ while True:
             window['Title'].update(visible=True)
             window["Main"].select()
             activeScreen = 'Main'
+            
+        if event == 'Error Log':
+            print("ERR WINDOW")
+            errWin = errWindow()
+            errWin.Finalize()
             
                 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -768,9 +771,10 @@ while True:
         
         else: #catch all
             sg.popup("~~ERR 00~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
+            print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
             #~~~Write to the error log file~~~
             with open(path+'Program/Error-Logs.txt','a') as f:
-                f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ' + str(err)+'\n')
+                f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ERR00: Line {} -- '.format(exc_info()[-1].tb_lineno) + str(err)+'\n')
         
 window.close()
 
@@ -783,6 +787,7 @@ window.close()
 # https://stackoverflow.com/a/63445581                                                                  Upload file to Github
 # https://stackoverflow.com/a/5721805                                                                   Refresh page with Javascript
 # https://www.geeksforgeeks.org/how-to-update-a-plot-on-same-figure-during-the-loop/                    Fixed scrolling bug
+# https://stackoverflow.com/a/41642105                                                                  #Get line number of error
 
 # ~~~~~ Compile ~~~~~
 #pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico Recorder.py
