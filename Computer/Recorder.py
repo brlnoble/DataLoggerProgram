@@ -88,9 +88,9 @@ def update_settings_display():
     window['github'].update(value = github)
     
     if emailAlert == 'True':
-        window['eBut'].update(value = True)
+        window['eBut'].update('Disable Emails')
     else:
-        window['eBut'].update(value = False)
+        window['eBut'].update('Enable Emails')
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -167,6 +167,14 @@ def update_record(change):
     if change:
         #Update settings file
         RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
+        
+        
+# ~~~~~Record a charge~~~~~
+def record_charge():
+    global chargeEnd
+    chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
+    update_record(True)
+    RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
         
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
@@ -310,22 +318,23 @@ wMain = [
 wSet = [  
             [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
             
-            [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
-            [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
+            [sg.Column([
+                [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
+                [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
+                [sg.Text('_'*56,font=font,pad=(0,20),text_color='#EEE')], #spacing
+            ])],
             
             
-            [sg.Text('',font=font,pad=(0,30))], #spacing
             [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
+            [sg.Column([
+                [sg.Text('Alert Emails:',size=(15,1), font=font), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
+                [sg.Text('Enable Alerts:',font=font,size=(15,1)), sg.Button('Enable Emails',key='eBut',font=('Arial',10),size=(12,1),enable_events=True)],
+                
+                [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
+                [sg.Text('Github Key:',size=(15,1), font=font), sg.Input(key='github', enable_events=True,size=(41,1), font=font)],
+            ])],
             
-            [sg.Text('Alert Emails:',size=(14,1), font=font), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
-            [sg.Checkbox('Enable Alerts',key='eBut',font=font,size=(10,2),enable_events=True)],
-            
-            # [sg.Text('',font=font,pad=(0,30))], #spacing
-            [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Github Key:',size=(31,1), font=font)], 
-            [sg.Input(key='github', enable_events=True,size=(41,1), font=font)],
-            
-            [sg.Text('',key='tips')],
+            [sg.Text('',key='tips',pad=(0,20))],
             [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=butFont, button_color='#F5273A'), sg.Push()],
         ]
 
@@ -395,7 +404,7 @@ wCharge = [
             [sg.Text('Please select a charge from the list below.\n',font=font,text_color='#333')],
             [sg.Column(layout=[
                 [sg.Text('Charge -- Temp -- Date',font=tcFont)],
-                [sg.Text(''),sg.Listbox(values=RC.get_charges(path),size=(27,15),font=('Courier New',16,'bold'),key='cList')] #the text is to align the title and box
+                [sg.Text(''),sg.Listbox(values='',size=(27,15),font=('Courier New',16,'bold'),key='cList')] #the text is to align the title and box
             ] )],
             [sg.Button('View',font=butFont,size=(10,2),button_color='#02AB29')]
     ]
@@ -406,10 +415,44 @@ wCharge = [
 #Open up the error log in a new window
 def errWindow():
     errLayout = [
+            [sg.VPush()],
             [sg.Text('Error Logs',font=titleFont)],
-            [sg.Listbox(values=RC.get_err(path),size=(75,20),font=font)]
+            [sg.Listbox(values=RC.get_err(path),size=(120,30),font=font)],
+            [sg.Button('Close',key='errCancel',font=butFont,button_color='#F5273A',size=(10,2))],
+            [sg.VPush()],
         ]
-    return sg.Window("Data Logger Recording", errLayout, no_titlebar = False, keep_on_top=True, element_justification='c')
+    return sg.Window("Data Logger - Error Log", errLayout, no_titlebar = False, keep_on_top=True, element_justification='c',modal=True,use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font,finalize=True)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE ERROR WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Open up the error log in a new window
+def chargeWindow(cNum,oldNum):
+    chargeLayout = [
+            [sg.VPush()],
+            [sg.Text('Charge Number Already in Use',font=titleFont)],
+            [sg.Text('The charge you input is already in use. Please select an option as described below.',font=font)],
+            [sg.Text(cNum + ' was recorded on '+oldNum[-9:],key='chargeINF',font=('Arial',18,'bold'),pad=(0,20),text_color='#F5273A')],
+            [sg.Text('Overwrite: ',font=('Arial',16,'bold'),text_color='#22B366'),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.',font=font)],
+            [sg.Text('Redo Charge: ',font=('Arial',16,'bold'),text_color='#AA00AA'),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.',font=font)],
+            [sg.Text('',pad=(0,30))],
+            [sg.Button('Overwrite',key='chargeOW',font=butFont,button_color='#00B366',size=(15,2)),
+             sg.Button('Redo Charge',key='chargeRU',font=butFont,button_color='#AA00AA',size=(15,2)),
+             sg.Button('Cancel',key='chargeCancel',font=butFont,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
+            [sg.VPush()]
+        ]
+    return sg.Window("Data Logger - Charge in Use", chargeLayout, no_titlebar = False, keep_on_top=True, element_justification='c',modal=True,use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font,finalize=True)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  POPUP WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#For popup alerts
+def popWindow(msg):
+    popLayout = [
+            [sg.Text('Alert',font=titleFont)],
+            [sg.Text(msg,font=font,pad=(10,10))]
+        ]
+    return sg.Window("Data Logger - Alert", popLayout, no_titlebar = False, keep_on_top=True, element_justification='c',modal=True,finalize=True)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -431,7 +474,7 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
-window = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize() #
+window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
 window.Maximize()
 
 style = ttk.Style()
@@ -460,11 +503,14 @@ pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 while True:
 
     try:
-        event, values = window.read(timeout=100)
+        windows,event, values = sg.read_all_windows(timeout=100)
     
         #See if window should be closed
         if event in (sg.WINDOW_CLOSED, "Exit"):
-            break
+            if windows == window:
+                break #Main window
+            else:
+                windows.close() #Other windows
         
         #Update the clock
         currTime = datetime.datetime.fromtimestamp(time())
@@ -495,8 +541,9 @@ while True:
                 display_graph(logFile)
                 update_graph_view()
                     
-                
+        
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MISC WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if event == 'Main Screen': #RETURN TO MAIN SCREEN
             plotDisplay = False
             chargeDisplay = False
@@ -505,11 +552,12 @@ while True:
             window["Main"].select()
             activeScreen = 'Main'
             
-        if event == 'Error Log':
-            print("ERR WINDOW")
+        if event == 'Error Log': #Open error log
             errWin = errWindow()
-            errWin.Finalize()
+            errWin.Maximize()
             
+        if event == 'errCancel':
+            errWin.close()            
                 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  LOGGING WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -607,15 +655,18 @@ while True:
             #Recording a new charge
             elif event == 'cRecord' and chargeRecord == 'N':
                 #Verify inputs
-                cCheck = False
                 tCheck = False
                 dCheck = False
+                cCheck = [False,'']
                 
                 if values['ChargeIn'] and len(values['ChargeIn']) == 5:
-                    if(RC.check_charge(path,values['ChargeIn'])):
-                        cCheck = True
-                    else:
-                        sg.popup('This charge number is already in use!',font=font,keep_on_top=True,non_blocking=True)
+                    cCheck = RC.check_charge(path,values['ChargeIn'])
+                        
+                    if not cCheck[0]: #CHARGE IS ALREADY IN USE
+                        chargeRecord = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
+                        chargeWin = chargeWindow(values['ChargeIn'],cCheck[1])
+                        chargeWin.Maximize()
+                        
                         
                 if values['TempIn'] and int(values['TempIn']) > 0:
                     tCheck = True
@@ -625,19 +676,15 @@ while True:
                     dCheck = True
                 
                 #If all the inputs are good, record the charge    
-                if cCheck and tCheck and dCheck:
+                if cCheck[0] and tCheck and dCheck:
                     chargeRecord = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
-                    chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
-                    update_record(True)
-                    RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
+                    record_charge()
                     
                     
-                elif not cCheck:
-                    sg.popup('Please input a 5 digit charge number.',font=font,keep_on_top=True,non_blocking=True)
                 elif not tCheck:
-                    sg.popup('Please input a temperature.',font=font,keep_on_top=True,non_blocking=True)
+                    popWindow('Please input a temperature.')
                 elif not dCheck:
-                    sg.popup('Please input a duration less than 50 hours.',font=font,keep_on_top=True,non_blocking=True)
+                    popWindow('Please input a duration less than 50 hours.')
             
                     
             
@@ -646,8 +693,27 @@ while True:
                 chargeRecord = 'N'
                 update_record(True)
                 RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
-                sg.popup('Recording cancelled.',font=font,keep_on_top=True,non_blocking=True)
-            
+                popWindow('Recording cancelled.')
+                
+                
+                
+        # ~~~~~Charge in use window controls~~~~~
+            if windows == chargeWin:
+                if event == 'chargeCancel':
+                    chargeRecord = RC.get_settings('Record', path)
+                    chargeWin.close()
+                    
+                elif event == 'chargeRU':
+                    RC.reuse(path, chargeRecord[3:8])
+                    chargeWin.close()
+                    record_charge()
+                    
+                elif event == 'chargeOW':
+                    RC.overwrite(path, chargeRecord[3:8])
+                    chargeWin.close()
+                    record_charge()
+                    
+                
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         elif event == 'Old Log':
@@ -655,6 +721,7 @@ while True:
             window['Title'].update(visible=False)
             window['Charge'].select()
             activeScreen = 'Charge'
+            window['cList'].update(values=RC.get_charges(path))
             
         elif event == 'View' and values['cList']:
             window["Log"].select()
@@ -702,6 +769,12 @@ while True:
             elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
                 window['maxRecords'].update(values['maxRecords'][:-1])
                 
+            elif event == 'eBut':
+                if window['eBut'].get_text() == 'Disable Emails':
+                    window['eBut'].update('Enable Emails')
+                else:
+                    window['eBut'].update('Disable Emails')
+                
                 
             elif event == 'Submit':
                 
@@ -723,9 +796,11 @@ while True:
                 
                 #SAVE THE FILE
                 if int_exists and temp_exists and maxR_exists:
-                    RC.update_settings(path, values['interval'], values['temp'], values['maxRecords'], chargeRecord, values['email'], values['eBut'], values['github'])
+                    eAlert = True if window['eBut'].get_text() == 'Disable Emails' else False
+                    
+                    RC.update_settings(path, values['interval'], values['temp'], values['maxRecords'], chargeRecord, values['email'], eAlert, values['github'])
                     read_settings()
-                    sg.Popup('Settings have been changed successfully.',font=titleFont,keep_on_top=True)
+                    popWindow('Settings have been changed successfully.')
                     window['Main Screen'].update(visible=False)
                     window['Title'].update(visible=True)
                     window["Main"].select()
@@ -733,13 +808,13 @@ while True:
                     
                 #ERROR MESSAGES                   
                 if not int_exists:
-                    sg.popup('Please input an interval less than 100 minutes',keep_on_top=True,non_blocking=True)
+                    popWindow('Please input an interval less than 100 minutes')
                 
                 elif not temp_exists:
-                    sg.popup('Please input a temperature less than 3000°F',keep_on_top=True,non_blocking=True)
+                    popWindow('Please input a temperature less than 3000°F')
                     
                 elif not maxR_exists:
-                    sg.popup('Please input a maximum number of records greater than 100',keep_on_top=True,non_blocking=True)
+                    popWindow('Please input a maximum number of records greater than 100')
         
         
         
@@ -753,10 +828,10 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            sg.popup("~~ERR 05~~\nCharge file contains no headers, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+            popWindow("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
         
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            sg.popup("~~ERR 06~~\nInvalid date in charge file, cannot be read.",font=font,keep_on_top=True,non_blocking=True)
+            popWindow("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
         
         elif str(err)[:10] == "[Errno 13]":
             sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
@@ -764,13 +839,13 @@ while True:
             lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
         
         elif str(err) == "float division by zero":
-            sg.popup("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.",font=font,keep_on_top=True,non_blocking=True)
+            popWindow("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
         
         elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-            sg.popup("~~ERR 09~~\nCharge cannot be displayed. Not enough data.",font=font,keep_on_top=True,non_blocking=True)
+            popWindow("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
         
         else: #catch all
-            sg.popup("~~ERR 00~~\n" + str(err),font=font,keep_on_top=True,non_blocking=True)
+            popWindow("~~ERR 00~~\n" + str(err))
             print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
             #~~~Write to the error log file~~~
             with open(path+'Program/Error-Logs.txt','a') as f:
