@@ -71,9 +71,9 @@ def get_charges(path):
 def check_charge(path,charge):
     files = get_charges(path)
     for c in files:
-        if str(charge) == c[:5]:
-            return False
-    return True
+        if str(charge+' ') == c[:6]:
+            return [False,c]
+    return [True,'']
 
     
 # ~~~~~Update settings~~~~~
@@ -92,4 +92,24 @@ def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,g
 def error_Log(path,err,currTime):
     with open(path+'Program/Error-Logs.txt','a') as f:
         f.writeline(currTime + ' ----- ' + err)
+        
+# ~~~~~Get Error Logs~~~~~
+def get_err(path):
+    path += "Program/"
+    with open(path+"Error-Logs.txt",'r') as f:
+        lines = f.readlines()
+    return sorted(lines,reverse=True)
 
+# ~~~~~Reuse Charge~~~~~
+def reuse(path,cNum):
+    charges = get_charges(path) #Get files
+    for file in charges:
+        if file[:6] == cNum+' ': #Find file
+            os.rename(path+'Charges/'+file+'.csv',path+'Charges/'+file[:5]+'F'+file[5:]+'.csv') #Add F to the old file
+            
+# ~~~~~Overwrite Charge~~~~~
+def overwrite(path,cNum):
+    charges = get_charges(path)
+    for file in charges:
+        if file[:6] == cNum+' ':
+            os.remove(path+'Charges/'+file+'.csv')
