@@ -95,32 +95,32 @@ def update_settings_display():
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
 def draw_figure_w_toolbar(canvas, fig):
+    #If already displaying, delete current graph
     if canvas.children:
         for child in canvas.winfo_children():
             child.destroy()
     figure_canvas_agg = FigureCanvasTkAgg(fig, master=canvas)
     figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='right', fill='both', expand=1)
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
     
 
 # ~~~~~Updates thermocouples on right of graph~~~~~
 def update_tc_graph():
-    if len(dates) - 1 >= right and df.Temp1[right] not in [-111,-222,-333]:
-        window['TC_TL'].update(dates[right])
-        window['TC1L'].update(str(round(df.Temp1[right],1)) + '°F')
-        window['TC2L'].update(str(round(df.Temp2[right],1)) + '°F')
-        window['TC3L'].update(str(round(df.Temp3[right],1)) + '°F')
-        window['TC4L'].update(str(round(df.Temp4[right],1)) + '°F')
-        #window['TC5L'].update(str(round(df.Temp5[right],1)) + '°F')
-        window['TC6L'].update(str(round(df.Temp6[right],1)) + '°F')
+    val = right - dataSlide[0]
+    if len(dates) - 1 >= val and val > 0:
+        window['TC_TL'].update(dates[val])
+        window['TC1L'].update(str(round(df.Temp1[val],1)).zfill(5) + '°F')
+        window['TC2L'].update(str(round(df.Temp2[val],1)).zfill(5) + '°F')
+        window['TC3L'].update(str(round(df.Temp3[val],1)).zfill(5) + '°F')
+        window['TC4L'].update(str(round(df.Temp4[val],1)).zfill(5) + '°F')
+        window['TC6L'].update(str(round(df.Temp6[val],1)).zfill(5) + '°F')
     else:
         window['TC_TL'].update('Reading: \nUnavailable')
-        window['TC1L'].update('000.00' + '°F')
-        window['TC2L'].update('000.00' + '°F')
-        window['TC3L'].update('000.00' + '°F')
-        window['TC4L'].update('000.00' + '°F')
-        #window['TC5L'].update('000.00' + '°F')
-        window['TC6L'].update('000.00' + '°F')
+        window['TC1L'].update('000.0' + '°F')
+        window['TC2L'].update('000.0' + '°F')
+        window['TC3L'].update('000.0' + '°F')
+        window['TC4L'].update('000.0' + '°F')
+        window['TC6L'].update('000.0' + '°F')
     
     
 # ~~~~~Update graphs when zooming~~~~~
@@ -132,6 +132,19 @@ def update_graph_view():
     fig.canvas.draw()
     
     update_tc_graph() #update TC text on right of graph
+    
+    #Update data marker
+    window['DataSlide'].update(range=(zoom,0))
+    data_select() 
+
+    
+# ~~~~~Change red data marker~~~~~
+def data_select():
+    global lineSelect
+    lineSelect.set_xdata(right-dataSlide[0])
+    plt.ion()
+    fig.canvas.draw()
+    update_tc_graph()
     
     
 # ~~~~~Update recording status~~~~~
@@ -225,10 +238,10 @@ def display_graph(fileName):
     plt.ylabel('Temperature',fontweight='bold')
     plt.xticks(x,dates) #adds dates to X axis
     plt.locator_params(axis='x', nbins=1.5*zoom) #number of labels on X axis
-    plt.gca().spines['right'].set_color('#FF0000') #make rightmost axis red
-    plt.gca().spines['right'].set_linewidth(5)
-    plt.gca().spines['right'].set_linestyle((0,(1,5)))
+    
     #plt.xlim(left,right) #initial limits X
+    global lineSelect
+    lineSelect = plt.axvline(x=max(x),linestyle=':',linewidth=3,color='r')
     
     #Check y limits
     ylimit = 800 if 800 > maxVal else int(-1 * maxVal // 100 * -1) * 100
@@ -246,15 +259,15 @@ def display_graph(fileName):
 
 #Window theme
 sg.theme('DefaultNoMoreNagging')
-font = ("Arial, 16")
+font = ('Arial', 16)
 butFont = ('Arial', 16, 'bold')
 iconFont = ('Segoe UI Symbol',20,'bold')
+arrowFont = ('Arial',20)
 tcFont = ('Courier New',16,'bold')
 titleFont = ('Arial', 26, 'bold')
 sg.theme_text_element_background_color(color = '#EEE')
 sg.theme_text_color('#1D2873')
 sg.theme_background_color('#EEE')
-
 
 # ~~~~~VARIABLES~~~~~
 read_settings() #Get current settings
@@ -279,7 +292,8 @@ left = 0
 right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
-graphSize = (1200, 600)
+graphSize = (1200, 550)
+dataSlide = [0,zoom]
 
 
 
@@ -370,7 +384,7 @@ zoomButFormat = [
 
 #Scroll/homwe buttons
 scrollButFormat = [
-            [sg.Button('⮜',key="Left",size=(10,1), font=iconFont),sg.Button('🏠',key='Home', size=(10,1), font=iconFont), sg.Button('⮞',key="Right",size=(10,1), font=iconFont)],
+            [sg.Button('⮜',key="Left",size=(10,1), font=arrowFont),sg.Button('🏠',key='Home', size=(10,1), font=iconFont), sg.Button('⮞',key="Right",size=(10,1), font=arrowFont)],
     ]
 
 
@@ -384,13 +398,15 @@ wLog = [
             #WHERE THE MAGIC HAPPENS
             [sg.Column(
                 layout=[
+                            [sg.Slider(key='DataSlide',range=(zoom,0),default_value=0,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=(125,0),disable_number_display=True,trough_color='#666',background_color='#F5273A')],
                             #This is the graph
                             [sg.Canvas(key='fig_cv',size=graphSize)], 
                             
                             #This is the slider at the bottom of the graph
-                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=(100,0),disable_number_display=True,trough_color='#333',background_color='#F5273A')],
+                            [sg.Text('Scroll',font=butFont,background_color='#FFF',pad=((75,0),(0,0))),
+                             sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((0,100),(0,0)),disable_number_display=True,trough_color='#666',background_color='#1D2873')],
                         ], #end layout
-                    background_color='#8591AB',pad=(0, 10)), #graph/slider column settings
+                    background_color='#FFF',pad=(0, 10),key='GRAPH'), #graph/slider column settings
                 sg.Column(tcGraph,element_justification='c',pad=(50,0))], #end of column
             
             [sg.Column(scrollButFormat,pad=(20,5)),sg.VerticalSeparator(pad=None),sg.Column(zoomButFormat,pad=(20,5))]
@@ -433,11 +449,11 @@ def chargeWindow(cNum,oldNum):
             [sg.Text('Charge Number Already in Use',font=titleFont)],
             [sg.Text('The charge you input is already in use. Please select an option as described below.',font=font)],
             [sg.Text(cNum + ' was recorded on '+oldNum[-9:],key='chargeINF',font=('Arial',18,'bold'),pad=(0,20),text_color='#F5273A')],
-            [sg.Text('Overwrite: ',font=('Arial',16,'bold'),text_color='#22B366'),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.',font=font)],
-            [sg.Text('Redo Charge: ',font=('Arial',16,'bold'),text_color='#AA00AA'),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.',font=font)],
+            [sg.Text('Overwrite: ',font=('Arial',16,'bold'),text_color='#22B366',size=(15,1)),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.\nUse this option if you messed up the previous recording.',font=font,pad=(0,10),size=(70,2))],
+            [sg.Text('Redo Charge: ',font=('Arial',16,'bold'),text_color='#AA00AA',size=(15,1)),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.\nUse this option if the furnace failed and you are redoing the charge.',font=font,pad=(0,10),size=(70,2))],
             [sg.Text('',pad=(0,30))],
-            [sg.Button('Overwrite',key='chargeOW',font=butFont,button_color='#00B366',size=(15,2)),
-             sg.Button('Redo Charge',key='chargeRU',font=butFont,button_color='#AA00AA',size=(15,2)),
+            [sg.Button('Overwrite',key='chargeOW',font=butFont,button_color='#00B366',size=(12,2)),
+             sg.Button('Redo Charge',key='chargeRU',font=butFont,button_color='#AA00AA',size=(12,2)),
              sg.Button('Cancel',key='chargeCancel',font=butFont,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
             [sg.VPush()]
         ]
@@ -476,6 +492,7 @@ layout = [
 
 window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
 window.Maximize()
+window.set_icon(pngbase64=fireIcon)
 
 style = ttk.Style()
 style.layout('TNotebook.Tab', []) # Hide tab bar
@@ -490,8 +507,6 @@ if chargeRecord not in ['Y','N']:
 # ~~~~~Close splash screen~~~~~
 pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -504,7 +519,6 @@ while True:
 
     try:
         windows,event, values = sg.read_all_windows(timeout=100)
-    
         #See if window should be closed
         if event in (sg.WINDOW_CLOSED, "Exit"):
             if windows == window:
@@ -631,6 +645,10 @@ while True:
                 right = values['Slide']
                 left = values['Slide'] - zoom
                 update_graph_view()
+                
+            elif event == 'DataSlide' and plotDisplay:
+                dataSlide[0] = values['DataSlide']
+                data_select()
             
             elif event == 'saveBut':
                 if not RC.does_this_exist(path,"Figures\\"):
@@ -862,7 +880,7 @@ window.close()
 # https://stackoverflow.com/a/63445581                                                                  Upload file to Github
 # https://stackoverflow.com/a/5721805                                                                   Refresh page with Javascript
 # https://www.geeksforgeeks.org/how-to-update-a-plot-on-same-figure-during-the-loop/                    Fixed scrolling bug
-# https://stackoverflow.com/a/41642105                                                                  #Get line number of error
+# https://stackoverflow.com/a/41642105                                                                  Get line number of error
 
 # ~~~~~ Compile ~~~~~
 #pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico Recorder.py
