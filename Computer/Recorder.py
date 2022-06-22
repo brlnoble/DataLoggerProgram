@@ -294,7 +294,7 @@ left = 0
 right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
-graphSize = (1200, 550)
+graphSize = (1200, 525)
 dataSlide = [1,zoom-1]
 
 
@@ -398,22 +398,24 @@ wLog = [
             [sg.Text('',font=font,key='cDesc')],
                        
             #WHERE THE MAGIC HAPPENS
-            [sg.Column(
+            [sg.Column([
+                [sg.Column(
                 layout=[
                             #This is the slider at the top of the graph, moves the data selector
-                            [sg.Slider(key='DataSlide',range=(zoom-1,1),default_value=1,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#333',background_color='#F5273A')],
+                            [sg.Slider(key='DataSlide',range=(zoom-1,1),default_value=1,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,0)),disable_number_display=True,trough_color='#444',background_color='#F5273A')],
                             #This is the graph
                             [sg.Canvas(key='fig_cv',size=graphSize)], 
                             
                             #This is the slider at the bottom of the graph, moves the graph view
-                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#333',background_color='#999')],
+                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#444',background_color='#1D2873')],
+                            [sg.Column([
+                                [sg.Column(scrollButFormat,pad=(20,5),background_color='#FFF'),sg.Text('',pad=(50,0),background_color='#FFF'),sg.Column(zoomButFormat,pad=(20,5),background_color='#FFF')]],justification='c',background_color='#FFF')],
                         ], #end layout
                 
-                    background_color='#1D2873',pad=(0, 10)), #graph/slider column settings
-                sg.Column(tcGraph,element_justification='c',pad=(50,0))], #end of column
-            
-            [sg.Column(scrollButFormat,pad=(20,5)),sg.VerticalSeparator(pad=None),sg.Column(zoomButFormat,pad=(20,5))]
-            ]
+                    background_color='#FFF',pad=(10,10)), #graph/slider column settings
+                ]],background_color='#1D2873'),
+            sg.Column(tcGraph,element_justification='c',pad=(50,0))], #end of column                
+        ]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -551,12 +553,14 @@ while True:
             #only update graph if we are viewing the live plot and not charges
             if plotDisplay and not chargeDisplay:
                 #adjust view if looking at most recent point
-                if right == maxTime :
-                    right += 1
-                    left -= 1
-                plt.clf()
-                display_graph(logFile)
-                update_graph_view()
+                df = pd.read_csv(logFile,parse_dates=['Time'], dayfirst=True)
+                if len(df.Temp1) -1 > maxTime:
+                    if right == maxTime:
+                        right += 1
+                        left -= 1
+                    plt.clf()
+                    display_graph(logFile)
+                    update_graph_view()
                     
         
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
