@@ -215,7 +215,7 @@ def display_graph(fileName):
     maxVal = max(y)
     #thermocouple 2
     y = df.Temp2
-    plt.plot(x,y,linewidth=2,marker='o',label='TC2',color='#FFAA00')
+    plt.plot(x,y,linewidth=2,marker='o',label='TC2',color='#FFAA00') 
     maxVal = maxVal if maxVal > max(y) else max(y)
     #thermocouple 3
     y = df.Temp3
@@ -238,10 +238,12 @@ def display_graph(fileName):
     plt.ylabel('Temperature',fontweight='bold')
     plt.xticks(x,dates) #adds dates to X axis
     plt.locator_params(axis='x', nbins=1.5*zoom) #number of labels on X axis
+    plt.tight_layout(pad=2) #Removes whitespace from sides of plot
+
     
     #plt.xlim(left,right) #initial limits X
     global lineSelect
-    lineSelect = plt.axvline(x=max(x),linestyle=':',linewidth=3,color='r')
+    lineSelect = plt.axvline(x=max(x)-1,linestyle=':',linewidth=3,color='r')
     
     #Check y limits
     ylimit = 800 if 800 > maxVal else int(-1 * maxVal // 100 * -1) * 100
@@ -286,14 +288,14 @@ activeScreen  = 'Main' #helps speed up the main loop
 
 #Axes limits
 zoom = 30
-maxZoom = 120
+maxZoom = 300
 minZoom = 5
 left = 0
 right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
 graphSize = (1200, 550)
-dataSlide = [0,zoom]
+dataSlide = [1,zoom-1]
 
 
 
@@ -398,15 +400,16 @@ wLog = [
             #WHERE THE MAGIC HAPPENS
             [sg.Column(
                 layout=[
-                            [sg.Slider(key='DataSlide',range=(zoom,0),default_value=0,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=(125,0),disable_number_display=True,trough_color='#666',background_color='#F5273A')],
+                            #This is the slider at the top of the graph, moves the data selector
+                            [sg.Slider(key='DataSlide',range=(zoom-1,1),default_value=1,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#333',background_color='#F5273A')],
                             #This is the graph
                             [sg.Canvas(key='fig_cv',size=graphSize)], 
                             
-                            #This is the slider at the bottom of the graph
-                            [sg.Text('Scroll',font=butFont,background_color='#FFF',pad=((75,0),(0,0))),
-                             sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((0,100),(0,0)),disable_number_display=True,trough_color='#666',background_color='#1D2873')],
+                            #This is the slider at the bottom of the graph, moves the graph view
+                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#333',background_color='#999')],
                         ], #end layout
-                    background_color='#FFF',pad=(0, 10),key='GRAPH'), #graph/slider column settings
+                
+                    background_color='#1D2873',pad=(0, 10)), #graph/slider column settings
                 sg.Column(tcGraph,element_justification='c',pad=(50,0))], #end of column
             
             [sg.Column(scrollButFormat,pad=(20,5)),sg.VerticalSeparator(pad=None),sg.Column(zoomButFormat,pad=(20,5))]
