@@ -17,7 +17,7 @@ logFile = path + 'Program/AllTempLogs.csv'
 
 # ~~~~~MAKE SURE THE SETTINGS FILE EXISTS~~~~~
 if not RC.verify_settings(path):
-    sg.popup('Settings file does not exist.\n\nA file with default values has been generated.',font=('Arial',20),keep_on_top=True) #inform user it was not found
+    sg.popup('Settings file does not exist.\n\nA file with default values has been generated.',font=('Arial',20),keep_on_top=True,modal=True) #inform user it was not found
     
 
 #Imbed image as Base64 string so the EXE can be a standalone file
@@ -294,7 +294,7 @@ left = 0
 right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
-graphSize = (1200, 525)
+graphSize = (1200, 550)
 dataSlide = [1,zoom-1]
 
 
@@ -395,7 +395,6 @@ wLog = [
             [sg.Column([
                 [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='cRecord',size=(10,2), font=butFont, button_color='#02AB29')]])],
                 ],key='logInput')],
-            [sg.Text('',font=font,key='cDesc')],
                        
             #WHERE THE MAGIC HAPPENS
             [sg.Column([
@@ -414,7 +413,12 @@ wLog = [
                 
                     background_color='#FFF',pad=(10,10)), #graph/slider column settings
                 ]],background_color='#1D2873'),
-            sg.Column(tcGraph,element_justification='c',pad=(50,0))], #end of column                
+            sg.Column([
+                [sg.Text('',font=font,key='cDesc',justification='c')],
+                [sg.Text()],
+                [sg.Column(tcGraph,element_justification='c',pad=(50,0))]
+                ],element_justification='c')
+            ], #end of column                
         ]
 
 
@@ -752,7 +756,7 @@ while True:
             window["Log"].select()
             window['logInput'].update(visible = False)
             window['cDesc'].update(visible=True)
-            window['cDesc'].update('You are viewing: ' + str(values['cList'][0]))
+            window['cDesc'].update('You are viewing:\n' + str(values['cList'][0]))
             activeScreen = 'Log'
             
             if plotDisplay == False: #If not currently displaying plot
