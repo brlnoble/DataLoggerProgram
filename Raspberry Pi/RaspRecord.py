@@ -39,11 +39,15 @@ def read_settings():
     #Check if the program should be recording
     if chargeRecord not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
-        if chargeEnd == "N":
-            chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+1)*60*60)) 
+        if chargeEnd == 'N':
+            chargeEnd = currTime + datetime.timedelta(hours=((int(chargeRecord[:2])+1))) 
         chargeRecord = chargeRecord[3:] + ".csv"
-        print ('Charge: '+str(chargeRecord))
-        print ('END: '+str(chargeEnd))
+
+    elif chargeRecord == 'N': #If recording cancelled
+        chargeEnd = 'N'
+
+    print ('Charge: '+str(chargeRecord))
+    print ('END: '+str(chargeEnd))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -88,7 +92,7 @@ emailTry = emailAlert
 GC.check_logs(path, maxRecords, currTime.strftime("%d-%b-%y"))
 
 #Setup variables for the program
-lastRead = currTime - datetime.timedelta(seconds=(readInterval*60)) #Last time data was read
+lastRead = currTime - datetime.timedelta(minutes=readInterval) #Last time data was read
 lastEdit = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
 lastCheck = currTime
 
@@ -115,7 +119,7 @@ while True:
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
-    if currTime - datetime.timedelta(seconds=(readInterval*60)) > lastRead:
+    if currTime - datetime.timedelta(minutes=readInterval) > lastRead:
         print ("~~~~~~~~~~")
         #Record data
         currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d-%b-%y - %I:%M:%S %p"),tempWarn)
