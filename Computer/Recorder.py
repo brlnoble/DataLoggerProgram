@@ -6,9 +6,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from sys import exc_info
-import pyi_splash #cannot from Spyder, only when compiled to EXE
 
 import RecorderCommands as RC #Custom file
+
+
+
+# ~~~~~Close splash screen~~~~~
+try:
+    import pyi_splash #cannot from Spyder, only when compiled to EXE
+    pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
+except:
+    pass
 
 
 #Current directory path
@@ -188,6 +196,24 @@ def record_charge():
     chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
     update_record(True)
     RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
+    
+    
+# ~~~~~Save an image~~~~~
+def img_save(titleText):
+    if not RC.does_this_exist(path,"Figures\\"):
+        RC.make_folder(path + "Figures\\")
+        
+    imgName = path + "Figures/" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png"
+    
+    plt.legend(bbox_to_anchor=(0,1,1,0), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
+    lineSelect.set_visible(False)
+    plt.title(titleText,fontsize=30,pad=30)
+    plt.savefig(imgName, bbox_inches='tight')
+    plt.legend('',frameon=False)
+    lineSelect.set_visible(True)
+    plt.title('')
+    popWindow("Image saved in Figures folder.\n" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
+    RC.open_folder(imgName)
         
 
 # ~~~~~MATPLOTLIB DISPLAY ALL THE GRAPH DATA~~~~~
@@ -243,7 +269,7 @@ def display_graph(fileName):
     
     #plt.xlim(left,right) #initial limits X
     global lineSelect
-    lineSelect = plt.axvline(x=max(x)-1,linestyle=':',linewidth=3,color='r')
+    lineSelect = plt.axvline(x=max(x)-1,linestyle=':',linewidth=3,color='black')
     
     #Check y limits
     ylimit = 800 if 800 > maxVal else int(-1 * maxVal // 100 * -1) * 100
@@ -359,7 +385,7 @@ wSet = [
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  LOGGING WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Thermocouple graph reading
 tcGraph = [ 
-            [sg.Text('Reading at Red Line',font=butFont,justification='c')],
+            [sg.Text('Reading at Black Line',font=butFont,justification='c')],
             [sg.Text()],
             [sg.Text('',key='TC_TL',font=font,justification='c')],
             [sg.Text('TC1: ',font=butFont,text_color='#FF0000'),sg.Text('1',font=tcFont,key='TC1L',text_color='#333')],
@@ -401,12 +427,12 @@ wLog = [
                 [sg.Column(
                 layout=[
                             #This is the slider at the top of the graph, moves the data selector
-                            [sg.Slider(key='DataSlide',range=(zoom-1,1),default_value=1,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,0)),disable_number_display=True,trough_color='#444',background_color='#F5273A')],
+                            [sg.Slider(key='DataSlide',range=(zoom-1,1),default_value=1,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,0)),disable_number_display=True,trough_color='#EEE',background_color='#000')],
                             #This is the graph
                             [sg.Canvas(key='fig_cv',size=graphSize)], 
                             
                             #This is the slider at the bottom of the graph, moves the graph view
-                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#444',background_color='#1D2873')],
+                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#EEE',background_color='#1D2873')],
                             [sg.Column([
                                 [sg.Column(scrollButFormat,pad=(20,5),background_color='#FFF'),sg.Text('',pad=(50,0),background_color='#FFF'),sg.Column(zoomButFormat,pad=(20,5),background_color='#FFF')]],justification='c',background_color='#FFF')],
                         ], #end layout
@@ -499,7 +525,7 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
-window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
+window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=False, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
 window.Maximize()
 window.set_icon(pngbase64=fireIcon)
 
@@ -513,8 +539,6 @@ if chargeRecord not in ['Y','N']:
     window['TempIn'].update(chargeRecord[12:16])
     window['TimeIn'].update(chargeRecord[0:2])
 
-# ~~~~~Close splash screen~~~~~
-pyi_splash.close() #cannot run from Spyder, only when compiled to EXE
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -662,12 +686,12 @@ while True:
                 data_select()
             
             elif event == 'saveBut':
-                if not RC.does_this_exist(path,"Figures\\"):
-                    RC.make_folder(path + "Figures\\")
-                plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand", borderaxespad=0, ncol=6)
-                plt.savefig(path + "Figures\\" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
-                plt.legend('',frameon=False)
-                sg.popup_no_wait("Image saved in Figures folder.\n" + currTime.strftime("%d-%B-%y - %I-%M-%S %p") + ".png",font=font,non_blocking=True,keep_on_top=True)
+                #If viewing a charge
+                if window['cDesc'].get() != '':
+                    img_save(str(window['cDesc'].get()).split('\n')[1])
+                #If viewing live log    
+                else:
+                    img_save('From ' + df.Time[left].strftime('%d-%b-%y %I:%M:%S %p') + ' to ' + df.Time[right].strftime('%d-%b-%y %I:%M:%S %p'))
          
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~RECORDING A CHARGE~~~~~
