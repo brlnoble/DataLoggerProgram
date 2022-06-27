@@ -1,7 +1,0 @@
-intervalReading = 10
-tempWarning = 1300
-maxLogRecords = 1000
-recordCharge = N
-emailTo = #####@uniondrawn.com
-enableEmail = True
-github = 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
