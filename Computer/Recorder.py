@@ -33,25 +33,7 @@ furnacePic = b"iVBORw0KGgoAAAANSUhEUgAAAfQAAAD6CAYAAABXq7VOAAAAAXNSR0IArs4c6QAAF
 fireIcon = b'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAuBJREFUSEvF109IFFEcB/Dv7Mzqrn/XDQxqjSDo0EoUUUG0FXWxIC0KzC5FdIgudcoyo6yQ8lAX+2dmgaAm2EWNhCByIdBC8+BB18WoVPQws390c9eZeTGz7ejs7Mju6Oa7vffm/T7vz2923lJYo0LpuPQqz0eIj6eC3W53n9Pp3LPKqBxueHi43+Vy7Y3FVuB0ojFsKa7ALMuSdKw0PqbdbpfNGEyzLMunBBOCjM+diBw8DlB6qaKNaLfbGQCCIdjy6S2sH14D4zPg2gdSmq9hOKexCmZPFBP9BP7nPemHLe53sHY1KJBAbAjUtaUZJgQF14+qEHGOgb++K72wpbcD1u6XamR8Glz7oLqNkGWTLeUztt05DerPrBrxTiFY0wjeuVtup3+OIbv+FgJ1rbq7kDJcUFmiDeadktvCx87KL2Zmd4tc97X0gWRYEuIpwRQfge1mqS4c3xG6XIPw4RMrgEURMJlgCnLIv1+RNBwuKUfoYpVxOP/heQSuPgUVCiL/wTltoN8TQNikaQ9dqIxuf4KS1FbbqstALYQxd+YastvqlDBkEwth/xiYWseSH79FxfemF/SPEfDF2g9dcvDtU6Dm51TzJht8EA6Nym3MvSLtmigKYuFGUAEOvuYvmv6k4NyGSjDeIdVgvqJf+bQwTYXARCZgEYF59Zbz23YheLfJGMz8GkFu/ZXFwdYI+JPflToz8+87QxPghXr1wdpm8Fu3G4OlUbbqUlALETkAcXAQDnjUcKzWWQhMZkafM2fA1/rVeHJJI03ctJLRpIiD4NKBP64DvFky5n/SDXG9Y2WwNNrsGURO4w2AFsGXf0u84lcOgKcwW/0MCzv2JUSlxqSSa+lo6V3Oe3wJ2DwEsXgymtXSGUtlMA+iZwsCjzpAcm26qCE4Fo0Kh2Ae7QFtfQ+TXwA/fwSRnWUgWTnLgrHO+BVjrS57WLPrrbQV6cR1L/RxB/R//8IklR2r9NBfLy1iLgM4NkgAAAAASUVORK5CYII='
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# ~~~~~READ IN SETTING FILE~~~~~
-def read_settings():
-    #interval in minutes between reading the data
-    global readInterval #make sure we change the global variables
-    global tempWarn
-    global maxRecords
-    global chargeRecord
-    global emailSend
-    global emailAlert
-    global github
-    readInterval = int(RC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
-    tempWarn = int(RC.get_settings('MaxTemp', path))
-    maxRecords = int(RC.get_settings('MaxRecords', path))
-    chargeRecord = RC.get_settings('Record', path)
-    emailSend = RC.get_settings('Email', path)
-    emailAlert = RC.get_settings('EmailAlert', path)
-    github = str(RC.get_settings('Github', path))
-    
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
     
 # ~~~~~Alert across top~~~~~
 def update_alert(msg):
@@ -77,7 +59,7 @@ def update_tc_nums():
         window['TC' + str(tc)].update(str(round(df['Temp' + str(tc)].values[-1],1)) + '°F')
         
         #check high temperature limit
-        if round(df['Temp' + str(tc)].values[-1],1) < tempWarn:
+        if round(df['Temp' + str(tc)].values[-1],1) < int(settings['tempWarn']):
             window['TC' + str(tc)].update(background_color='#EEE')
                           
         else: #!!!Temperature over limit!!!
@@ -89,16 +71,21 @@ def update_tc_nums():
 # ~~~~~Update settings window~~~~~
 def update_settings_display():
     event, values = window.read(timeout=100)
-    window['interval'].update(value = RC.get_settings('Interval', path))
-    window['temp'].update(value = tempWarn)
-    window['maxRecords'].update(value = maxRecords)
-    window['email'].update(value = emailSend)
-    window['github'].update(value = github)
+    window['interval'].update(value = settings['interval'])
+    window['temp'].update(value = settings['tempWarn'])
+    window['maxRecords'].update(value = settings['maxRecords'])
+    window['github'].update(value = settings['github'])
     
-    if emailAlert == 'True':
+    if bool(settings['enableEmail']) == True:
         window['eBut'].update('Disable Emails')
     else:
         window['eBut'].update('Enable Emails')
+        
+    #Email listed as: one@email.com; two@email.com
+    emailToStr = ''
+    for i in range(0,len(settings['emailTo'])):
+        emailToStr += str(settings['emailTo'][i]) +'; '
+    window['email'].update(value = emailToStr[:-2])
 
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -158,9 +145,11 @@ def data_select():
 # ~~~~~Update recording status~~~~~
 def update_record(change):
     
-    if chargeRecord != 'N':    
+    record = settings['chargeRecord']
+    
+    if record != 'N':    
         #Alert the user it is recording
-        window['RecordAlert'].update('Currently Recording: ' + chargeRecord[3:])
+        window['RecordAlert'].update('Currently Recording: ' + record[3:])
         window['RecordAlert'].update(background_color='#02AB29')
         
         #Update the button to stop recording
@@ -187,15 +176,16 @@ def update_record(change):
         
     if change:
         #Update settings file
-        RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
+        RC.update_settings(path,"chargeRecord",record)
         
         
 # ~~~~~Record a charge~~~~~
-def record_charge():
+def record_charge(charge):
     global chargeEnd
-    chargeEnd = currTime + datetime.timedelta(seconds=((int(chargeRecord[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
+    chargeEnd = currTime + datetime.timedelta(seconds=((int(charge[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
+    RC.update_settings(path, "chargeRecord",charge)
+    settings['chargeRecord'] = charge
     update_record(True)
-    RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
     
     
 # ~~~~~Save an image~~~~~
@@ -298,13 +288,13 @@ sg.theme_text_color('#1D2873')
 sg.theme_background_color('#EEE')
 
 # ~~~~~VARIABLES~~~~~
-read_settings() #Get current settings
+settings = RC.get_settings("all", path)
 currTime = datetime.datetime.fromtimestamp(time()) #used for clock
-lastRead = currTime - datetime.timedelta(seconds=(readInterval*60))
+lastRead = currTime - datetime.timedelta(seconds=(int(settings['interval'])*60))
 closeTime = currTime + datetime.timedelta(seconds=20*60*60)
-emailTry = bool(emailAlert) #if we should be sending emails
+emailTry = bool(settings['enableEmail']) #if we should be sending emails
 
-lastEdit = RC.get_mtime(path,"Program/Settings.txt") #Last time settings were modified
+lastEdit = RC.get_mtime(path,"Program/Settings.json") #Last time settings were modified
 lastCheck = currTime #last time settings were checked
 
 plotDisplay = False #flag for the plot display
@@ -525,7 +515,7 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
-window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=False, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
+window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
 window.Maximize()
 window.set_icon(pngbase64=fireIcon)
 
@@ -534,10 +524,10 @@ style.layout('TNotebook.Tab', []) # Hide tab bar
 
 #Update the charge if it is currently recording
 update_record(False)
-if chargeRecord not in ['Y','N']:
-    window['ChargeIn'].update(chargeRecord[3:8])
-    window['TempIn'].update(chargeRecord[12:16])
-    window['TimeIn'].update(chargeRecord[0:2])
+if settings['chargeRecord'] not in ['Y','N']:
+    window['ChargeIn'].update(settings['chargeRecord'][3:8])
+    window['TempIn'].update(settings['chargeRecord'][12:16])
+    window['TimeIn'].update(settings['chargeRecord'][0:2])
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -550,7 +540,7 @@ if chargeRecord not in ['Y','N']:
 
 while True:
 
-    try:
+    # try:
         windows,event, values = sg.read_all_windows(timeout=100)
         #See if window should be closed
         if event in (sg.WINDOW_CLOSED, "Exit"):
@@ -566,10 +556,10 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #Check if settings have changed every 10s
         if currTime - datetime.timedelta(seconds=10) > lastCheck:
-            if RC.get_mtime(path, 'Program/Settings.txt') > lastEdit:
-                read_settings()
+            if RC.get_mtime(path, 'Program/Settings.json') > lastEdit:
+                settings = RC.get_settings("all", path)
                 update_record(False)
-                lastEdit = RC.get_mtime(path, 'Program/Settings.txt')
+                lastEdit = RC.get_mtime(path, 'Program/Settings.json')
                 lastCheck = currTime
         
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -706,7 +696,7 @@ while True:
             
             
             #Recording a new charge
-            elif event == 'cRecord' and chargeRecord == 'N':
+            elif event == 'cRecord' and settings['chargeRecord'] == 'N':
                 #Verify inputs
                 tCheck = False
                 dCheck = False
@@ -716,22 +706,19 @@ while True:
                     cCheck = RC.check_charge(path,values['ChargeIn'])
                         
                     if not cCheck[0]: #CHARGE IS ALREADY IN USE
-                        chargeRecord = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
                         chargeWin = chargeWindow(values['ChargeIn'],cCheck[1])
                         chargeWin.Maximize()
                         
                         
                 if values['TempIn'] and int(values['TempIn']) > 0:
                     tCheck = True
-                    if len(values['TempIn']) < 4:
-                        values['TempIn'] = '0' + str(values['TempIn']) #zero pad for charge log
                 if values['TimeIn'] and 50 > int(values['TimeIn']) > 0:
                     dCheck = True
                 
-                #If all the inputs are good, record the charge    
+                #~~~If all the inputs are good, record the charge~~~   
                 if cCheck[0] and tCheck and dCheck:
-                    chargeRecord = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'] + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
-                    record_charge()
+                    charge = str(values['TimeIn']).zfill(2) + '-' + values['ChargeIn'] + ' -- ' + values['TempIn'].zfill(4) + ' -- ' + currTime.strftime("%d-%b-%y") #Filename to save
+                    record_charge(charge)
                     
                     
                 elif not tCheck:
@@ -742,10 +729,10 @@ while True:
                     
             
             #If stopping charge recording
-            elif event == 'cRecord' and chargeRecord != 'N':
-                chargeRecord = 'N'
+            elif event == 'cRecord' and settings['chargeRecord'] != 'N':
+                RC.update_settings(path, "chargeRecord",'N')
+                settings['chargeRecord'] = 'N'
                 update_record(True)
-                RC.update_settings(path, readInterval, tempWarn, maxRecords, chargeRecord, emailSend, emailAlert, github)
                 popWindow('Recording cancelled.')
                 
                 
@@ -753,18 +740,18 @@ while True:
         # ~~~~~Charge in use window controls~~~~~
             if windows == chargeWin:
                 if event == 'chargeCancel':
-                    chargeRecord = RC.get_settings('Record', path)
+                    #chargeRecord = RC.get_settings('Record', path)
                     chargeWin.close()
                     
                 elif event == 'chargeRU':
-                    RC.reuse(path, chargeRecord[3:8])
+                    RC.reuse(path, settings['chargeRecord'][3:8])
                     chargeWin.close()
-                    record_charge()
+                    record_charge(settings['chargeRecord'])
                     
                 elif event == 'chargeOW':
-                    RC.overwrite(path, chargeRecord[3:8])
+                    RC.overwrite(path, settings['chargeRecord'][3:8])
                     chargeWin.close()
-                    record_charge()
+                    record_charge(settings['chargeRecord'])
                     
                 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -851,8 +838,18 @@ while True:
                 if int_exists and temp_exists and maxR_exists:
                     eAlert = True if window['eBut'].get_text() == 'Disable Emails' else False
                     
-                    RC.update_settings(path, values['interval'], values['temp'], values['maxRecords'], chargeRecord, values['email'], eAlert, values['github'])
-                    read_settings()
+                    settingsNew = {
+                        "interval": int(values['interval']),
+                        "tempWarn": int(values['temp']),
+                        "maxRecords": int(values['maxRecords']),
+                        "chargeRecord": settings['chargeRecord'],
+                        "emailTo": str(values ['email']).split("; "),
+                        "enableEmail": bool(eAlert),
+                        "github": values['github']
+                        
+                    }
+                    
+                    RC.update_settings(path, "all", settingsNew)
                     popWindow('Settings have been changed successfully.')
                     window['Main Screen'].update(visible=False)
                     window['Title'].update(visible=True)
@@ -877,32 +874,32 @@ while True:
     #If an error happens, inform the user
     #Obviously I can't catch them all so the common ones have messages while anything else just spits out the error
     
-    except Exception as err:
-        print(err)
+    # except Exception as err:
+    #     print(err)
         
-        if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            popWindow("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
+    #     if str(err) == "Missing column provided to 'parse_dates': 'Time'":
+    #         popWindow("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
         
-        elif str(err) == "Can only use .dt accessor with datetimelike values":
-            popWindow("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
+    #     elif str(err) == "Can only use .dt accessor with datetimelike values":
+    #         popWindow("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
         
-        elif str(err)[:10] == "[Errno 13]":
-            sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
-            currTime = datetime.datetime.fromtimestamp(time())
-            lastRead = currTime - datetime.timedelta(seconds=(readInterval*60-10)) #try again in 10s
+    #     elif str(err)[:10] == "[Errno 13]":
+    #         sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
+    #         currTime = datetime.datetime.fromtimestamp(time())
+    #         lastRead = currTime - datetime.timedelta(seconds=(int(settings['interval'])*60-10)) #try again in 10s
         
-        elif str(err) == "float division by zero":
-            popWindow("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
+    #     elif str(err) == "float division by zero":
+    #         popWindow("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
         
-        elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-            popWindow("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
+    #     elif str(err) == "zero-size array to reduction operation minimum which has no identity":
+    #         popWindow("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
         
-        else: #catch all
-            popWindow("~~ERR 00~~\n" + str(err))
-            print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
-            #~~~Write to the error log file~~~
-            with open(path+'Program/Error-Logs.txt','a') as f:
-                f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ERR00: Line {} -- '.format(exc_info()[-1].tb_lineno) + str(err)+'\n')
+        # else: #catch all
+        #     popWindow("~~ERR 00~~\n" + str(err))
+        #     print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
+        #     #~~~Write to the error log file~~~
+        #     with open(path+'Program/Error-Logs.txt','a') as f:
+        #         f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ERR00: Line {} -- '.format(exc_info()[-1].tb_lineno) + str(err)+'\n')
         
 window.close()
 
