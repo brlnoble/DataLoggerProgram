@@ -540,7 +540,7 @@ if settings['chargeRecord'] not in ['Y','N']:
 
 while True:
 
-    # try:
+    try:
         windows,event, values = sg.read_all_windows(timeout=100)
         #See if window should be closed
         if event in (sg.WINDOW_CLOSED, "Exit"):
@@ -874,32 +874,32 @@ while True:
     #If an error happens, inform the user
     #Obviously I can't catch them all so the common ones have messages while anything else just spits out the error
     
-    # except Exception as err:
-    #     print(err)
+    except Exception as err:
+        print(err)
         
-    #     if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-    #         popWindow("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
+        if str(err) == "Missing column provided to 'parse_dates': 'Time'":
+            popWindow("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
         
-    #     elif str(err) == "Can only use .dt accessor with datetimelike values":
-    #         popWindow("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
+        elif str(err) == "Can only use .dt accessor with datetimelike values":
+            popWindow("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
         
-    #     elif str(err)[:10] == "[Errno 13]":
-    #         sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
-    #         currTime = datetime.datetime.fromtimestamp(time())
-    #         lastRead = currTime - datetime.timedelta(seconds=(int(settings['interval'])*60-10)) #try again in 10s
+        elif str(err)[:10] == "[Errno 13]":
+            sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
+            currTime = datetime.datetime.fromtimestamp(time())
+            lastRead = currTime - datetime.timedelta(seconds=(int(settings['interval'])*60-10)) #try again in 10s
         
-    #     elif str(err) == "float division by zero":
-    #         popWindow("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
+        elif str(err) == "float division by zero":
+            popWindow("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
         
-    #     elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-    #         popWindow("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
+        elif str(err) == "zero-size array to reduction operation minimum which has no identity":
+            popWindow("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
         
-        # else: #catch all
-        #     popWindow("~~ERR 00~~\n" + str(err))
-        #     print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
-        #     #~~~Write to the error log file~~~
-        #     with open(path+'Program/Error-Logs.txt','a') as f:
-        #         f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ERR00: Line {} -- '.format(exc_info()[-1].tb_lineno) + str(err)+'\n')
+        else: #catch all
+            popWindow("~~ERR 00~~\n" + str(err))
+            print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
+            #~~~Write to the error log file~~~
+            with open(path+'Program/Error-Logs.txt','a') as f:
+                f.write(currTime.strftime("%d-%b-%y - %I:%M:%S %p") + ': ERR00: Line {} -- '.format(exc_info()[-1].tb_lineno) + str(err)+'\n')
         
 window.close()
 
