@@ -3,6 +3,7 @@ import csv
 from time import sleep
 import RPi.GPIO as GPIO
 from github import Github
+import json
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
@@ -16,43 +17,59 @@ def remove_prefix(text, prefix):
     return text
 
 
+# ~~~~~Make settings file if not present~~~~~
+def verify_settings(path):
+    if does_this_exist(path,'Program/Settings.json'):
+        return True
+    
+    #Create file that could not be found
+    settings = {
+        "interval": 10,
+        "tempWarn": 1300,
+        "maxRecords": 1000,
+        "chargeRecord": "N",
+        "emailTo": [
+            "intern@uniondrawn.com"
+        ],
+        "enableEmail": True,
+        "github": "UNKNOWN"
+    }
+    update_settings(path, "all", settings)
+    return False
+
+
+# ~~~~~Update settings~~~~~
+def update_settings(path,selection,value):
+    if selection == "all":
+        with open(path+"Program/Settings.json","w") as f:
+            json.dump(value,f,indent=4)
+        return
+    
+    currSet = get_settings("all", path)
+    currSet[selection] = value
+    
+    with open(path+"Program/Settings.json","w") as f:
+        json.dump(currSet,f,indent=4)  
+        
+        
 # ~~~~~Get the system settings~~~~~
 def get_settings(selection, path):
-    currSettings = []
-    with open(path + 'Program/Settings.txt', 'r') as f:
-        currSettings = f.readlines()
-    if selection == 'Interval':
-        return remove_prefix(currSettings[0],'intervalReading = ').strip()
-    elif selection == 'MaxTemp':
-        return remove_prefix(currSettings[1],'tempWarning = ').strip()
-    elif selection == 'MaxRecords':
-        return remove_prefix(currSettings[2],'maxLogRecords = ').strip()
-    elif selection == 'Record':
-        return remove_prefix(currSettings[3],'recordCharge = ').strip()
-    elif selection == 'Email':
-        return remove_prefix(currSettings[4],'emailTo = ').strip()
-    elif selection == 'EmailAlert':
-        return remove_prefix(currSettings[5],'enableEmail = ').strip()
-    elif selection == 'Github':
-        return remove_prefix(currSettings[6],'github = ').strip()
+    with open(path+"Program/Settings.json","r") as f:
+        currSet = json.load(f)
     
+    if selection == "all":
+        return currSet
+    return currSet[selection]
+
 
 # ~~~~~Check if a file exists~~~~~
 def does_this_exist(path,fileName):
     return os.path.exists(path + fileName)
 
+
 # ~~~~~Make folder~~~~~
 def make_folder(folderPath):
     os.makedirs(folderPath)
-
-# ~~~~~Make settings file if not present~~~~~
-def verify_settings(path):
-    if does_this_exist(path,'Program/Settings.txt'):
-        return True
-    
-    #Create file that could not be found
-    update_settings(path+'Program/', 10, 1300, 'AllTempLogs.csv', 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'UNKOWN')
-    return False
 
 
 # ~~~~~Make Log file if not present~~~~~
@@ -72,37 +89,25 @@ def verify_logs(path):
 
 # ~~~~~Send email~~~~~
 def send_email(TC,temp,time,warn):
-    sendTo = get_settings('Email', get_path())
     try:
         import smtplib, ssl
-        sender = '#####@uniondrawn.com'
+        sender = '108_furnace@uniondrawn.com'
         receivers = get_settings('Email',get_path())
         context = ssl.create_default_context()
 
-        message = "From: Data Logger <#####@uniondrawn.com>"
+        message = "From: Data Logger <108_furnace@uniondrawn.com>"
         message += "\nSubject: Temperature Alert"
         message += "\n\nThermocouple: \t{}\nTemperature: \t{} F\nTime: \t\t{}"
         message += "\n\nThe furnace is set to alert when it exceeds {} F. You can change this in the data logger settings."
         message += "\n\n\n~~~This is a generated message from the data logger. Please do not reply.~~~"
 
         with smtplib.SMTP_SSL("securemail.megamailservers.com",465,context=context) as server:
-            server.login("#####@uniondrawn.com","#####")
+            server.login("108_furnace@uniondrawn.com","Hot1350*")
             server.sendmail(sender, receivers, message.format(TC,temp,time,warn))
         return True
     except:
         return False
-    
-# ~~~~~Update settings~~~~~
-def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,github):
-    with open(path + 'Program/Settings.txt', 'w') as f:
-       f.write('intervalReading = {}\n'.format(intRead))
-       f.write('tempWarning = {}\n'.format(tWarn))
-       f.write('maxLogRecords = {}\n'.format(maxRecords))
-       f.write('recordCharge = {}\n'.format(chargRec))
-       f.write('emailTo = {}\n'.format(emailTo))
-       f.write('enableEmail = {}\n'.format(emailEnable))
-       f.write('github = {}'.format(github))
-    
+      
 
 # ~~~~~Check log file length~~~~~
 def check_logs(path,maxLogs,currDate):
@@ -111,7 +116,7 @@ def check_logs(path,maxLogs,currDate):
     csvFile.close()
     
     #If the file has more lines than the maximum, remake the file
-    newFile = "Charges//" + "99999 -- Logs-- " + currDate + ".csv"
+    newFile = "Charges//" + "00000 -- Logs -- " + currDate + ".csv"
     if rowCount > maxLogs:
         os.rename(path+'Program/AllTempLogs.csv', path + newFile)        
         
@@ -200,6 +205,7 @@ def readTC(path,charge,currTime,tempWarn):
     try:
         if charge not in ['N','Y']:
             header = []
+            charge = charge[3:] + '.csv' #Remove duration and add 
             #If charge file does not exist, create it and add header + data
             if not does_this_exist(path+'Charges/',charge):
                 header = ['Time','Temp1','Temp2','Temp3','Temp4','Temp5','Temp6']
