@@ -18,35 +18,19 @@ chargeEnd = 'N' #Declaring for future use
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
-    #interval in minutes between reading the data
-    global readInterval #make sure we change the global variables
-    global tempWarn
-    global logFile
-    global maxRecords
-    global chargeRecord
-    global emailSend
-    global emailAlert
-    global github
-    global chargeEnd
-    readInterval = int(GC.get_settings('Interval', path)) #convert minutes to seconds, add 5 as a precautionary measure
-    tempWarn = int(GC.get_settings('MaxTemp', path))
-    maxRecords = int(GC.get_settings('MaxRecords', path))
-    chargeRecord = GC.get_settings('Record', path)
-    emailSend = GC.get_settings('Email', path)
-    emailAlert = GC.get_settings('EmailAlert', path)
-    github = str(GC.get_settings('Github', path))
+    global settings
+    settings = GC.get_settings("all", path)
 
     #Check if the program should be recording
-    if chargeRecord not in ['N','Y']:
+    if settings['chargeRecord'] not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
-        if chargeEnd == 'N':
-            chargeEnd = currTime + datetime.timedelta(hours=((int(chargeRecord[:2])+1))) 
-        chargeRecord = chargeRecord[3:] + ".csv"
+        if settings['chargeRecord'] == 'N':
+            chargeEnd = currTime + datetime.timedelta(hours=((int(settings['chargeRecord'][:2])+1))) 
 
-    elif chargeRecord == 'N': #If recording cancelled
+    elif settings['chargeRecord'] == 'N': #If recording cancelled
         chargeEnd = 'N'
 
-    print ('Charge: '+str(chargeRecord))
+    print ('Charge: '+str(settings['chargeRecord']))
     print ('END: '+str(chargeEnd))
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,11 +43,12 @@ def errors(err):
         print (err)
         global emailTry
         if emailTry:
-            GC.send_email(err[9:10],err[11:],currTime.strftime("%d-%b-%y - %I:%M:%S %p"),tempWarn)
+            GC.send_email(err[9:10],err[11:],currTime.strftime("%d-%b-%y - %I:%M:%S %p"),settings['tempWarn'])
             emailTry = False
     else:
         #Sort through the errors and see what the problem is
         errMsg = GC.error_log(path,err,currTime)
+        global lastRead
 
         #AllTempLogs is open
         if errMsg[:6] == "ERR 01":
@@ -86,14 +71,14 @@ def errors(err):
 
 #Get current settings
 read_settings()
-emailTry = emailAlert
+emailTry = settings['enableEmail']
 
 #See if logs need to be archived
-GC.check_logs(path, maxRecords, currTime.strftime("%d-%b-%y"))
+GC.check_logs(path, settings['maxRecords'], currTime.strftime("%d-%b-%y"))
 
 #Setup variables for the program
-lastRead = currTime - datetime.timedelta(minutes=readInterval) #Last time data was read
-lastEdit = os.path.getmtime(path + "Program/Settings.txt") #Last time settings were modified
+lastRead = currTime - datetime.timedelta(minutes=int(settings['interval'])) #Last time data was read
+lastEdit = os.path.getmtime(path + "Program/Settings.json") #Last time settings were modified
 lastCheck = currTime
 
 #Turn on recording light
@@ -110,19 +95,19 @@ while True:
     #Check if we should read the settings (have they been modified)
     #Check every 10s
     if currTime - datetime.timedelta(seconds=10) > lastCheck:
-        if os.path.getmtime(path + "Program/Settings.txt") > lastEdit:
+        if os.path.getmtime(path + "Program/Settings.json") > lastEdit:
             print('SETTINGS CHANGED')
             read_settings()
             lastCheck = currTime
-            lastEdit = os.path.getmtime(path+'Program/Settings.txt')
+            lastEdit = os.path.getmtime(path+'Program/Settings.json')
 
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     #Check if we should read the TC
-    if currTime - datetime.timedelta(minutes=readInterval) > lastRead:
+    if currTime - datetime.timedelta(minutes=int(settings['interval'])) > lastRead:
         print ("~~~~~~~~~~")
         #Record data
-        currRead = GC.readTC(path,chargeRecord,currTime.strftime("%d-%b-%y - %I:%M:%S %p"),tempWarn)
+        currRead = GC.readTC(path,settings['chargeRecord'],currTime.strftime("%d-%b-%y - %I:%M:%S %p"),settings['tempWarn'])
 
         #If an error occured, add it to the log
         if currRead not in [True,False,'Read successful'] and str(currRead)[:8] != "Overtemp":
@@ -142,17 +127,17 @@ while True:
                 errors(git)
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If the charge has finished, stop recording to the charge log
-        if chargeRecord not in ['N','Y'] and currTime > chargeEnd:
+        if settings['chargeRecord'] not in ['N','Y'] and currTime > chargeEnd:
             #Update the settings now that the recording has finished
-            chargeRecord = 'Y' #Will keep recording to all log file
-            GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+            settings['chargeRecord'] = 'Y' #Will keep recording to all log file
+            GC.update_settings(path, 'chargeRecord', 'Y')
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #If charge is done, see if we can close the program
-        elif chargeRecord == 'Y':
+        elif settings['chargeRecord'] == 'Y':
             #If temperature is below 100F, stop recording to the all log file
             if currRead:
-                chargeRecord = 'N'
-                GC.update_settings(path,readInterval,tempWarn,maxRecords,chargeRecord,emailSend,emailAlert,github)
+                settings['chargeRecord'] = 'N'
+                GC.update_settings(path,'chargeRecord','N')
 
                 #Turn off recording light
                 GC.record_light=False
