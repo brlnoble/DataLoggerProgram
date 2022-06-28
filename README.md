@@ -47,11 +47,11 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicSettingsScreen-16-06-22.jpg" width="900">
 
 ## Current Logging Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/ViewScreenGIF.gif" width="900">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/ViewScreenGIFnew.gif" width="900">
 
 ## Current Charge Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeSelectScreen-16-06-22.jpg" width="900"> 
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeViewScreen-16-06-22.jpg" width="900">
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeViewScreen-28-06-22.jpg" width="900">
 
 ## Photo of the Installed Unit
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/Unit.jpg" width="900">
