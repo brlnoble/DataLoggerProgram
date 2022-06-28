@@ -10,13 +10,6 @@ def get_path():
     return '/diskstation1/share/1 - Mill/Data Logger/' #Path on RPi
 
 
-# ~~~~~Removes the beginning of a string
-def remove_prefix(text, prefix):
-    if text.startswith(prefix):
-        return text[len(prefix):]
-    return text
-
-
 # ~~~~~Make settings file if not present~~~~~
 def verify_settings(path):
     if does_this_exist(path,'Program/Settings.json'):
@@ -91,18 +84,21 @@ def verify_logs(path):
 def send_email(TC,temp,time,warn):
     try:
         import smtplib, ssl
-        sender = '108_furnace@uniondrawn.com'
-        receivers = get_settings('Email',get_path())
+        with open(get_path() + 'Program/Email.json','r') as f:
+            emailInfo = json.load(f)
+            
+        sender = emailInfo['username']
+        receivers = get_settings('emailTo',get_path())
         context = ssl.create_default_context()
 
-        message = "From: Data Logger <108_furnace@uniondrawn.com>"
+        message = "From: Data Logger <{}>".format(emailInfo['username'])
         message += "\nSubject: Temperature Alert"
         message += "\n\nThermocouple: \t{}\nTemperature: \t{} F\nTime: \t\t{}"
         message += "\n\nThe furnace is set to alert when it exceeds {} F. You can change this in the data logger settings."
         message += "\n\n\n~~~This is a generated message from the data logger. Please do not reply.~~~"
 
-        with smtplib.SMTP_SSL("securemail.megamailservers.com",465,context=context) as server:
-            server.login("108_furnace@uniondrawn.com","Hot1350*")
+        with smtplib.SMTP_SSL(emailInfo['server'],emailInfo['port'],context=context) as server:
+            server.login(emailInfo['username'],emailInfo['password'])
             server.sendmail(sender, receivers, message.format(TC,temp,time,warn))
         return True
     except:
@@ -268,7 +264,7 @@ def upload_Data(path, currTime):
     #Try to connect to Github
     
     try: 
-        token = get_settings('Github', path)
+        token = get_settings('github', path)
         g = Github(token) #token key
         
         repo = g.get_user().get_repo("View") #Repository
