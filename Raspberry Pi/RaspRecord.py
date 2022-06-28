@@ -71,7 +71,7 @@ def errors(err):
 
 #Get current settings
 read_settings()
-emailTry = settings['enableEmail']
+emailTry = bool(settings['enableEmail'])
 
 #See if logs need to be archived
 GC.check_logs(path, settings['maxRecords'], currTime.strftime("%d-%b-%y"))
