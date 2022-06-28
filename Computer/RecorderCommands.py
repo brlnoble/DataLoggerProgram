@@ -1,8 +1,9 @@
 import os
+import json
 
 # ~~~~~Directory of this program~~~~~
 def get_path():
-    return '//DISKSTATION1/mill/1 - Mill/Data Logger/' #Path on RPi
+    return 'C:/Users/Darryn/Desktop/Code/DATA LOGGER PI/Raspberry Pi/JSON Migration/' #Path on RPi
 
 
 # ~~~~~Removes the beginning of a string
@@ -12,25 +13,49 @@ def remove_prefix(text, prefix):
     return text
 
 
+# ~~~~~Make settings file if not present~~~~~
+def verify_settings(path):
+    if does_this_exist(path,'Program/Settings.json'):
+        return True
+    
+    #Create file that could not be found
+    settings = {
+        "interval": 10,
+        "tempWarn": 1300,
+        "maxRecords": 1000,
+        "chargeRecord": "N",
+        "emailTo": [
+            "intern@uniondrawn.com"
+        ],
+        "enableEmail": True,
+        "github": "UNKNOWN"
+    }
+    update_settings(path, "all", settings)
+    return False
+
+
+# ~~~~~Update settings~~~~~
+def update_settings(path,selection,value):
+    if selection == "all":
+        with open(path+"Program/Settings.json","w") as f:
+            json.dump(value,f,indent=4)
+        return
+    
+    currSet = get_settings("all", path)
+    currSet[selection] = value
+    
+    with open(path+"Program/Settings.json","w") as f:
+        json.dump(currSet,f,indent=4)
+    
+    
 # ~~~~~Get the system settings~~~~~
 def get_settings(selection, path):
-    currSettings = []
-    with open(path + 'Program/Settings.txt', 'r') as f:
-        currSettings = f.readlines()
-    if selection == 'Interval':
-        return remove_prefix(currSettings[0],'intervalReading = ').strip()
-    elif selection == 'MaxTemp':
-        return remove_prefix(currSettings[1],'tempWarning = ').strip()
-    elif selection == 'MaxRecords':
-        return remove_prefix(currSettings[2],'maxLogRecords = ').strip()
-    elif selection == 'Record':
-        return remove_prefix(currSettings[3],'recordCharge = ').strip()
-    elif selection == 'Email':
-        return remove_prefix(currSettings[4],'emailTo = ').strip()
-    elif selection == 'EmailAlert':
-        return remove_prefix(currSettings[5],'enableEmail = ').strip()
-    elif selection == 'Github':
-        return remove_prefix(currSettings[6],'github = ').strip()
+    with open(path+"Program/Settings.json","r") as f:
+        currSet = json.load(f)
+    
+    if selection == "all":
+        return currSet
+    return currSet[selection]
     
 
 # ~~~~~Check if a file exists~~~~~
@@ -44,15 +69,10 @@ def get_mtime(path,fileName):
 # ~~~~~Make folder~~~~~
 def make_folder(folderPath):
     os.makedirs(folderPath)
-
-# ~~~~~Make settings file if not present~~~~~
-def verify_settings(path):
-    if does_this_exist(path,'Program/Settings.txt'):
-        return True
     
-    #Create file that could not be found
-    update_settings(path+'Program/', 10, 1300, 1000, 'N', 'bbrindle@uniondrawn.com; intern@uniondrawn.com', True, 'UNKOWN')
-    return False
+# ~~~~~Open folder~~~~~
+def open_folder(path):
+    os.startfile(os.path.realpath(path))
     
     
 # ~~~~~Get saved charges~~~~~
@@ -76,18 +96,6 @@ def check_charge(path,charge):
     return [True,'']
 
     
-# ~~~~~Update settings~~~~~
-def update_settings(path,intRead,tWarn,maxRecords,chargRec,emailTo,emailEnable,github):
-    with open(path + 'Program/Settings.txt', 'w') as f:
-       f.write('intervalReading = {}\n'.format(intRead))
-       f.write('tempWarning = {}\n'.format(tWarn))
-       f.write('maxLogRecords = {}\n'.format(maxRecords))
-       f.write('recordCharge = {}\n'.format(chargRec))
-       f.write('emailTo = {}\n'.format(emailTo))
-       f.write('enableEmail = {}\n'.format(emailEnable))
-       f.write('github = {}'.format(github)) 
-
-
 # ~~~~~Error Log~~~~~
 def error_Log(path,err,currTime):
     with open(path+'Program/Error-Logs.txt','a') as f:
