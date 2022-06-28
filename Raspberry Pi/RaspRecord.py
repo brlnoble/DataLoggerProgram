@@ -19,12 +19,13 @@ chargeEnd = 'N' #Declaring for future use
 # ~~~~~READ IN SETTING FILE~~~~~
 def read_settings():
     global settings
+    global chargeEnd
     settings = GC.get_settings("all", path)
 
     #Check if the program should be recording
     if settings['chargeRecord'] not in ['N','Y']:
         #time to end the charge at, 1 hour extra safety
-        if settings['chargeRecord'] == 'N':
+        if settings['chargeRecord'] != 'N':
             chargeEnd = currTime + datetime.timedelta(hours=((int(settings['chargeRecord'][:2])+1))) 
 
     elif settings['chargeRecord'] == 'N': #If recording cancelled
