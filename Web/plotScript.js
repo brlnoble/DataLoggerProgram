@@ -7,9 +7,7 @@ function makeChart(csvFile) {
 
 
   //If the file has not changed we don't need to refresh the window
-  console.log(timeLabels[timeLabels.length-1]);
-  console.log(document.getElementById("LastRead").textContent);
-  if(timeLabels[timeLabels.length-1] === document.getElementById("LastRead").textContent) {
+  if(timeLabels[timeLabels.length-1] === document.getElementById("LastRead").textContent.replace(',',' - ')) {
     return;
   };
 
@@ -31,15 +29,12 @@ function makeChart(csvFile) {
   var tc4Data = csvFile.map(function(d) {
     return d.Temp4;
   })
- /* var tc5Data = csvFile.map(function(d) {
-    return d.Temp5;
-  }) */
   var tc6Data = csvFile.map(function(d) {
     return d.Temp6;
   })
   
   //Create an array for the high temperature warning
-  //var tcHData = new Array(tc1Data.length).fill("1300");
+  var tcHData = new Array(tc1Data.length).fill("1300");
   
   //Update the numeric text at the top of the screen
   document.getElementById("TC1").textContent=tc1Data[tc1Data.length-1];
@@ -94,15 +89,9 @@ function makeChart(csvFile) {
         {
           data: tc4Data,
           fill: false,
-          borderColor: "#444",
+          borderColor: "#00B366",
           label: "TC4"
         },
-        /*{
-          data: tc5Data,
-          fill: false,
-          borderColor: "#00B366",
-          label: "TC5"
-        },*/
         {
           data: tc6Data,
           fill: false,
@@ -110,11 +99,11 @@ function makeChart(csvFile) {
           label: "TC6"
         },
         //{
-        //  data: tcHData,
-        //  fill: true,
-        //  borderColor: "#00B366",
-        //  label: "HIGH",
-        //  pointStyle: "line"
+          //data: tcHData,
+          //fill: true,
+          //borderColor: "#00B366",
+          //label: "HIGH",
+          //pointStyle: "line"
         //},
       ]
     }
@@ -131,6 +120,20 @@ function getCSV() {
   //Run the program every 60s
   setTimeout(getCSV, 60000);
 }
+
+// ~~~~~Dark mode~~~~~
+document.getElementById("title").addEventListener("click", function(){
+    var currBCol = document.body.style.backgroundColor;
+    var newBCol = "#222";
+    var newTCol = "#a2aeff";
+    
+    if (currBCol === "rgb(34, 34, 34)") {
+        newBCol = "#FFF";
+        newTCol = "#1D2873";
+    }
+    document.body.style.backgroundColor = newBCol;
+    document.body.style.color = newTCol;
+});
 
 //Initial call
 getCSV();
