@@ -5,8 +5,11 @@
     <!-- <meta http-equiv="refresh" content="60" > <!-- Refresh page every 1 minute -->
     <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAuBJREFUSEvF109IFFEcB/Dv7Mzqrn/XDQxqjSDo0EoUUUG0FXWxIC0KzC5FdIgudcoyo6yQ8lAX+2dmgaAm2EWNhCByIdBC8+BB18WoVPQws390c9eZeTGz7ejs7Mju6Oa7vffm/T7vz2923lJYo0LpuPQqz0eIj6eC3W53n9Pp3LPKqBxueHi43+Vy7Y3FVuB0ojFsKa7ALMuSdKw0PqbdbpfNGEyzLMunBBOCjM+diBw8DlB6qaKNaLfbGQCCIdjy6S2sH14D4zPg2gdSmq9hOKexCmZPFBP9BP7nPemHLe53sHY1KJBAbAjUtaUZJgQF14+qEHGOgb++K72wpbcD1u6XamR8Glz7oLqNkGWTLeUztt05DerPrBrxTiFY0wjeuVtup3+OIbv+FgJ1rbq7kDJcUFmiDeadktvCx87KL2Zmd4tc97X0gWRYEuIpwRQfge1mqS4c3xG6XIPw4RMrgEURMJlgCnLIv1+RNBwuKUfoYpVxOP/heQSuPgUVCiL/wTltoN8TQNikaQ9dqIxuf4KS1FbbqstALYQxd+YastvqlDBkEwth/xiYWseSH79FxfemF/SPEfDF2g9dcvDtU6Dm51TzJht8EA6Nym3MvSLtmigKYuFGUAEOvuYvmv6k4NyGSjDeIdVgvqJf+bQwTYXARCZgEYF59Zbz23YheLfJGMz8GkFu/ZXFwdYI+JPflToz8+87QxPghXr1wdpm8Fu3G4OlUbbqUlALETkAcXAQDnjUcKzWWQhMZkafM2fA1/rVeHJJI03ctJLRpIiD4NKBP64DvFky5n/SDXG9Y2WwNNrsGURO4w2AFsGXf0u84lcOgKcwW/0MCzv2JUSlxqSSa+lo6V3Oe3wJ2DwEsXgymtXSGUtlMA+iZwsCjzpAcm26qCE4Fo0Kh2Ae7QFtfQ+TXwA/fwSRnWUgWTnLgrHO+BVjrS57WLPrrbQV6cR1L/RxB/R//8IklR2r9NBfLy1iLgM4NkgAAAAASUVORK5CYII=">
     <link rel="stylesheet" href="styles.css">
-    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
-    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    
+    <!-- Link monospace font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -18,15 +21,15 @@
 <div>
     <div, class="tcList">
         <ul, class="TC">
-            <li><strong>TC1: </strong><span, id="TC1">511.1</span></li>
-            <li><strong>TC2: </strong><span, id="TC2">522.2</span></li>
-            <li><strong>TC3: </strong><span, id="TC3">533.3</span></li>
+            <li><strong>TC1: </strong><span, id="TC1">000.00</span></li>
+            <li><strong>TC2: </strong><span, id="TC2">000.00</span></li>
+            <li><strong>TC3: </strong><span, id="TC3">000.00</span></li>
         </ul>
         <br>
         <ul, class="TC">
-            <li><strong>TC4: </strong><span, id="TC4">544.4</span></li>
-            <li><strong>TC5: </strong><span, id="TC5">--.--</span></li>
-            <li><strong>TC6: </strong><span, id="TC6">566.6</span></li>
+            <li><strong>TC4: </strong><span, id="TC4">000.00</span></li>
+            <li><strong>TC5: </strong><span, id="TC5">000.00</span></li>
+            <li><strong>TC6: </strong><span, id="TC6">000.00</span></li>
         </ul>
         <hr>
         <ul, class="TC">
@@ -36,14 +39,14 @@
     
     <!-- GRAPH -->
     <div id="graph">
-      <canvas id="chart"></canvas>
+      <canvas id="myChart"></canvas>
     </div>
 </div>
 
 
-
 <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/5.7.0/d3.min.js'></script>
-<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.min.js'></script><script  src="./plotScript.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</script><script  src="./plotScript.js"></script>
 
 
 </body>
