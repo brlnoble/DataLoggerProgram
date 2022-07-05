@@ -210,6 +210,8 @@ def img_save(titleText):
 def display_graph(fileName):
     # MATPLOTLIB CODE HERE
     global plt
+    if plt:
+        plt.clf()
     plt.figure(1)
     global fig
     fig = plt.gcf()
@@ -584,7 +586,6 @@ while True:
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  MISC WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if event == 'Main Screen': #RETURN TO MAIN SCREEN
-            plotDisplay = False
             chargeDisplay = False
             window['Main Screen'].update(visible=False)
             window['Title'].update(visible=True)
@@ -610,18 +611,16 @@ while True:
             window['cRecord'].update(disabled=False)
             activeScreen = 'Log'
             
-            if plotDisplay == False: #If not currently displaying plot, basically only run on startup
-                display_graph(logFile)
-                
-                #~~~Setup initial axes~~~
-                zoom = 30
-                right = max(x) #most recent reading
-                maxTime = right #global storage of above for Home button
-                left = right - zoom #make view to be towards the end of readings
-                window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
-                window['Slide'].update(value=maxTime) #Set slider to right side of graph
-                update_graph_view()
-                
+            display_graph(logFile)
+            
+            #~~~Setup initial axes~~~
+            zoom = 30
+            right = max(x) #most recent reading
+            maxTime = right #global storage of above for Home button
+            left = right - zoom #make view to be towards the end of readings
+            window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
+            window['Slide'].update(value=maxTime) #Set slider to right side of graph
+            update_graph_view()
                 
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~BUTTON CLICK EVENTS~~~~~
@@ -770,9 +769,6 @@ while True:
             window['cDesc'].update('You are viewing:\n' + str(values['cList'][0]))
             activeScreen = 'Log'
             
-            if plotDisplay == False: #If not currently displaying plot
-                plt.clf()
-            chargeDisplay = True
             display_graph(path+'Charges/' + str(values['cList'][0]) + '.csv')
             
             #~~~Setup initial axes~~~
