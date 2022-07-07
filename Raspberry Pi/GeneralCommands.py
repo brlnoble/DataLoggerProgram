@@ -160,7 +160,8 @@ def readTC(path,charge,currTime,tempWarn):
     GPIO.output(CS,GPIO.LOW) #start chip select as low (read mode)
     
     #Array for outputs
-    tcRead = ['',0,0,0,0,0,0]
+    tcRead = ['',0,0,0,0,0,0] #String result
+    tcNums = [00,0,0,0,0,0,0] #Float result
     
     #~~~Read the TC's~~~
     for j in range(15,-1,-1): #Read each of the 16 bits one at a 
@@ -177,13 +178,13 @@ def readTC(path,charge,currTime,tempWarn):
     GPIO.output(CS,GPIO.HIGH) #Stop reading values
         
     	#Convert to Fahrenheit
-    for i in range(1,len(tcRead)):
-        tcRead[i] >>= 5
-        tcRead[i] *= 9/5
-        tcRead[i] += 32
-        if tcRead[i] >= 1870.00: #Cannot sense over this temperature - means furnace is off
-            tcRead[i] = 00.00
-        tcRead[i] = f'{tcRead[i]:.2f}' #Format value as 00.00
+    for i in range(1,len(tcNums)):
+        tcNums[i] >>= 5
+        tcNums[i] *= 9/5
+        tcNums[i] += 32
+        if tcNums[i] >= 1870.00: #Cannot sense over this temperature - means furnace is off
+            tcNums[i] = 00.00
+        tcRead[i] = f'{tcNums[i]:.2f}' #Format value as 00.00
     
     tcRead[0] = currTime #Sets time for array
     
@@ -227,8 +228,10 @@ def readTC(path,charge,currTime,tempWarn):
         return False
 
     #See if any of the thermocouples are over the temperature limit
+    #Compare it to the average, if one TC is 300 over average it is likely an error
+    avg = sum(tcNums) / len(tcNums) #Average temperature
     for i in range(1,len(tcRead)):
-        if float(tcRead[i]) > float(tempWarn):
+        if tcNums[i] > float(tempWarn) and (tcNums[i] < 300 + avg):
             return "Overtemp {} {}".format(i,tcRead[i])
     return 'Read successful' 
 
