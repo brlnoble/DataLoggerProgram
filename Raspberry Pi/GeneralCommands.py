@@ -170,7 +170,7 @@ def readTC(path,charge,currTime,tempWarn):
         
         #Read the corresponding bit for each thermocouple
         for i in range(0,len(tcList)):
-            tcRead[i+1] |= (GPIO.input(tcList[i]) << j)
+            tcNums[i+1] |= (GPIO.input(tcList[i]) << j)
         
         GPIO.output(SCK,GPIO.LOW) #Reset clock
         sleep(0.1)
@@ -231,7 +231,7 @@ def readTC(path,charge,currTime,tempWarn):
     #Compare it to the average, if one TC is 300 over average it is likely an error
     avg = sum(tcNums) / (len(tcNums)-1) #Average temperature
     for i in range(1,len(tcRead)):
-        if tcNums[i] > float(tempWarn) and (tcNums[i] < 300 + avg):
+        if tcNums[i] > float(tempWarn) and tcNums[i] > (300 + avg):
             return "Overtemp {} {}".format(i,tcRead[i])
     return 'Read successful' 
 
