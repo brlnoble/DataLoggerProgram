@@ -231,7 +231,7 @@ def readTC(path,charge,currTime,tempWarn):
     #Compare it to the average, if one TC is 300 over average it is likely an error
     avg = sum(tcNums) / (len(tcNums)-1) #Average temperature
     for i in range(1,len(tcRead)):
-        if tcNums[i] > float(tempWarn) and tcNums[i] > (300 + avg):
+        if tcNums[i] > float(tempWarn) and tcNums[i] < (300 + avg):
             return "Overtemp {} {}".format(i,tcRead[i])
     return 'Read successful' 
 
