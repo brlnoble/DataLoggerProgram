@@ -182,7 +182,7 @@ def update_record(change):
 # ~~~~~Record a charge~~~~~
 def record_charge(charge):
     global chargeEnd
-    chargeEnd = currTime + datetime.timedelta(seconds=((int(charge[:2])+2)*60*60)) #time to end the charge at, 2 hour extra safety
+    chargeEnd = currTime + datetime.timedelta(hours=(int(charge[:2])+2)) #time to end the charge at, 2 hour extra safety
     RC.update_settings(path, "chargeRecord",charge)
     settings['chargeRecord'] = charge
     update_record(True)
@@ -770,6 +770,7 @@ while True:
             activeScreen = 'Log'
             
             display_graph(path+'Charges/' + str(values['cList'][0]) + '.csv')
+            chargeDisplay = True
             
             #~~~Setup initial axes~~~
             zoom = 30
@@ -842,7 +843,6 @@ while True:
                         "emailTo": str(values ['email']).split("; "),
                         "enableEmail": bool(eAlert),
                         "github": values['github']
-                        
                     }
                     
                     RC.update_settings(path, "all", settingsNew)
