@@ -282,7 +282,6 @@ sg.theme('DefaultNoMoreNagging')
 font = ('Arial', 16)
 butFont = ('Arial', 16, 'bold')
 iconFont = ('Segoe UI Symbol',20,'bold')
-arrowFont = ('Arial',20)
 tcFont = ('Courier New',16,'bold')
 titleFont = ('Arial', 26, 'bold')
 sg.theme_text_element_background_color(color = '#EEE')
@@ -404,7 +403,7 @@ zoomButFormat = [
 
 #Scroll/homwe buttons
 scrollButFormat = [
-            [sg.Button('⮜',key="Left",size=(10,1), font=arrowFont),sg.Button('🏠',key='Home', size=(10,1), font=iconFont), sg.Button('⮞',key="Right",size=(10,1), font=arrowFont)],
+            [sg.Button('◀',key="Left",size=(10,1), font=iconFont),sg.Button('🏠',key='Home', size=(10,1), font=iconFont), sg.Button('▶',key="Right",size=(10,1), font=iconFont)],
     ]
 
 
