@@ -122,9 +122,6 @@ def update_tc_graph():
 def update_graph_view():
     plt.xlim(left,right) #size of viewport
     plt.locator_params(axis='x', nbins=(maxTime/(right-left))*10) #makes sure there are only 10 x-axis ticks at a time
-    #Update axis without redrawing entire graph
-    plt.ion()
-    fig.canvas.draw()
     
     update_tc_graph() #update TC text on right of graph
     
@@ -137,6 +134,7 @@ def update_graph_view():
 def data_select():
     global lineSelect
     lineSelect.set_xdata(right-dataSlide[0])
+    #Update axis without redrawing entire graph
     plt.ion()
     fig.canvas.draw()
     update_tc_graph()
