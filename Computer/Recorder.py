@@ -123,8 +123,6 @@ def update_graph_view():
     plt.xlim(left,right) #size of viewport
     plt.locator_params(axis='x', nbins=(maxTime/(right-left))*10) #makes sure there are only 10 x-axis ticks at a time
     
-    update_tc_graph() #update TC text on right of graph
-    
     #Update data marker
     window['DataSlide'].update(range=(zoom,0))
     data_select() 
@@ -135,7 +133,6 @@ def data_select():
     global lineSelect
     lineSelect.set_xdata(right-dataSlide[0])
     #Update axis without redrawing entire graph
-    plt.ion()
     fig.canvas.draw()
     update_tc_graph()
     
@@ -421,7 +418,7 @@ wLog = [
                             [sg.Canvas(key='fig_cv',size=graphSize)], 
                             
                             #This is the slider at the bottom of the graph, moves the graph view
-                            [sg.Slider(key='Slide',range=(0,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#EEE',background_color='#1D2873')],
+                            [sg.Slider(key='Slide',range=(zoom,maxTime),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#EEE',background_color='#1D2873')],
                             [sg.Column([
                                 [sg.Column(scrollButFormat,pad=(20,5),background_color='#FFF'),sg.Text('',pad=(50,0),background_color='#FFF'),sg.Column(zoomButFormat,pad=(20,5),background_color='#FFF')]],justification='c',background_color='#FFF')],
                         ], #end layout
@@ -615,7 +612,7 @@ while True:
             right = max(x) #most recent reading
             maxTime = right #global storage of above for Home button
             left = right - zoom #make view to be towards the end of readings
-            window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
+            window['Slide'].update(range=(zoom,maxTime)) #Update the slider on the bottom of the graph
             window['Slide'].update(value=maxTime) #Set slider to right side of graph
             update_graph_view()
                 
@@ -774,7 +771,7 @@ while True:
             right = max(x) #most recent reading
             maxTime = right #global storage of above for Home button
             left = right - zoom #make view to be towards the end of readings
-            window['Slide'].update(range=(0,maxTime)) #Update the slider on the bottom of the graph
+            window['Slide'].update(range=(zoom,maxTime)) #Update the slider on the bottom of the graph
             window['Slide'].update(value=maxTime) #Set slider to right side of graph
             update_graph_view()
             
