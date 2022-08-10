@@ -205,8 +205,7 @@ def img_save(titleText):
 def display_graph(fileName):
     # MATPLOTLIB CODE HERE
     global plt
-    if plt:
-        plt.clf()
+    plt.clf()
     plt.figure(1)
     global fig
     fig = plt.gcf()
@@ -347,19 +346,19 @@ wSet = [
             [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
             
             [sg.Column([
-                [sg.Text('Interval (min):',size=(15,1), font=font), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
-                [sg.Text('Temp Warning (F):',size=(15,1), font=font), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
+                [sg.Text('Interval (min):',size=(15,1), font=font,justification='r'), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
+                [sg.Text('Temp Warning (F):',size=(15,1), font=font,justification='r'), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
                 [sg.Text('_'*56,font=font,pad=(0,20),text_color='#EEE')], #spacing
             ])],
             
             
             [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
             [sg.Column([
-                [sg.Text('Alert Emails:',size=(15,1), font=font), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
-                [sg.Text('Enable Alerts:',font=font,size=(15,1)), sg.Button('Enable Emails',key='eBut',font=('Arial',10),size=(12,1),enable_events=True)],
+                [sg.Text('Alert Emails:',size=(15,1), font=font,justification='r'), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
+                [sg.Text('Enable Alerts:',font=font,size=(15,1),justification='r'), sg.Button('Enable Emails',key='eBut',font=('Arial',10),size=(12,1),enable_events=True)],
                 
-                [sg.Text('Max Log Records:',size=(15,1), font=font), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
-                [sg.Text('Github Key:',size=(15,1), font=font), sg.Input(key='github', enable_events=True,size=(41,1), font=font)],
+                [sg.Text('Max Log Records:',size=(15,1), font=font,justification='r'), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
+                [sg.Text('Github Key:',size=(15,1), font=font,justification='r'), sg.Input(key='github', enable_events=True,size=(41,1), font=font)],
             ])],
             
             [sg.Text('',key='tips',pad=(0,20))],
@@ -386,9 +385,9 @@ tcGraph = [
 
 #Input boxes at top left
 inputFormat = [
-            [sg.Text('Charge Number:',size=(15,1), font=font), sg.Input(key='ChargeIn', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Temperature:',size=(15,1), font=font), sg.Input(key='TempIn', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Duration:',size=(15,1), font=font), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font)],
+            [sg.Text('Charge Number:',size=(15,1), font=font,justification='r'), sg.Input(key='ChargeIn', enable_events=True,size=(15,1), font=font)],
+            [sg.Text('Temperature:',size=(15,1), font=font,justification='r'), sg.Input(key='TempIn', enable_events=True,size=(15,1), font=font)],
+            [sg.Text('Duration:',size=(15,1), font=font,justification='r'), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font)],
     ]
 
 #Zoom buttons
@@ -437,14 +436,42 @@ wLog = [
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+chargeSearch = [
+                [sg.Text('Search Charges',font=butFont,size=(24,2),justification='c')],
+                [sg.Text('Charge:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='charge_search',font=font,size=(12,2))],
+                [sg.Text('Temperature:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='temp_search',font=font,size=(12,2))],
+                [sg.Text('Date:',font=font,size=(12,4),text_color="#333",justification='r'),
+                        sg.Column([
+                            [sg.Input(key='date_search',font=font,size=(12,2))],
+                            [sg.Text("day/month/year\nOR\nmonth/year",font=('Arial',10),justification='c',size=(12,4),text_color="#777")],
+                            ],element_justification='c')]
+            ]
+
+chargeSearchButtons = [
+                [sg.Button('Search',key="charge_filter",font=font,size=(12,1),button_color="#F57627",pad=(0,10))],
+                [sg.Button('Clear Search',key="charge_filter_clear",font=font,size=(12,1),pad=(0,10))], 
+            ]
+
+chargeSearchAll = [
+                    [sg.Frame("",[
+                        [sg.Frame("",[
+                            [sg.Column(chargeSearch,element_justification='c')],
+                            [sg.Column(chargeSearchButtons,element_justification='c')]
+                        ],element_justification='c',relief='flat',pad=1)],
+                    ],relief='flat',background_color='#777')]
+            ]
+
 wCharge = [
             [sg.Text('Please select a charge from the list below.\n',font=font,text_color='#333')],
-            [sg.Column(layout=[
-                [sg.Text('Charge -- Temp -- Date',font=tcFont)],
-                [sg.Text(''),sg.Listbox(values='',size=(27,15),font=('Courier New',16,'bold'),key='cList')] #the text is to align the title and box
-            ] )],
-            [sg.Button('View',font=butFont,size=(10,2),button_color='#02AB29')]
-    ]
+            [sg.Text('')],
+            [sg.Column(chargeSearchAll),sg.Text('',font=font,size=(5,1)),sg.Column([
+                [sg.Text('Charge -- Temp -- Date',font=tcFont)], #format of information
+                [sg.Listbox(values='',size=(27,20),font=('Courier New',16,'bold'),key='cList')] #listbox
+                ],element_justification='c')
+            ],
+            [sg.Text()],
+            [sg.Button('View',font=butFont,size=(16,2),button_color='#02AB29')]
+        ]
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -572,7 +599,6 @@ while True:
                     if right == maxTime:
                         right += 1
                         left -= 1
-                    plt.clf()
                     display_graph(logFile)
                     update_graph_view()
                     
@@ -755,25 +781,34 @@ while True:
             window['Charge'].select()
             activeScreen = 'Charge'
             window['cList'].update(values=RC.get_charges(path))
-            
-        elif event == 'View' and values['cList']:
-            window["Log"].select()
-            window['logInput'].update(visible = False)
-            window['cDesc'].update(visible=True)
-            window['cDesc'].update('You are viewing:\n' + str(values['cList'][0]))
-            activeScreen = 'Log'
-            
-            display_graph(path+'Charges/' + str(values['cList'][0]) + '.csv')
-            chargeDisplay = True
-            
-            #~~~Setup initial axes~~~
-            zoom = 30
-            right = max(x) #most recent reading
-            maxTime = right #global storage of above for Home button
-            left = right - zoom #make view to be towards the end of readings
-            window['Slide'].update(range=(zoom,maxTime)) #Update the slider on the bottom of the graph
-            window['Slide'].update(value=maxTime) #Set slider to right side of graph
-            update_graph_view()
+        
+        elif activeScreen == 'Charge':
+            if event == 'charge_filter_clear':
+                window['charge_search'].update(value='')
+                window['temp_search'].update(value='')
+                window['date_search'].update(value='')
+                
+            elif event == 'charge_filter':
+                window['cList'].update(values=RC.get_charges(path,values['charge_search'],values['temp_search'],values['date_search']))
+                
+            elif event == 'View' and values['cList']:
+                window["Log"].select()
+                window['logInput'].update(visible = False)
+                window['cDesc'].update(visible=True)
+                window['cDesc'].update('You are viewing:\n' + str(values['cList'][0]))
+                activeScreen = 'Log'
+                
+                display_graph(path+'Charges/' + str(values['cList'][0]) + '.csv')
+                chargeDisplay = True
+                
+                #~~~Setup initial axes~~~
+                zoom = 30
+                right = max(x) #most recent reading
+                maxTime = right #global storage of above for Home button
+                left = right - zoom #make view to be towards the end of readings
+                window['Slide'].update(range=(zoom,maxTime)) #Update the slider on the bottom of the graph
+                window['Slide'].update(value=maxTime) #Set slider to right side of graph
+                update_graph_view()
             
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  SETTINGS WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
