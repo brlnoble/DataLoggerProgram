@@ -40,6 +40,10 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
   - [X] List past charges
   - [X] Ability to search/filter charges
   - [X] When selected, pulls up data for viewing in the logging screen
+- [X] Website to allow at home monitoring
+  - [X] Data is posted to the website everytime a reading is made
+  - [X] Simple and easy to read interface
+  - [X] Found here: https://uds-furnace.github.io/View/
  
 ## Current Main Screen
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicMainScreen-16-06-22.jpg" width="900">
