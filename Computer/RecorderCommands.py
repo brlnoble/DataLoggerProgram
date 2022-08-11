@@ -191,3 +191,18 @@ def overwrite(path,cNum):
     for file in charges:
         if file[:6] == cNum+' ':
             os.remove(path+'Charges/'+file+'.csv')
+            
+# ~~~~~Scale Base64~~~~~
+def scale_base64(base64_str,scale):
+    from io import BytesIO
+    from base64 import b64decode, b64encode
+    from PIL import Image
+    
+    buffer = BytesIO()
+    imgdata = b64decode(base64_str)
+    img = Image.open(BytesIO(imgdata))
+    width, height = img.size #Original size of image
+    new_img = img.resize((round(width*scale), round(height*scale))) #Resize image
+    new_img.save(buffer, format="PNG")
+    img_b64 = b64encode(buffer.getvalue()) #Encode to base64
+    return str(img_b64)[2:-1].encode()
