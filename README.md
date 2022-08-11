@@ -20,7 +20,7 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
 - [X] Main screen with options to:
   - [X] Change current settings
   - [X] View current readout (numerics) at locations within furnace (see Furnace.png, open side is door)
-  - [X] View current readout button (graphically)
+  - [X] View current readout (graphically)
   - [X] Open an old graph for viewing
   - [X] Open error logs
 - [X] Settings menu to change parameters
@@ -38,6 +38,7 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
   - [X] Save plot as an image
 - [X] Selection screen for previous charges
   - [X] List past charges
+  - [X] Ability to search/filter charges
   - [X] When selected, pulls up data for viewing in the logging screen
  
 ## Current Main Screen
@@ -50,7 +51,7 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/ViewScreenGIFnew.gif" width="900">
 
 ## Current Charge Screen
-<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeSelectScreen-16-06-22.jpg" width="900"> 
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeSelectScreen-11-08-22.jpg" width="900"> 
 <img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Images/PicChargeViewScreen-28-06-22.jpg" width="900">
 
 ## Photo of the Installed Unit
