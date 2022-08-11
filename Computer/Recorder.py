@@ -267,26 +267,67 @@ def display_graph(fileName):
     plotDisplay = True #flag to prevent moving plot before it is shown
     draw_figure_w_toolbar(window['fig_cv'].TKCanvas, fig) #idk what half this does but its necessary
     
+    
+# ~~~~~Change dimenions based on screen size~~~~~
+def check_screen_size():
+    screen_check = sg.Window("",layout=[[]],finalize=True)
+    
+    screen_dimensions = screen_check.get_screen_dimensions()
+    screen_check.close()
+    
+    global font
+    global butFont
+    global iconFont
+    global tcFont
+    global titleFont
+    global graphSize
+    global scale_factor
+    global furnacePic
+    global fireIcon
+    
+    #If the screen is the standard dimensions
+    if screen_dimensions == (1920,1080):
+        scale_factor = 1.0
+        
+        font = ('Arial', 16)
+        butFont = ('Arial', 16, 'bold')
+        iconFont = ('Segoe UI Symbol',20,'bold')
+        tcFont = ('Courier New',16,'bold')
+        titleFont = ('Arial', 26, 'bold')
+        
+        graphSize = (1200, 550)
+        
+    #If the screen is NOT the standard dimensions
+    else:
+        scale_factor = screen_dimensions[1]/1080.0
+        
+        font = ('Arial', int(16*scale_factor))
+        butFont = ('Arial', int(16*scale_factor), 'bold')
+        iconFont = ('Segoe UI Symbol',int(20*scale_factor),'bold')
+        tcFont = ('Courier New',int(16*scale_factor),'bold')
+        titleFont = ('Arial', int(26*scale_factor), 'bold')
+        
+        graphSize = (round(1200*scale_factor), round(550*scale_factor))
+        
+        furnacePic = RC.scale_base64(furnacePic, scale_factor)
+        fireIcon = RC.scale_base64(fireIcon, scale_factor)
+    
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 
 #Window theme
 sg.theme('DefaultNoMoreNagging')
-font = ('Arial', 16)
-butFont = ('Arial', 16, 'bold')
-iconFont = ('Segoe UI Symbol',20,'bold')
-tcFont = ('Courier New',16,'bold')
-titleFont = ('Arial', 26, 'bold')
 sg.theme_text_element_background_color(color = '#EEE')
 sg.theme_text_color('#1D2873')
 sg.theme_background_color('#EEE')
+check_screen_size()
+sg.set_options(use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font) #Set the titlebar
 
 # ~~~~~VARIABLES~~~~~
 settings = RC.get_settings("all", path)
 currTime = datetime.datetime.fromtimestamp(time()) #used for clock
 lastRead = currTime - datetime.timedelta(seconds=(int(settings['interval'])*60))
-closeTime = currTime + datetime.timedelta(seconds=20*60*60)
 emailTry = bool(settings['enableEmail']) #if we should be sending emails
 
 lastEdit = RC.get_mtime(path,"Program/Settings.json") #Last time settings were modified
@@ -305,7 +346,6 @@ left = 0
 right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
-graphSize = (1200, 550)
 dataSlide = [1,zoom-1]
 
 
@@ -327,7 +367,7 @@ wMain = [
              sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont,text_color='#EEE'), 
              sg.Push(), sg.Text('TC4:',font=butFont),sg.Text('000.0',key='TC4', font=tcFont),sg.Push(),sg.Push()],
             
-            [sg.Image(furnacePic,pad=(0,0))],
+            [sg.Image(furnacePic,pad=(0,0))], #Scale depending on screen size
             
             [sg.Push(),sg.Push(), sg.Text('TC1:',font=butFont),sg.Text('000.0',key='TC1', font=tcFont), 
              sg.Push(), sg.Text('TC2:',font=butFont),sg.Text('000.0',key='TC2', font=tcFont), 
@@ -485,7 +525,7 @@ def errWindow():
             [sg.Button('Close',key='errCancel',font=butFont,button_color='#F5273A',size=(10,2))],
             [sg.VPush()],
         ]
-    return sg.Window("Data Logger - Error Log", errLayout, no_titlebar = False, keep_on_top=True, element_justification='c',modal=True,use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font,finalize=True)
+    return sg.Window("Data Logger - Error Log", errLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,7 +545,7 @@ def chargeWindow(cNum,oldNum):
              sg.Button('Cancel',key='chargeCancel',font=butFont,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
             [sg.VPush()]
         ]
-    return sg.Window("Data Logger - Charge in Use", chargeLayout, no_titlebar = False, keep_on_top=True, element_justification='c',modal=True,use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font,finalize=True)
+    return sg.Window("Data Logger - Charge in Use", chargeLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -513,10 +553,16 @@ def chargeWindow(cNum,oldNum):
 #For popup alerts
 def popWindow(msg):
     popLayout = [
-            [sg.Text('Alert',font=titleFont)],
-            [sg.Text(msg,font=font,pad=(10,10))]
+            [sg.Frame("",[
+                    [sg.Frame("",[
+                            [sg.Text('Alert',font=titleFont)],
+                            [sg.Text(msg,font=font,pad=(10,10))],
+                        ],pad=2,relief='flat')
+                    ]
+                ],relief='flat',background_color='#1D2873',pad=0)
+            ]
         ]
-    return sg.Window("Data Logger - Alert", popLayout, no_titlebar = False, keep_on_top=True, element_justification='c',modal=True,finalize=True)
+    return sg.Window("Data Logger - Alert", popLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -538,7 +584,8 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
-window, errWin, chargeWin = sg.Window("Data Logger", layout, no_titlebar = False, keep_on_top=True, location=(0, 0), element_justification='c',use_custom_titlebar=True,titlebar_icon=fireIcon,titlebar_font=font).Finalize(), None, None
+
+window, errWin, chargeWin = sg.Window("Data Logger", layout, keep_on_top=True, location=(0, 0), element_justification='c').Finalize(), None, None
 window.Maximize()
 window.set_icon(pngbase64=fireIcon)
 
