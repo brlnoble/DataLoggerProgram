@@ -19,20 +19,6 @@ except:
     pass
 
 
-#Current directory path
-path = RC.get_path()
-logFile = path + 'Program/AllTempLogs.csv'
-
-# ~~~~~MAKE SURE THE SETTINGS FILE EXISTS~~~~~
-if not RC.verify_settings(path):
-    sg.popup('Settings file does not exist.\n\nA file with default values has been generated.',font=('Arial',20),keep_on_top=True,modal=True) #inform user it was not found
-    
-
-#Imbed image as Base64 string so the EXE can be a standalone file
-furnacePic = b"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"
-fireIcon = b'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAuBJREFUSEvF109IFFEcB/Dv7Mzqrn/XDQxqjSDo0EoUUUG0FXWxIC0KzC5FdIgudcoyo6yQ8lAX+2dmgaAm2EWNhCByIdBC8+BB18WoVPQws390c9eZeTGz7ejs7Mju6Oa7vffm/T7vz2923lJYo0LpuPQqz0eIj6eC3W53n9Pp3LPKqBxueHi43+Vy7Y3FVuB0ojFsKa7ALMuSdKw0PqbdbpfNGEyzLMunBBOCjM+diBw8DlB6qaKNaLfbGQCCIdjy6S2sH14D4zPg2gdSmq9hOKexCmZPFBP9BP7nPemHLe53sHY1KJBAbAjUtaUZJgQF14+qEHGOgb++K72wpbcD1u6XamR8Glz7oLqNkGWTLeUztt05DerPrBrxTiFY0wjeuVtup3+OIbv+FgJ1rbq7kDJcUFmiDeadktvCx87KL2Zmd4tc97X0gWRYEuIpwRQfge1mqS4c3xG6XIPw4RMrgEURMJlgCnLIv1+RNBwuKUfoYpVxOP/heQSuPgUVCiL/wTltoN8TQNikaQ9dqIxuf4KS1FbbqstALYQxd+YastvqlDBkEwth/xiYWseSH79FxfemF/SPEfDF2g9dcvDtU6Dm51TzJht8EA6Nym3MvSLtmigKYuFGUAEOvuYvmv6k4NyGSjDeIdVgvqJf+bQwTYXARCZgEYF59Zbz23YheLfJGMz8GkFu/ZXFwdYI+JPflToz8+87QxPghXr1wdpm8Fu3G4OlUbbqUlALETkAcXAQDnjUcKzWWQhMZkafM2fA1/rVeHJJI03ctJLRpIiD4NKBP64DvFky5n/SDXG9Y2WwNNrsGURO4w2AFsGXf0u84lcOgKcwW/0MCzv2JUSlxqSSa+lo6V3Oe3wJ2DwEsXgymtXSGUtlMA+iZwsCjzpAcm26qCE4Fo0Kh2Ae7QFtfQ+TXwA/fwSRnWUgWTnLgrHO+BVjrS57WLPrrbQV6cR1L/RxB/R//8IklR2r9NBfLy1iLgM4NkgAAAAASUVORK5CYII='
-
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
     
 # ~~~~~Alert across top~~~~~
@@ -280,6 +266,7 @@ def check_screen_size():
     global iconFont
     global tcFont
     global titleFont
+    global chargeFont
     global graphSize
     global scale_factor
     global furnacePic
@@ -294,6 +281,7 @@ def check_screen_size():
         iconFont = ('Segoe UI Symbol',20,'bold')
         tcFont = ('Courier New',16,'bold')
         titleFont = ('Arial', 26, 'bold')
+        chargeFont = ('Courier New',16,'bold')
         
         graphSize = (1200, 550)
         
@@ -306,12 +294,82 @@ def check_screen_size():
         iconFont = ('Segoe UI Symbol',int(20*scale_factor),'bold')
         tcFont = ('Courier New',int(16*scale_factor),'bold')
         titleFont = ('Arial', int(26*scale_factor), 'bold')
+        chargeFont = ('Courier New',int(16*scale_factor),'bold')
         
         graphSize = (round(1200*scale_factor), round(550*scale_factor))
         
         furnacePic = RC.scale_base64(furnacePic, scale_factor)
         fireIcon = RC.scale_base64(fireIcon, scale_factor)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ERRLOG WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Open up the error log in a new window
+def errWindow():
+    errLayout = [
+            [sg.VPush()],
+            [sg.Text('Error Logs',font=titleFont)],
+            [sg.Listbox(values=RC.get_err(path),size=(120,30),font=font)],
+            [sg.Button('Close',key='errCancel',font=butFont,button_color='#F5273A',size=(10,2))],
+            [sg.VPush()],
+        ]
+    return sg.Window("Data Logger - Error Log", errLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE ERROR WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#Open up the error log in a new window
+def chargeWindow(cNum,oldNum):
+    chargeLayout = [
+            [sg.VPush()],
+            [sg.Text('Charge Number Already in Use',font=titleFont)],
+            [sg.Text('The charge you input is already in use. Please select an option as described below.',font=font)],
+            [sg.Text(cNum + ' was recorded on '+oldNum[-9:],key='chargeINF',font=butFont,pad=(0,20),text_color='#F5273A')],
+            [sg.Text('Overwrite: ',font=butFont,text_color='#22B366',size=(15,1)),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.\nUse this option if you messed up the previous recording.',font=font,pad=(0,10),size=(70,2))],
+            [sg.Text('Redo Charge: ',font=butFont,text_color='#AA00AA',size=(15,1)),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.\nUse this option if the furnace failed and you are redoing the charge.',font=font,pad=(0,10),size=(70,2))],
+            [sg.Text('',pad=(0,30))],
+            [sg.Button('Overwrite',key='chargeOW',font=butFont,button_color='#00B366',size=(12,2)),
+             sg.Button('Redo Charge',key='chargeRU',font=butFont,button_color='#AA00AA',size=(12,2)),
+             sg.Button('Cancel',key='chargeCancel',font=butFont,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
+            [sg.VPush()]
+        ]
+    return sg.Window("Data Logger - Charge in Use", chargeLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  POPUP WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#For popup alerts
+def popWindow(msg):
+    #The frames add a small blue border around the outside, otherwise the popup blends into the other windows
+    popLayout = [
+            [sg.Frame("",[
+                    [sg.Frame("",[
+                            [sg.Text('Alert',font=titleFont)],
+                            [sg.Text(msg,font=font,pad=(10,10))],
+                        ],pad=2,relief='flat',expand_x=True)
+                    ]
+                ],relief='flat',background_color='#1D2873',pad=0,expand_x=True)
+            ]
+        ]
+    return sg.Window("Data Logger - Alert", popLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+#Current directory path
+path = RC.get_path()
+logFile = path + 'Program/AllTempLogs.csv'
+
+# ~~~~~MAKE SURE THE SETTINGS FILE EXISTS~~~~~
+if not RC.verify_settings(path):
+    popWindow('Settings file does not exist.\n\nA file with default values has been generated.') #inform user it was not found
     
+
+#Imbed image as Base64 string so the EXE can be a standalone file
+furnacePic = b"iVBORw0KGgoAAAANSUhEUgAAAfQAAAD6CAYAAABXq7VOAAAAAXNSR0IArs4c6QAAFaBJREFUeF7t3Xm0XVV9B/BfwhAMQQwNUwCZISQMlkkJk0gIkACK4LisXRaLVVQWRpEYCMhkGaxatIhKbZHq0iIiEEFAxhJFZYhhtCpzmGUOGIR07eMKPsh77hu6yXa/fO5a/EH2fXv/zud31/ree+45+w5Za8yU+eFBgAABAgQINC0wRKA33T/FEyBAgACBTkCgeyEQIECAAIFBICDQB0ETHQIBAgQIEBDoXgMECBAgQGAQCAj0QdBEh0CAAAECBAS61wABAgQIEBgEAgJ9EDTRIRAgQIAAAYHuNUCAAAECBAaBgEAfBE10CAQIECBAoOdAnzVzGi0CBAgQIEBgMQtsMf64nlYU6D0xeRIBAgQIEKgjINDruFuVAAECBAgUFRDoRTlNRoAAAQIE6ggI9DruViVAgAABAkUFBHpRTpMRIECAAIE6AgK9jrtVCRAgQIBAUQGBXpTTZAQIECBAoI6AQK/jblUCBAgQIFBUQKAX5TQZAQIECBCoIyDQ67hblQABAgQIFBUQ6EU5TUaAAAECBOoICPQ67lYlQIAAAQJFBQR6UU6TESBAgACBOgICvY67VQkQIECAQFEBgV6U02QECBAgQKCOgECv425VAgQIECBQVECgF+U0GQECBAgQqCMg0Ou4W5UAAQIECBQVEOhFOU1GgAABAgTqCAj0Ou5WJUCAAAECRQUEelFOkxEgQIAAgToCAr2Ou1UJECBAgEBRAYFelNNkBAgQIECgjoBAr+NuVQIECBAgUFRAoBflNBkBAgQIEKgjINDruFuVAAECBAgUFRDoRTlNRoAAAQIE6ggI9DruViVAgAABAkUFBHpRTpMRIECAAIE6AgK9jrtVCRAgQIBAUQGBXpTTZAQIECBAoI6AQK/jblUCBAgQIFBUQKAX5TQZAQIECBCoIyDQ67hblQABAgQIFBUQ6EU5TUaAAAECBOoICPQ67lYlQIAAAQJFBQR6UU6TESBAgACBOgICvY67VQkQIECAQFEBgV6U02QECBAgQKCOgECv425VAgQIECBQVECgF+U0GQECBAgQqCMg0Ou4W5UAAQIECBQVEOhFOU1GgAABAgTqCAj0Ou5WJUCAAAECRQUEelFOkxEgQIAAgToCAr2Ou1UJECBAgEBRAYFelNNkBAgQIECgjoBAr+NuVQIECBAgUFRAoBflNBkBAgQIEKgjINDruFuVAAECBAgUFRDoRTlNRoAAAQIE6ggI9DruViVAgAABAkUFBHpRTpMRIECAAIE6AgK9jrtVCRAgQIBAUQGBXpTTZAQIECBAoI6AQK/jblUCBAgQIFBFYMhaY6bM72XlWTOn9fI0zyFAgAABAgQqCAj0CuiWJECAAAECpQUEemlR8xEgQIAAgQoCAr0CuiUJECBAgEBpAYFeWtR8BAgQIECggoBAr4BuSQIECBAgUFpAoJcWNR8BAgQIEKggINAroFuSAAECBAiUFhDopUXNR4AAAQIEKggI9AroliRAgAABAqUFBHppUfMRIECAAIEKAgK9ArolCRAgQIBAaQGBXlrUfAQIECBAoIKAQK+AbkkCBAgQIFBaQKCXFjUfAQIECBCoICDQK6BbkgABAgQIlBYQ6KVFzUeAAAECBCoICPQK6JYkQIAAAQKlBQR6aVHzESBAgACBCgICvQK6JQkQIECAQGkBgV5a1HwECBAgQKCCgECvgG5JAgQIECBQWkCglxY1HwECBAgQqCAg0CugW5IAAQIECJQWEOilRc1HgAABAgQqCAj0CuiWJECAAAECpQUEemlR8xEgQIAAgQoCAr0CuiUJECBAgEBpAYFeWtR8BAgQIECggoBAr4BuSQIECBAgUFpAoJcWNR8BAgQIEKggINAroFuSAAECBAiUFhDopUXNR4AAAQIEKggI9AroliRAgAABAqUFBHppUfMRIECAAIEKAgK9ArolCRAgQIBAaQGBXlrUfAQIECBAoIKAQK+AbkkCBAgQIFBaQKCXFjUfAQIECBCoICDQK6BbkgABAgQIlBYQ6KVFzUeAAAECBCoICPQK6JYkQIAAAQKlBQR6aVHzESBAgACBCgICvQK6JQkQIECAQGkBgV5a1HwECBAgQKCCgECvgG5JAgQIECBQWkCglxY1HwECBAgQqCAg0CugW5IAAQIECJQWEOilRc1HgAABAgQqCAj0CuiWJECAAAECpQUEemlR8xEgQIDA/1vg/geeiGuuvSPmzfvji3MtNXRIjF79dfG6FYfHSiOHx8qjRsSQIUN6Wmv+/PnxwINPxg2z74kbb5kTDz74RAwfPizGbbJ6bDZ2jVhv3VGx7DJLZed64olnY/bN98bsm+bE7Xc9EqmmjTdctZtnzEarxYjlhy00x7znno9rr78z7r3v8Uh1LHisMGK5WHP06+K1KywXq6+2YizTw/p/qUCBnm2fJxAgQIDA4ha47oa7Ysq0s+P3jz494NIbrr9KvHPfLWPCLmNipZHLD/i8hx5+Kr7937+I//ruz+MPfd4g9P2DnbffMP7pgB1jk41X6/dNwty58+JHF98Up51+VTz48JP9rpXqOejAnWOHN63/knBOf/v5Uy6Js354/YA1rv36leIjB+wUu+y0cQwbtvQr4hbor4jNHxEgQIDAqynQS6AvWP8Nm60Znz5kYr9hfN/9j8cJX7w4Lrvytmy5a60xMg4/dM/Ydqt1YujQP3/yf+rpP8R/nPnT+Pp/Xp2dY7nllokpH5sQb528eQxb9k/B3EugL5j4Ex/dNd6939avKNQFerY9nkCAAAECi1ugb6BPmrhpvHv/rWOZpYd2p6zvmfNYXDfr7jjvR7Pj6bl/6Epbb51Rcczhe3envhechn/yqWfjq6dfFWd+9+fdc7pPwR/cOXbYbv3u1Phzzz0fN996X5x+xsy44ur/7Z6z5RZrxZFTJ8c6r/+b7v/Tc86/cHZ87vM/7j7dLz98WBz4gR1i0u7jYpVRK3T13HX3o/G9H1zbnQV44YX53b9/dtpesd2263a19A30dCYhhfb6647q5k9vFi76yS3x/XOv7/42vak44ei3xbhNRi8yuUBfZDJ/QIAAAQKvtkDfQH//e94YB/3jzpE+/fZ93HvfY/Gvp14WF15yc/fPb9l545g6ZfcXg/baG+6KqUf+sDtFvu7ao+LoaXvFZuNGL3RKPZ2SP/mUS+LCi2/q5jnkoF3jve/cpvtOPb15OOLY8yLVk8J82qf2iN13HRtLLz30JbU888y8OPN7v4gvn3Z59+977jYupn5i91hxxde8JNBXXWWF+Jfj949Nx/45sFOon/qNK7s3Hmneo6buFZMmjoullnrpGjlzgZ4TMk6AAAECi12gl0BPRT3w4BNx7EkXxJVX/6Y7xX3UZyZ3gfvHP74Qp39rZpz271d1p88PO2T3ePs+b+j3wrP0KftXN94bnzri7O7CuXTKPX3aX2XlFeKSy2/tAv3ZZ5+L/d76t13YrzBi4QvfUi3pQr7P/vOMmHnN77q/PenYt8cWm64Rzzzz3IvfofcX6M8//0J8/9wb4riTLuicPzNlj26tl79pyDVBoOeEjBMgQIDAYhfoNdDTaeqLLr0ljjz+/C5000VyB3/kLV2IHn3CjC7o02nsE4/ZN8aOWX3A43j88WfiuJMviB//5JYXw3iTjVaLr33zf+IbZ1zdvVlIn/An7jr2Jd+v950wXc1+xnd+Fqd89fLuOdM/PSn23nPz7kr9BRfF9Rfo6VT+Gd/+WXz5a1f0tM5AByHQF/vL1IIECBAgkBPoNdDTPL/53UNx6BFnx29vfzjGv3G9+Oxn9oq5z8yLT0//Qdz66wdimy3XjmOP2CdWW/W1Ay6bQvWb3/ppnHr6ld2p/RTeb9pm3TjhCxfFjB/f2J3GP/n4/bpP3AM90puLS6+4LaYdc2735uJD/7BjHPB34yN9Ah8o0NPZgZtvuz+mH3tedxzpu/UTjt430hXzi/oQ6Isq5vkECBAg8KoLLEqgp+/SDzvynO60+Wbj1ojPHfnWeHruvDh0+tlx512/775bP+LQPf/irW3p4rfvnPXLLnjTqe7ph02O8duuG8eddGFcdtWvu+/g06f8jTYYOGhTOKfT7amWJ558Nt73rm3jowfuHOnW8wWBnt4svHu/rWLNNUZ2n9xvue3+uPiyW7s3AGndQw+eGPvu84ae7ol/eRME+qv+srQAAQIECCyqwGAN9IEc0lX3B394l9hn0uYLXfzXq51A71XK8wgQIEBgsQksSqC3dMp9IMC37bVFF+h/aYOcHL5AzwkZJ0CAAIHFLtBroKfvrfteif7ed2wTH/vQm7tT7i9eFLfmyDjx6AIXxR2+d0x8yyZFLopL98vffucjccyJF3S3xKXHB963XXzw77fvd/vYXhog0HtR8hwCBAgQWKwCvQZ6usc8bfqSLkZL94kfe8Te8eYdN+o2hFlwhXoqPO0k9463bbnIt61d9JObY/px53ebyqRP0WkXuLT3en+PRb1tLX3nPuvGe+Oo42fE7Xc+3L1RSPOnOl/J9q8CfbG+RC1GgAABAr0I9BLoaVvXtBPcOTNmdVNO3n3T+OTHJ3SnrVNY9t1YJu0kl65+729jmYcfeSq++G+XxnkXzO7m+eTHJsS79t+6uzDt7nsf7QK9l41l0kV1Xzr1sm6OvffcLD718d2yG8ukK+Avv+rXcdTnZnQX0qXv0tMFfBN22cR96L28UDyHAAECBP66BRba+nW/rWLYsGXi+RdeiDn3PRazZt8TP5zxqy4E0yPdY55uNet7u1d/W79+6AM7xo7jN+g+Zaf7xm+8eU5888yZ3f3q6dHL1q8HvH989+Yh3VOermC/465H4qxzro/vnNV369fJsd226y209Wt/96GnOs45f1ac/KWLuzMBaVOatLHNG7dep+dfk0u1+4T+1/2aVh0BAgSWSIFF/XGWqVP2iI03XGWhAOx+nOULF3W3nuUeaQOa6YdN6u5b7/uzrGlr1nSPetpgJvdIt6UdevBusfekzV+89azvXu79BXqaM+1Jn/aUT/+lR/pJ1qOmTh7w19/6q0Og57pjnAABAgQWu0AvgZ4+jb9n/61jwpvHdKe2B3o88vunu3vM025sA/186k7bbxAfPmCnAQM07dWedpH7yteviAcf6v/nUzdYb+XuvvMdtttgwJ9PHSjQU+3pp2K/8JVL49wf/ao7lPQJf9on94i11hzZk79A74nJkwgQIEBgcQqkT9bX/PKObvOV7jFkSIxYftlYc/TIWHbZpWOlkcNj5VEjej4lnb5Tn3P/4zH7pjndL6yl+YcPXzbGjVk9xo0d3Z2qT9+Z5x6PPja3O02fNoT57e0PxdChQ7vNZtIp/3TlevoO/OWPdEr9l9fd2f3Qy2uWW6Y7lZ5Oq/f3SG8W0nGnNxBDhg6J9CZhs7Fr9PR9ukDPdc84AQIECBBoQECgN9AkJRIgQIAAgZyAQM8JGSdAgAABAg0ICPQGmqREAgQIECCQExDoOSHjBAgQIECgAQGB3kCTlEiAAAECBHICAj0nZJwAAQIECDQgINAbaJISCRAgQIBATkCg54SMEyBAgACBBgQEegNNUiIBAgQIEMgJCPSckHECBAgQINCAgEBvoElKJECAAAECOQGBnhMyToAAAQIEGhAQ6A00SYkECBAgQCAnINBzQsYJECBAgEADAgK9gSYpkQABAgQI5AQEek7IOAECBAgQaEBAoDfQJCUSIECAAIGcgEDPCRknQIAAAQINCAj0BpqkRAIECBAgkBMQ6Dkh4wQIECBAoAEBgd5Ak5RIgAABAgRyAgI9J2ScAAECBAg0ICDQG2iSEgkQIECAQE5AoOeEjBMgQIAAgQYEBHoDTVIiAQIECBDICQj0nJBxAgQIECDQgIBAb6BJSiRAgAABAjkBgZ4TMk6AAAECBBoQEOgNNEmJBAgQIEAgJyDQc0LGCRAgQIBAAwICvYEmKZEAAQIECOQEBHpOyDgBAgQIEGhAQKA30CQlEiBAgACBnIBAzwkZJ0CAAAECDQgI9AaapEQCBAgQIJATEOg5IeMECBAgQKABAYHeQJOUSIAAAQIEcgICPSdknAABAgQINCAg0BtokhIJECBAgEBOQKDnhIwTIECAAIEGBAR6A01SIgECBAgQyAkI9JyQcQIECBAg0ICAQG+gSUokQIAAAQI5AYGeEzJOgAABAgQaEBDoDTRJiQQIECBAICcg0HNCxgkQIECAQAMCAr2BJimRAAECBAjkBAR6Tsg4AQIECBBoQECgN9AkJRIgQIAAgZyAQM8JGSdAgAABAg0ICPQGmqREAgQIECCQExDoOSHjBAgQIECgAQGB3kCTlEiAAAECBHICAj0nZJwAAQIECDQgINAbaJISCRAgQIBATkCg54SMEyBAgACBBgQEegNNUiIBAgQIEMgJCPSckHECBAgQINCAgEBvoElKJECAAAECOQGBnhMyToAAAQIEGhAQ6A00SYkECBAgQCAnINBzQsYJECBAgEADAgK9gSYpkQABAgQI5AQEek7IOAECBAgQaEBAoDfQJCUSIECAAIGcgEDPCRknQIAAAQINCAj0BpqkRAIECBAgkBMQ6Dkh4wQIECBAoAEBgd5Ak5RIgAABAgRyAgI9J2ScAAECBAg0ICDQG2iSEgkQIECAQE5AoOeEjBMgQIAAgQYEBHoDTVIiAQIECBDICQj0nJBxAgQIECDQgIBAb6BJSiRAgAABAjkBgZ4TMk6AAAECBBoQEOgNNEmJBAgQIEAgJyDQc0LGCRAgQIBAAwICvYEmKZEAAQIECOQEBHpOyDgBAgQIEGhAQKA30CQlEiBAgACBnIBAzwkZJ0CAAAECDQgI9AaapEQCBAgQIJATEOg5IeMECBAgQKABAYHeQJOUSIAAAQIEcgICPSdknAABAgQINCAg0BtokhIJECBAgEBOQKDnhIwTIECAAIEGBAR6A01SIgECBAgQyAkI9JyQcQIECBAg0ICAQG+gSUokQIAAAQI5AYGeEzJOgAABAgQaEBDoDTRJiQQIECBAICcg0HNCxgkQIECAQAMCAr2BJimRAAECBAjkBAR6Tsg4AQIECBBoQECgN9AkJRIgQIAAgZyAQM8JGSdAgAABAg0ICPQGmqREAgQIECCQExDoOSHjBAgQIECgAQGB3kCTlEiAAAECBHICAj0nZJwAAQIECDQgINAbaJISCRAgQIBATkCg54SMEyBAgACBBgR6DvQGjkWJBAgQIEBgiRUQ6Ets6x04AQIECAwmAYE+mLrpWAgQIEBgiRUQ6Ets6x04AQIECAwmAYE+mLrpWAgQIEBgiRUQ6Ets6x04AQIECAwmAYE+mLrpWAgQIEBgiRUQ6Ets6x04AQIECAwmAYE+mLrpWAgQIEBgiRUQ6Ets6x04AQIECAwmgf8DmvJfZYwFWaYAAAAASUVORK5CYII="
+fireIcon = b'iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAAAXNSR0IArs4c6QAAAuBJREFUSEvF109IFFEcB/Dv7Mzqrn/XDQxqjSDo0EoUUUG0FXWxIC0KzC5FdIgudcoyo6yQ8lAX+2dmgaAm2EWNhCByIdBC8+BB18WoVPQws390c9eZeTGz7ejs7Mju6Oa7vffm/T7vz2923lJYo0LpuPQqz0eIj6eC3W53n9Pp3LPKqBxueHi43+Vy7Y3FVuB0ojFsKa7ALMuSdKw0PqbdbpfNGEyzLMunBBOCjM+diBw8DlB6qaKNaLfbGQCCIdjy6S2sH14D4zPg2gdSmq9hOKexCmZPFBP9BP7nPemHLe53sHY1KJBAbAjUtaUZJgQF14+qEHGOgb++K72wpbcD1u6XamR8Glz7oLqNkGWTLeUztt05DerPrBrxTiFY0wjeuVtup3+OIbv+FgJ1rbq7kDJcUFmiDeadktvCx87KL2Zmd4tc97X0gWRYEuIpwRQfge1mqS4c3xG6XIPw4RMrgEURMJlgCnLIv1+RNBwuKUfoYpVxOP/heQSuPgUVCiL/wTltoN8TQNikaQ9dqIxuf4KS1FbbqstALYQxd+YastvqlDBkEwth/xiYWseSH79FxfemF/SPEfDF2g9dcvDtU6Dm51TzJht8EA6Nym3MvSLtmigKYuFGUAEOvuYvmv6k4NyGSjDeIdVgvqJf+bQwTYXARCZgEYF59Zbz23YheLfJGMz8GkFu/ZXFwdYI+JPflToz8+87QxPghXr1wdpm8Fu3G4OlUbbqUlALETkAcXAQDnjUcKzWWQhMZkafM2fA1/rVeHJJI03ctJLRpIiD4NKBP64DvFky5n/SDXG9Y2WwNNrsGURO4w2AFsGXf0u84lcOgKcwW/0MCzv2JUSlxqSSa+lo6V3Oe3wJ2DwEsXgymtXSGUtlMA+iZwsCjzpAcm26qCE4Fo0Kh2Ae7QFtfQ+TXwA/fwSRnWUgWTnLgrHO+BVjrS57WLPrrbQV6cR1L/RxB/R//8IklR2r9NBfLy1iLgM4NkgAAAAASUVORK5CYII='
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~   
@@ -347,7 +405,6 @@ right = 0
 maxTime = 0
 stepSize = 1 #moves one data point, adjusts for the seconds to minutes conversion
 dataSlide = [1,zoom-1]
-
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -386,19 +443,19 @@ wSet = [
             [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
             
             [sg.Column([
-                [sg.Text('Interval (min):',size=(15,1), font=font,justification='r'), sg.Input(key='interval', enable_events=True,size=(20,1), font=font)],
-                [sg.Text('Temp Warning (F):',size=(15,1), font=font,justification='r'), sg.Input(key='temp', enable_events=True,size=(20,1), font=font)],
+                [sg.Text('Interval (min):',size=(15,1), font=font,justification='r'), sg.Input(key='interval', enable_events=True,size=(20,1), font=font,tooltip="Number of minutes between readings")],
+                [sg.Text('Temp Warning (F):',size=(15,1), font=font,justification='r'), sg.Input(key='temp', enable_events=True,size=(20,1), font=font,tooltip="High temperature limit. \nWhen exceeded it will trigger warnings.")],
                 [sg.Text('_'*56,font=font,pad=(0,20),text_color='#EEE')], #spacing
             ])],
             
             
             [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
             [sg.Column([
-                [sg.Text('Alert Emails:',size=(15,1), font=font,justification='r'), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font)],
+                [sg.Text('Alert Emails:',size=(15,1), font=font,justification='r'), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font,tooltip="Enter emails to send high temperature alerts to. \nSeparate with a ' ;'")],
                 [sg.Text('Enable Alerts:',font=font,size=(15,1),justification='r'), sg.Button('Enable Emails',key='eBut',font=('Arial',10),size=(12,1),enable_events=True)],
                 
-                [sg.Text('Max Log Records:',size=(15,1), font=font,justification='r'), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font)],
-                [sg.Text('Github Key:',size=(15,1), font=font,justification='r'), sg.Input(key='github', enable_events=True,size=(41,1), font=font)],
+                [sg.Text('Max Log Records:',size=(15,1), font=font,justification='r'), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font,tooltip="Maximum records in the general log file (does not affect individual charges)")],
+                [sg.Text('Github Key:',size=(15,1), font=font,justification='r'), sg.Input(key='github', enable_events=True,size=(41,1), font=font,tooltip="Github key used for uploading to the website: \nhttps://uds-furnace.github.io/View/")],
             ])],
             
             [sg.Text('',key='tips',pad=(0,20))],
@@ -425,9 +482,9 @@ tcGraph = [
 
 #Input boxes at top left
 inputFormat = [
-            [sg.Text('Charge Number:',size=(15,1), font=font,justification='r'), sg.Input(key='ChargeIn', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Temperature:',size=(15,1), font=font,justification='r'), sg.Input(key='TempIn', enable_events=True,size=(15,1), font=font)],
-            [sg.Text('Duration:',size=(15,1), font=font,justification='r'), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font)],
+            [sg.Text('Charge Number:',size=(15,1), font=font,justification='r'), sg.Input(key='ChargeIn', enable_events=True,size=(15,1), font=font,tooltip="5 digit charge number.\nFor example: '16328'")],
+            [sg.Text('Temperature:',size=(15,1), font=font,justification='r'), sg.Input(key='TempIn', enable_events=True,size=(15,1), font=font,tooltip="Temperature without units.\nFor example: '600'")],
+            [sg.Text('Duration:',size=(15,1), font=font,justification='r'), sg.Input(key='TimeIn', enable_events=True,size=(15,1), font=font,tooltip="Duration in hours")],
     ]
 
 #Zoom buttons
@@ -478,17 +535,20 @@ wLog = [
 
 chargeSearch = [
                 [sg.Text('Search Charges',font=butFont,size=(24,2),justification='c')],
-                [sg.Text('Charge:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='charge_search',font=font,size=(12,2))],
-                [sg.Text('Temperature:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='temp_search',font=font,size=(12,2))],
+                [sg.Text('You can filter the list on the right by searching for any combination of the below.',font=('Arial',10),text_color='#777',size=(36,3))],
+                [sg.Text('Charge:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='charge_search',font=font,size=(12,2),tooltip="Charge number such as '16328'")],
+                [sg.Text('Temperature:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='temp_search',font=font,size=(12,2),tooltip="Temperature without units, such as '600'")],
                 [sg.Text('Date:',font=font,size=(12,4),text_color="#333",justification='r'),
                         sg.Column([
-                            [sg.Input(key='date_search',font=font,size=(12,2))],
-                            [sg.Text("day/month/year\nOR\nmonth/year",font=('Arial',10),justification='c',size=(12,4),text_color="#777")],
+                            [sg.Input(key='date_search',font=font,size=(12,2),tooltip="Format as dd/mm/yyyy or enter a month and year")],
+                            [sg.Text("day/month/year",font=('Arial',10,'bold'),justification='c',size=(12,1),text_color="#777",pad=0)],
+                            [sg.Text("OR",font=('Arial',10),justification='c',size=(12,1),text_color="#777",pad=0)],
+                            [sg.Text("month/year",font=('Arial',10,'bold'),justification='c',size=(12,1),text_color="#777",pad=0)],
                             ],element_justification='c')]
             ]
 
 chargeSearchButtons = [
-                [sg.Button('Search',key="charge_filter",font=font,size=(12,1),button_color="#F57627",pad=(0,10))],
+                [sg.Button('Search',key="charge_filter",font=font,size=(12,2),button_color="#F57627",pad=(0,10))],
                 [sg.Button('Clear Search',key="charge_filter_clear",font=font,size=(12,1),pad=(0,10))], 
             ]
 
@@ -496,17 +556,17 @@ chargeSearchAll = [
                     [sg.Frame("",[
                         [sg.Frame("",[
                             [sg.Column(chargeSearch,element_justification='c')],
-                            [sg.Column(chargeSearchButtons,element_justification='c')]
+                            [sg.Column(chargeSearchButtons,element_justification='c',pad=10)]
                         ],element_justification='c',relief='flat',pad=1)],
                     ],relief='flat',background_color='#777')]
             ]
 
 wCharge = [
-            [sg.Text('Please select a charge from the list below.\n',font=font,text_color='#333')],
+            [sg.Text('Please select a charge from the list below, then click View to display the graph.',font=font,text_color='#333')],
             [sg.Text('')],
             [sg.Column(chargeSearchAll),sg.Text('',font=font,size=(5,1)),sg.Column([
                 [sg.Text('Charge -- Temp -- Date',font=tcFont)], #format of information
-                [sg.Listbox(values='',size=(27,20),font=('Courier New',16,'bold'),key='cList')] #listbox
+                [sg.Listbox(values='',size=(27,20),font=chargeFont,key='cList')] #listbox
                 ],element_justification='c')
             ],
             [sg.Text()],
@@ -515,60 +575,8 @@ wCharge = [
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  ERRLOG WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#Open up the error log in a new window
-def errWindow():
-    errLayout = [
-            [sg.VPush()],
-            [sg.Text('Error Logs',font=titleFont)],
-            [sg.Listbox(values=RC.get_err(path),size=(120,30),font=font)],
-            [sg.Button('Close',key='errCancel',font=butFont,button_color='#F5273A',size=(10,2))],
-            [sg.VPush()],
-        ]
-    return sg.Window("Data Logger - Error Log", errLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
 
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  CHARGE ERROR WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#Open up the error log in a new window
-def chargeWindow(cNum,oldNum):
-    chargeLayout = [
-            [sg.VPush()],
-            [sg.Text('Charge Number Already in Use',font=titleFont)],
-            [sg.Text('The charge you input is already in use. Please select an option as described below.',font=font)],
-            [sg.Text(cNum + ' was recorded on '+oldNum[-9:],key='chargeINF',font=('Arial',18,'bold'),pad=(0,20),text_color='#F5273A')],
-            [sg.Text('Overwrite: ',font=('Arial',16,'bold'),text_color='#22B366',size=(15,1)),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.\nUse this option if you messed up the previous recording.',font=font,pad=(0,10),size=(70,2))],
-            [sg.Text('Redo Charge: ',font=('Arial',16,'bold'),text_color='#AA00AA',size=(15,1)),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.\nUse this option if the furnace failed and you are redoing the charge.',font=font,pad=(0,10),size=(70,2))],
-            [sg.Text('',pad=(0,30))],
-            [sg.Button('Overwrite',key='chargeOW',font=butFont,button_color='#00B366',size=(12,2)),
-             sg.Button('Redo Charge',key='chargeRU',font=butFont,button_color='#AA00AA',size=(12,2)),
-             sg.Button('Cancel',key='chargeCancel',font=butFont,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
-            [sg.VPush()]
-        ]
-    return sg.Window("Data Logger - Charge in Use", chargeLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  POPUP WINDOW  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#For popup alerts
-def popWindow(msg):
-    popLayout = [
-            [sg.Frame("",[
-                    [sg.Frame("",[
-                            [sg.Text('Alert',font=titleFont)],
-                            [sg.Text(msg,font=font,pad=(10,10))],
-                        ],pad=2,relief='flat')
-                    ]
-                ],relief='flat',background_color='#1D2873',pad=0)
-            ]
-        ]
-    return sg.Window("Data Logger - Alert", popLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
+#This compiles all the screens in the program
 tab_group = [
     [sg.Tab("Main", wMain, key="Main",element_justification='c',background_color='#EEEEEE')],
     [sg.Tab("Settings", wSet, key="Set",element_justification='c',background_color='#EEEEEE')],
@@ -576,6 +584,7 @@ tab_group = [
     [sg.Tab("Charge", wCharge, key="Charge",element_justification='c',background_color='#EEEEEE')],
 ]
 
+#Final layout for the main window object
 layout = [
     [sg.Text(key='RecordAlert',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))],
     [sg.Text(key='ErrorAlert',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))],
@@ -584,6 +593,7 @@ layout = [
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 window, errWin, chargeWin = sg.Window("Data Logger", layout, keep_on_top=True, location=(0, 0), element_justification='c').Finalize(), None, None
 window.Maximize()
@@ -806,7 +816,6 @@ while True:
         # ~~~~~Charge in use window controls~~~~~
             if windows == chargeWin:
                 if event == 'chargeCancel':
-                    #chargeRecord = RC.get_settings('Record', path)
                     chargeWin.close()
                     
                 elif event == 'chargeRU':
@@ -885,8 +894,10 @@ while True:
             elif event == 'eBut':
                 if window['eBut'].get_text() == 'Disable Emails':
                     window['eBut'].update('Enable Emails')
+                    popWindow("You have disabled alert emails. They will NOT be sent.")
                 else:
                     window['eBut'].update('Disable Emails')
+                    popWindow("You have enabled alert emails. They WILL be sent.")
                 
                 
             elif event == 'Submit':
