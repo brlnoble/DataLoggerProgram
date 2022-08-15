@@ -47,8 +47,8 @@ def Update_Settings(path,selection,value):
     
     with open(path+"Program/Settings.json","w") as f:
         json.dump(currSet,f,indent=4)
-    
-    
+
+
 # ~~~~~Get the system settings~~~~~
 def Get_Settings(selection, path):
     with open(path+"Program/Settings.json","r") as f:
@@ -63,14 +63,17 @@ def Get_Settings(selection, path):
 def Does_This_Exist(path,fileName):
     return os.path.exists(path + fileName)
 
+
 # ~~~~~Check file modification~~~~~
 def Get_M_Time(path,fileName):
     return os.path.getmtime(path + fileName)
 
+
 # ~~~~~Make folder~~~~~
 def Make_Folder(folderPath):
     os.makedirs(folderPath)
-    
+
+
 # ~~~~~Open folder~~~~~
 def Open_Folder(path):
     os.startfile(os.path.realpath(path))
@@ -170,7 +173,8 @@ def Check_Charge(path,charge):
 def Error_Log(path,err,currTime):
     with open(path+'Program/Error-Logs.txt','a') as f:
         f.writeline(currTime + ' ----- ' + err)
-        
+
+
 # ~~~~~Get Error Logs~~~~~
 def Get_Err(path):
     path += "Program/"
@@ -178,20 +182,22 @@ def Get_Err(path):
         lines = f.readlines()
     return sorted(lines,reverse=True)
 
+
 # ~~~~~Reuse Charge~~~~~
 def Reuse(path,cNum):
     charges = get_charges(path) #Get files
     for file in charges:
         if file[:6] == cNum+' ': #Find file
             os.rename(path+'Charges/'+file+'.csv',path+'Charges/'+file[:5]+'F'+file[5:]+'.csv') #Add F to the old file
-            
+
+
 # ~~~~~Overwrite Charge~~~~~
 def Overwrite(path,cNum):
     charges = get_charges(path)
     for file in charges:
         if file[:6] == cNum+' ':
             os.remove(path+'Charges/'+file+'.csv')
-            
+
 # ~~~~~Scale Base64~~~~~
 def Scale_Base64(base64_str,scale):
     from io import BytesIO
@@ -206,3 +212,15 @@ def Scale_Base64(base64_str,scale):
     new_img.save(buffer, format="PNG")
     img_b64 = b64encode(buffer.getvalue()) #Encode to base64
     return str(img_b64)[2:-1].encode()
+
+
+# ~~~~~Calibration Numbers~~~~~
+def Get_Calibration(path):
+    with open(path+"Program/Calibration.json","r") as f:
+        calibration_numbers = json.load(f)
+    return calibration_numbers
+    
+def Save_Calibrations(path,values):
+    with open(path+"Program/Calibration.json","w") as f:
+            json.dump(values,f,indent=4)
+    return
