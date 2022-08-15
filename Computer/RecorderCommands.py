@@ -3,20 +3,20 @@ import json
 from datetime import datetime
 
 # ~~~~~Directory of this program~~~~~
-def get_path():
+def Get_Path():
     return '//DISKSTATION1/mill/1 - Mill/Data Logger/' #Path on RPi
 
 
 # ~~~~~Removes the beginning of a string
-def remove_prefix(text, prefix):
+def Remove_Prefix(text, prefix):
     if text.startswith(prefix):
         return text[len(prefix):]
     return text
 
 
 # ~~~~~Make settings file if not present~~~~~
-def verify_settings(path):
-    if does_this_exist(path,'Program/Settings.json'):
+def Verify_Settings(path):
+    if Does_This_Exist(path,'Program/Settings.json'):
         return True
     
     #Create file that could not be found
@@ -31,18 +31,18 @@ def verify_settings(path):
         "enableEmail": True,
         "github": "UNKNOWN"
     }
-    update_settings(path, "all", settings)
+    Update_Settings(path, "all", settings)
     return False
 
 
 # ~~~~~Update settings~~~~~
-def update_settings(path,selection,value):
+def Update_Settings(path,selection,value):
     if selection == "all":
         with open(path+"Program/Settings.json","w") as f:
             json.dump(value,f,indent=4)
         return
     
-    currSet = get_settings("all", path)
+    currSet = Get_Settings("all", path)
     currSet[selection] = value
     
     with open(path+"Program/Settings.json","w") as f:
@@ -50,7 +50,7 @@ def update_settings(path,selection,value):
     
     
 # ~~~~~Get the system settings~~~~~
-def get_settings(selection, path):
+def Get_Settings(selection, path):
     with open(path+"Program/Settings.json","r") as f:
         currSet = json.load(f)
     
@@ -60,26 +60,26 @@ def get_settings(selection, path):
     
 
 # ~~~~~Check if a file exists~~~~~
-def does_this_exist(path,fileName):
+def Does_This_Exist(path,fileName):
     return os.path.exists(path + fileName)
 
 # ~~~~~Check file modification~~~~~
-def get_mtime(path,fileName):
+def Get_M_Time(path,fileName):
     return os.path.getmtime(path + fileName)
 
 # ~~~~~Make folder~~~~~
-def make_folder(folderPath):
+def Make_Folder(folderPath):
     os.makedirs(folderPath)
     
 # ~~~~~Open folder~~~~~
-def open_folder(path):
+def Open_Folder(path):
     os.startfile(os.path.realpath(path))
     
     
 # ~~~~~Get saved charges~~~~~
-def get_charges(path, charge_filter='', temp_filter='', date_filter=''):
+def Get_Charges(path, charge_filter='', temp_filter='', date_filter=''):
     #Make sure folder exists
-    if not does_this_exist(path,'Charges/'):
+    if not Does_This_Exist(path,'Charges/'):
         os.mkdir(path+'Charges/') #create folder if not present
     
     path += 'Charges/'
@@ -158,7 +158,7 @@ def get_charges(path, charge_filter='', temp_filter='', date_filter=''):
     return sorted(files,reverse=True) #Return list newest to oldest
 
 # ~~~~~Compare charges~~~~~
-def check_charge(path,charge):
+def Check_Charge(path,charge):
     files = get_charges(path)
     for c in files:
         if str(charge+' ') == c[:6]:
@@ -167,33 +167,33 @@ def check_charge(path,charge):
 
     
 # ~~~~~Error Log~~~~~
-def error_Log(path,err,currTime):
+def Error_Log(path,err,currTime):
     with open(path+'Program/Error-Logs.txt','a') as f:
         f.writeline(currTime + ' ----- ' + err)
         
 # ~~~~~Get Error Logs~~~~~
-def get_err(path):
+def Get_Err(path):
     path += "Program/"
     with open(path+"Error-Logs.txt",'r') as f:
         lines = f.readlines()
     return sorted(lines,reverse=True)
 
 # ~~~~~Reuse Charge~~~~~
-def reuse(path,cNum):
+def Reuse(path,cNum):
     charges = get_charges(path) #Get files
     for file in charges:
         if file[:6] == cNum+' ': #Find file
             os.rename(path+'Charges/'+file+'.csv',path+'Charges/'+file[:5]+'F'+file[5:]+'.csv') #Add F to the old file
             
 # ~~~~~Overwrite Charge~~~~~
-def overwrite(path,cNum):
+def Overwrite(path,cNum):
     charges = get_charges(path)
     for file in charges:
         if file[:6] == cNum+' ':
             os.remove(path+'Charges/'+file+'.csv')
             
 # ~~~~~Scale Base64~~~~~
-def scale_base64(base64_str,scale):
+def Scale_Base64(base64_str,scale):
     from io import BytesIO
     from base64 import b64decode, b64encode
     from PIL import Image

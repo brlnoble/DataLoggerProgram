@@ -1,13 +1,15 @@
-import PySimpleGUI as sg
-from tkinter import ttk
-from time import time
-import datetime
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from sys import exc_info
+import PySimpleGUI as sg #For the GUI
+from tkinter import ttk #For some backend GUI
+from time import time #To get current time
+import datetime #For date formatting
+import pandas as pd #Convert CSV to data
+import matplotlib.pyplot as plt #For plotting
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg #For plotting
+from sys import exc_info #For error codes
+from os import startfile #For opening documentation 
+from os.path import realpath
 
-import RecorderCommands as RC #Custom file
+import RecorderCommands as RC #Custom file of commands
 
 
 # ~~~~~Close splash screen~~~~~
@@ -25,7 +27,7 @@ except:
 def Record_Charge(charge):
     global charge_end
     charge_end = current_time + datetime.timedelta(hours=(int(charge[:2])+2)) #time to end the charge at, 2 hour extra safety
-    RC.update_settings(path, "chargeRecord",charge)
+    RC.Update_Settings(path, "chargeRecord",charge)
     settings['chargeRecord'] = charge
     Update_Recording_Banner(True)
     
@@ -44,10 +46,10 @@ def Update_Settings_Display():
         window['enable_email_alerts'].update('Enable Emails')
         
     #Email listed as: one@email.com; two@email.com
-    emailToStr = ''
+    email_to_string = ''
     for i in range(0,len(settings['emailTo'])):
-        emailToStr += str(settings['emailTo'][i]) +'; '
-    window['email'].update(value = emailToStr[:-2])
+        email_to_string += str(settings['emailTo'][i]) +'; '
+    window['email'].update(value = email_to_string[:-2])
 
 # ~~~~~Change active screen~~~~~
 def Change_Active_Screen(screen):
@@ -93,7 +95,7 @@ def Update_Recording_Banner(change):
         
     if change:
         #Update settings file
-        RC.update_settings(path,"chargeRecord",record)
+        RC.Update_Settings(path,"chargeRecord",record)
         
 # ~~~~~Alert across top~~~~~
 def Update_Alert_Banner(msg):
@@ -134,7 +136,7 @@ def Popup_Window(msg):
             [
                 [sg.Frame("",
                     [
-                        [sg.Text('Alert',font=titleFont)],
+                        [sg.Text('Alert',font=title_font)],
                         [sg.Text(msg,font=font,pad=(10,10))],
                     ],pad=2,relief='flat',expand_x=True)
                 ]
@@ -188,8 +190,10 @@ def Select_Data():
     
 # ~~~~~Save an image~~~~~
 def Save_Graph_As_Image(titleText):
-    if not RC.does_this_exist(path,"Figures\\"):
-        RC.make_folder(path + "Figures\\")
+    global current_popup_window
+    
+    if not RC.Does_This_Exist(path,"Figures\\"):
+        RC.Make_Folder(path + "Figures\\")
         
     imgName = path + "Figures/" + current_time.strftime("%d-%B-%y - %I-%M-%S %p") + ".png"
     
@@ -200,8 +204,8 @@ def Save_Graph_As_Image(titleText):
     plt.legend('',frameon=False)
     lineSelect.set_visible(True)
     plt.title('')
-    Popup_Window("Image saved in Figures folder.\n" + current_time.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
-    RC.open_folder(imgName)
+    current_popup_window = Popup_Window("Image saved in Figures folder.\n" + current_time.strftime("%d-%B-%y - %I-%M-%S %p") + ".png").finalize()
+    RC.Open_Folder(imgName)
     
 
 # ~~~~~Include the Matplotlib figure in the canvas~~~~~
@@ -223,7 +227,7 @@ def Display_Graph(fileName):
     global fig
     fig = plt.gcf()
     DPI = fig.get_dpi()
-    fig.set_size_inches(graphSize[0] / float(DPI), graphSize[1] / float(DPI)) #THESE MUST MATCH THE SIZE OF THE ABOVE CANVAS FOR THE GRAPH
+    fig.set_size_inches(graph_size[0] / float(DPI), graph_size[1] / float(DPI)) #THESE MUST MATCH THE SIZE OF THE ABOVE CANVAS FOR THE GRAPH
 
     global df
     df = pd.read_csv(fileName,parse_dates=['Time'], dayfirst=True)
@@ -300,8 +304,8 @@ def Check_Screen_Size():
     else:
         scale_factor = screen_dimensions[1]/1080.0
                 
-        furnace_pic = RC.scale_base64(furnace_pic, scale_factor)
-        fire_icon = RC.scale_base64(fire_icon, scale_factor)
+        furnace_pic = RC.Scale_Base64(furnace_pic, scale_factor)
+        fire_icon = RC.Scale_Base64(fire_icon, scale_factor)
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Additional Screens ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -310,9 +314,9 @@ def Check_Screen_Size():
 def Create_Error_Log_Window():
     errLayout = [
         [sg.VPush()],
-        [sg.Text('Error Logs',font=titleFont)],
-        [sg.Listbox(values=RC.get_err(path),size=(120,30),font=font)],
-        [sg.Button('Close',key='errCancel',font=butFont,button_color='#F5273A',size=(10,2))],
+        [sg.Text('Error Logs',font=title_font)],
+        [sg.Listbox(values=RC.Get_Err(path),size=(120,30),font=font)],
+        [sg.Button('Close',key='errCancel',font=btn_font,button_color='#F5273A',size=(10,2))],
         [sg.VPush()],
     ]
     #Open up the error log in a new window
@@ -323,15 +327,15 @@ def Create_Error_Log_Window():
 def Create_Charge_In_Use_Window(cNum,oldNum):
     chargeLayout = [
         [sg.VPush()],
-        [sg.Text('Charge Number Already in Use',font=titleFont)],
+        [sg.Text('Charge Number Already in Use',font=title_font)],
         [sg.Text('The charge you input is already in use. Please select an option as described below.',font=font)],
-        [sg.Text(cNum + ' was recorded on '+oldNum[-9:],key='charge_inputF',font=butFont,pad=(0,20),text_color='#F5273A')],
-        [sg.Text('Overwrite: ',font=butFont,text_color='#22B366',size=(15,1)),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.\nUse this option if you messed up the previous recording.',font=font,pad=(0,10),size=(70,2))],
-        [sg.Text('Redo Charge: ',font=butFont,text_color='#AA00AA',size=(15,1)),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.\nUse this option if the furnace failed and you are redoing the charge.',font=font,pad=(0,10),size=(70,2))],
+        [sg.Text(cNum + ' was recorded on '+oldNum[-9:],key='charge_inputF',font=btn_font,pad=(0,20),text_color='#F5273A')],
+        [sg.Text('Overwrite: ',font=btn_font,text_color='#22B366',size=(15,1)),sg.Text('Delete the old file, and start recording in a new file with number ' + cNum +'.\nUse this option if you messed up the previous recording.',font=font,pad=(0,10),size=(70,2))],
+        [sg.Text('Redo Charge: ',font=btn_font,text_color='#AA00AA',size=(15,1)),sg.Text('Keep the old file, and start recording in a new file with number ' + cNum + '.\nUse this option if the furnace failed and you are redoing the charge.',font=font,pad=(0,10),size=(70,2))],
         [sg.Text('',pad=(0,30))],
-        [sg.Button('Overwrite',key='chargeOW',font=butFont,button_color='#00B366',size=(12,2)),
-         sg.Button('Redo Charge',key='chargeRU',font=butFont,button_color='#AA00AA',size=(12,2)),
-         sg.Button('Cancel',key='chargeCancel',font=butFont,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
+        [sg.Button('Overwrite',key='chargeOW',font=btn_font,button_color='#00B366',size=(12,2)),
+         sg.Button('Redo Charge',key='chargeRU',font=btn_font,button_color='#AA00AA',size=(12,2)),
+         sg.Button('Cancel',key='chargeCancel',font=btn_font,button_color='#F5273A',size=(15,2),pad=((50,0),(0,0)))],
         [sg.VPush()]
     ]
     #Open up the 'charge already in use' in a new window
@@ -345,12 +349,13 @@ def Create_Charge_In_Use_Window(cNum,oldNum):
 
 
 #Current directory path
-path = RC.get_path()
+path = RC.Get_Path()
 log_file = path + 'Program/AllTempLogs.csv'
 
 #MAKE SURE THE SETTINGS FILE EXISTS
-if not RC.verify_settings(path):
-    Popup_Window('Settings file does not exist.\n\nA file with default values has been generated.') #inform user it was not found
+if not RC.Verify_Settings(path):
+    global current_popup_window
+    current_popup_window = Popup_Window('Settings file does not exist.\n\nA file with default values has been generated.').finalize() #inform user it was not found
     
 
 #Imbed image as Base64 string so the EXE can be a standalone file
@@ -368,13 +373,13 @@ Check_Screen_Size() #Check screen scaling
 
 #Fonts, scale according to the screen size
 font = ('Arial', int(16*scale_factor))
-butFont = ('Arial', int(16*scale_factor), 'bold')
-iconFont = ('Segoe UI Symbol',int(20*scale_factor),'bold')
-tcFont = ('Courier New',int(16*scale_factor),'bold')
-titleFont = ('Arial', int(26*scale_factor), 'bold')
-chargeFont = ('Courier New',int(16*scale_factor),'bold')
+btn_font = ('Arial', int(16*scale_factor), 'bold')
+icon_font = ('Segoe UI Symbol',int(20*scale_factor),'bold')
+tc_font = ('Courier New',int(16*scale_factor),'bold')
+title_font = ('Arial', int(26*scale_factor), 'bold')
+charge_font = ('Courier New',int(16*scale_factor),'bold')
 
-graphSize = (round(1200*scale_factor), round(550*scale_factor))
+graph_size = (round(1200*scale_factor), round(550*scale_factor))
 
 sg.set_options(use_custom_titlebar=True,titlebar_icon=fire_icon,titlebar_font=font) #Set the titlebar
 
@@ -382,12 +387,12 @@ sg.set_options(use_custom_titlebar=True,titlebar_icon=fire_icon,titlebar_font=fo
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Variables ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-settings = RC.get_settings("all", path) #CONTAINS ALL THE SETTINGS
+settings = RC.Get_Settings("all", path) #CONTAINS ALL THE SETTINGS
 
 current_time = datetime.datetime.fromtimestamp(time()) #used for 'clock'. Current time
 last_reading_time = current_time - datetime.timedelta(seconds=(int(settings['interval'])*60)) #last time the TCs were read
 
-last_settings_edit = RC.get_mtime(path,"Program/Settings.json") #Last time settings were modified
+last_settings_edit = RC.Get_M_Time(path,"Program/Settings.json") #Last time settings were modified
 last_settings_check = current_time #last time settings were checked
 
 plot_display = False #flag for the plot display
@@ -419,32 +424,32 @@ select_data_slider = [1,zoom-1]
 
 
 butCol = [
-            [sg.Button('Settings',key='goto_settings',size=(20,3), font=butFont, button_color='#1D2873'), sg.Push(), sg.Button('View Previous Log',key='goto_charge',size=(20,3), font=butFont, button_color='#F5AC11')],
-            [sg.Button('View Current Readout',key='goto_live',size=(42,3), font=butFont, button_color='#02AB29')],
+            [sg.Button('Settings',key='goto_settings',size=(20,3), font=btn_font, button_color='#1D2873'), sg.Push(), sg.Button('View Previous Log',key='goto_charge',size=(20,3), font=btn_font, button_color='#F5AC11')],
+            [sg.Button('View Current Readout',key='goto_live',size=(42,3), font=btn_font, button_color='#02AB29')],
         ]
 
 
 main_screen_layout = [  
-            [sg.Column(butCol)], [sg.Text('Reading as of: ',font=butFont),sg.Text('',key='lastRead',font=font,pad=(0,30))],
+            [sg.Column(butCol)], [sg.Text('Reading as of: ',font=btn_font),sg.Text('',key='lastRead',font=font,pad=(0,30))],
             
             #TCs along the top of the furnace display
-            [sg.Push(),sg.Push(), sg.Text('TC6:',font=butFont),sg.Text('000.0',key='TC6', font=tcFont), 
-             sg.Push(), sg.Text('TC5:',font=butFont),sg.Text('000.0',key='TC5', font=tcFont,text_color='#EEE'), 
-             sg.Push(), sg.Text('TC4:',font=butFont),sg.Text('000.0',key='TC4', font=tcFont),sg.Push(),sg.Push()],
+            [sg.Push(),sg.Push(), sg.Text('TC6:',font=btn_font),sg.Text('000.0',key='TC6', font=tc_font), 
+             sg.Push(), sg.Text('TC5:',font=btn_font),sg.Text('000.0',key='TC5', font=tc_font,text_color='#EEE'), 
+             sg.Push(), sg.Text('TC4:',font=btn_font),sg.Text('000.0',key='TC4', font=tc_font),sg.Push(),sg.Push()],
             
             #Furnace display image
             [sg.Image(furnace_pic,pad=(0,0))],
             
             #TCs along the bottom of the furnace display
-            [sg.Push(),sg.Push(), sg.Text('TC1:',font=butFont),sg.Text('000.0',key='TC1', font=tcFont), 
-             sg.Push(), sg.Text('TC2:',font=butFont),sg.Text('000.0',key='TC2', font=tcFont), 
-             sg.Push(), sg.Text('TC3:',font=butFont),sg.Text('000.0',key='TC3', font=tcFont),sg.Push(),sg.Push()],
+            [sg.Push(),sg.Push(), sg.Text('TC1:',font=btn_font),sg.Text('000.0',key='TC1', font=tc_font), 
+             sg.Push(), sg.Text('TC2:',font=btn_font),sg.Text('000.0',key='TC2', font=tc_font), 
+             sg.Push(), sg.Text('TC3:',font=btn_font),sg.Text('000.0',key='TC3', font=tc_font),sg.Push(),sg.Push()],
             
             [sg.Text('',font=font)], #spacing
-            [sg.Button('Exit Program',key='close_program_btn',size=(20,3), font=butFont, button_color='#F5273A')],
+            [sg.Button('Exit Program',key='close_program_btn',size=(20,3), font=btn_font, button_color='#F5273A')],
             
             #Open up the documentation or the error log
-            [sg.Button('Help',font=butFont,button_color='#F57627',size=(10,2)),sg.Push(),sg.Push(),sg.Button('Error Log',key='goto_error',font=butFont,button_color='#333',size=(10,2))],
+            [sg.Button('Help',font=btn_font,button_color='#F57627',size=(10,2)),sg.Push(),sg.Push(),sg.Button('Error Log',key='goto_error',font=btn_font,button_color='#333',size=(10,2))],
         ]
 
 
@@ -452,7 +457,7 @@ main_screen_layout = [
 
 
 settings_screen_layout = [  
-            [sg.Text('SETTINGS', font=titleFont,pad=(0,50))],
+            [sg.Text('SETTINGS', font=title_font,pad=(0,50))],
             
             #Settings the user will be most likely to change
             [sg.Column([
@@ -462,7 +467,7 @@ settings_screen_layout = [
             ])],
             
             #Warn the user to consult manual
-            [sg.Text('Please do not change the following without consulting the manual.',font=butFont,pad=(0,10),text_color='#F5273A')],
+            [sg.Text('Please do not change the following without consulting the manual.',font=btn_font,pad=(0,10),text_color='#F5273A')],
             
             #More advanced settings, unlikely to be changed by user
             [sg.Column([
@@ -474,7 +479,7 @@ settings_screen_layout = [
             ])],
             
             [sg.Text('',key='tips',pad=(0,20))],
-            [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=butFont, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=butFont, button_color='#F5273A'), sg.Push()],
+            [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=btn_font, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=btn_font, button_color='#F5273A'), sg.Push()],
         ]
 
 
@@ -482,16 +487,16 @@ settings_screen_layout = [
 
 #Thermocouple graph reading on the right
 tcGraph = [ 
-            [sg.Text('Reading at Black Line',font=butFont,justification='c')],
+            [sg.Text('Reading at Black Line',font=btn_font,justification='c')],
             [sg.Text()],
             [sg.Text('',key='TC_Title_Log',font=font,justification='c')],
-            [sg.Text('TC1: ',font=butFont,text_color='#FF0000'),sg.Text('1',font=tcFont,key='TC1_Log',text_color='#333')],
-            [sg.Text('TC2: ',font=butFont,text_color='#FFAA00'),sg.Text('2',font=tcFont,key='TC2_Log',text_color='#333')],
-            [sg.Text('TC3: ',font=butFont,text_color='#365BB0'),sg.Text('3',font=tcFont,key='TC3_Log',text_color='#333')],
-            [sg.Text('TC4: ',font=butFont,text_color='#00B366'),sg.Text('4',font=tcFont,key='TC4_Log',text_color='#333')],
-            [sg.Text('TC6: ',font=butFont,text_color='#AA00AA'),sg.Text('6',font=tcFont,key='TC6_Log',text_color='#333')],
+            [sg.Text('TC1: ',font=btn_font,text_color='#FF0000'),sg.Text('1',font=tc_font,key='TC1_Log',text_color='#333')],
+            [sg.Text('TC2: ',font=btn_font,text_color='#FFAA00'),sg.Text('2',font=tc_font,key='TC2_Log',text_color='#333')],
+            [sg.Text('TC3: ',font=btn_font,text_color='#365BB0'),sg.Text('3',font=tc_font,key='TC3_Log',text_color='#333')],
+            [sg.Text('TC4: ',font=btn_font,text_color='#00B366'),sg.Text('4',font=tc_font,key='TC4_Log',text_color='#333')],
+            [sg.Text('TC6: ',font=btn_font,text_color='#AA00AA'),sg.Text('6',font=tc_font,key='TC6_Log',text_color='#333')],
             [sg.Text()],
-            [sg.Button('Save Graph',key='save_image_btn',font=butFont,button_color="#F57627",size=(10,2))]
+            [sg.Button('Save Graph',key='save_image_btn',font=btn_font,button_color="#F57627",size=(10,2))]
             
         ]
 
@@ -504,12 +509,12 @@ inputFormat = [
 
 #Zoom buttons for navigating graph
 zoomButFormat = [
-            [sg.Button('➕',key="ZoomIn",size=(5,1), font=iconFont), sg.Button('➖',key="ZoomOut",size=(5,1), font=iconFont)]
+            [sg.Button('➕',key="ZoomIn",size=(5,1), font=icon_font), sg.Button('➖',key="ZoomOut",size=(5,1), font=icon_font)]
     ]
 
 #Scroll/home buttons for navigating graph
 scrollButFormat = [
-            [sg.Button('◀',key="Left",size=(10,1), font=iconFont),sg.Button('🏠',key='Home', size=(10,1), font=iconFont), sg.Button('▶',key="Right",size=(10,1), font=iconFont)],
+            [sg.Button('◀',key="Left",size=(10,1), font=icon_font),sg.Button('🏠',key='Home', size=(10,1), font=icon_font), sg.Button('▶',key="Right",size=(10,1), font=icon_font)],
     ]
 
 
@@ -517,7 +522,7 @@ scrollButFormat = [
 log_screen_layout = [  
             #Input for recording & buttons to do so
             [sg.Column([
-                [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='charge_record_btn',size=(10,2), font=butFont, button_color='#02AB29')]])],
+                [sg.Column(inputFormat,pad=(50,0)),sg.Column([[sg.Button('Record',key='charge_record_btn',size=(10,2), font=btn_font, button_color='#02AB29')]])],
                 ],key='recording_input_boxes')],
                        
             #Graph and navigation
@@ -528,7 +533,7 @@ log_screen_layout = [
                             [sg.Slider(key='select_data_slider',range=(zoom-1,1),default_value=1,size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,0)),disable_number_display=True,trough_color='#EEE',background_color='#000')],
                             
                             #This is the graph
-                            [sg.Canvas(key='fig_cv',size=graphSize)], 
+                            [sg.Canvas(key='fig_cv',size=graph_size)], 
                             
                             #This is the slider at the bottom of the graph, moves the graph view
                             [sg.Slider(key='position_slider',range=(zoom,max_time),size=(0,30),enable_events=True,orientation='h',expand_x=True,pad=((55,10),(5,5)),disable_number_display=True,trough_color='#EEE',background_color='#1D2873')],
@@ -555,7 +560,7 @@ log_screen_layout = [
 
 #Search section on the left of the screen
 chargeSearch = [
-                [sg.Text('Search Charges',font=butFont,size=(24,2),justification='c')],
+                [sg.Text('Search Charges',font=btn_font,size=(24,2),justification='c')],
                 [sg.Text('You can filter the list on the right by searching for any combination of the below.',font=('Arial',10),text_color='#777',size=(36,3))],
                 [sg.Text('Charge:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='charge_search',font=font,size=(12,2),tooltip="Charge number such as '16328'")],
                 [sg.Text('Temperature:',font=font,size=(12,1),text_color="#333",justification='r'),sg.Input(key='temp_search',font=font,size=(12,2),tooltip="Temperature without units, such as '600'")],
@@ -596,13 +601,13 @@ charge_screen_layout = [
             
             #Title and listbox for the charges
             [sg.Column(chargeSearchAll),sg.Text('',font=font,size=(5,1)),sg.Column([
-                [sg.Text('Charge -- Temp -- Date',font=tcFont)], #format of information
-                [sg.Listbox(values='',size=(27,20),font=chargeFont,key='old_recording_list')] #listbox
+                [sg.Text('Charge -- Temp -- Date',font=tc_font)], #format of information
+                [sg.Listbox(values='',size=(27,20),font=charge_font,key='old_recording_list')] #listbox
                 ],element_justification='c')
             ],
             
             [sg.Text()],
-            [sg.Button('View',font=butFont,size=(16,2),button_color='#02AB29')]
+            [sg.Button('View',font=btn_font,size=(16,2),button_color='#02AB29')]
         ]
 
 
@@ -620,10 +625,10 @@ tab_group = [
 
 #Final layout for the main window object
 layout = [
-    [sg.Text(key='recording_banner',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))], #Banner across the top that shows when we are recording
-    [sg.Text(key='alert_banner',font=butFont,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))], #Banner across the top that shows when there is a temperature alert
-    [sg.Text('DATA LOGGER', key='Title', font=titleFont,pad=(0,20)),sg.Button('Main Screen',key='goto_main',size=(10,2), font=butFont, button_color='#F5273A',visible=False)],
-    [sg.Text(key='clock',font=butFont)],
+    [sg.Text(key='recording_banner',font=btn_font,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))], #Banner across the top that shows when we are recording
+    [sg.Text(key='alert_banner',font=btn_font,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))], #Banner across the top that shows when there is a temperature alert
+    [sg.Text('DATA LOGGER', key='Title', font=title_font,pad=(0,20)),sg.Button('Main Screen',key='goto_main',size=(10,2), font=btn_font, button_color='#F5273A',visible=False)],
+    [sg.Text(key='clock',font=btn_font)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
 
@@ -632,7 +637,7 @@ layout = [
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CREATE WINDOW FOR APPLICATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-window, error_window, charge_in_use_window = sg.Window("Data Logger", layout, keep_on_top=True, location=(0, 0), element_justification='c',finalize=True), None, None
+window, error_window, charge_in_use_window, current_popup_window = sg.Window("Data Logger", layout, keep_on_top=True, location=(0, 0), element_justification='c',finalize=True), None, None, None
 window.Maximize() #Make it full screen
 window.set_icon(pngbase64=fire_icon) #Add the taskbar icon
 
@@ -665,10 +670,10 @@ while True:
     try:
         
         #Read all windows for events
-        windows,event, values = sg.read_all_windows(timeout=100)
+        windows,event,values = sg.read_all_windows(timeout=100)
         
         #See if window should be closed
-        if event in (sg.WINDOW_CLOSED, "close_program_btn"):
+        if event in (sg.WINDOW_CLOSED, sg.TITLEBAR_CLOSE_KEY, "close_program_btn",):
             if windows == window:
                 break #Close main window
             else:
@@ -683,10 +688,10 @@ while True:
         
         #Check if settings have changed every 10s
         if current_time - datetime.timedelta(seconds=10) > last_settings_check:
-            if RC.get_mtime(path, 'Program/Settings.json') > last_settings_edit:
-                settings = RC.get_settings("all", path)
+            if RC.Get_M_Time(path, 'Program/Settings.json') > last_settings_edit:
+                settings = RC.Get_Settings("all", path)
                 Update_Recording_Banner(False)
-                last_settings_edit = RC.get_mtime(path, 'Program/Settings.json')
+                last_settings_edit = RC.Get_M_Time(path, 'Program/Settings.json')
                 last_settings_check = current_time
         
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -718,20 +723,20 @@ while True:
             window["main_screen"].select()
             active_screen = 'main_screen'
 
-        
-                
+
+
         # ~~~~~Charge in use window controls~~~~~
         if windows == charge_in_use_window:
             if event == 'chargeCancel':
                 charge_in_use_window.close()
                 
             elif event == 'chargeRU':
-                RC.reuse(path, settings['chargeRecord'][3:8])
+                RC.Reuse(path, settings['chargeRecord'][3:8])
                 charge_in_use_window.close()
                 Record_Charge(settings['chargeRecord'])
                 
             elif event == 'chargeOW':
-                RC.overwrite(path, settings['chargeRecord'][3:8])
+                RC.Overwrite(path, settings['chargeRecord'][3:8])
                 charge_in_use_window.close()
                 Record_Charge(settings['chargeRecord'])
          
@@ -770,7 +775,7 @@ while True:
             # ~~~~~Open up the old log screen~~~~~
             elif event == 'goto_charge':
                 Change_Active_Screen('charge_screen')
-                window['old_recording_list'].update(values=RC.get_charges(path))
+                window['old_recording_list'].update(values=RC.Get_Charges(path))
                 
             # ~~~~~Open up the settings screen~~~~~
             elif event == "goto_settings":
@@ -786,10 +791,11 @@ while True:
             #~~~~~Open up documentation~~~~~
             elif event == 'Help': 
                 #try:
-                    #startfile(path+r"Program\Installation & Instructions\Data Logger Documentation.docx")
+                    #print(path+r"Program/Installation & Instructions/Data Logger Documentation.docx")
+                startfile(realpath(path+r"Program/Installation and Instructions/Data Logger Documentation.docx"))
                 window.minimize()
                 #except:
-                    #Popup_Window("Documentation could not be found.\nCheck //DISKSTATION1/mill/1 - Mill/Data Logger/Program/Installation & Instructions/Data Logger Documentation.docx")
+                    #current_popup_window = Popup_Window("Documentation could not be found.\nCheck //DISKSTATION1/mill/1 - Mill/Data Logger/Program/Installation & Instructions/Data Logger Documentation.docx").finalize()
                 
                 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -880,7 +886,7 @@ while True:
                 
                 #Make sure charge number is valid
                 if values['charge_input'] and len(values['charge_input']) == 5:
-                    cCheck = RC.check_charge(path,values['charge_input'])
+                    cCheck = RC.Check_Charge(path,values['charge_input'])
                         
                     if not cCheck[0]: #CHARGE IS ALREADY IN USE
                         charge_in_use_window = Create_Charge_In_Use_Window(values['charge_input'],cCheck[1])
@@ -902,16 +908,16 @@ while True:
                     
                 # ~~~~~Inform user of bad inputs~~~~~    
                 elif not tCheck:
-                    Popup_Window('Please input a temperature.')
+                    current_popup_window = Popup_Window('Please input a temperature.').finalize()
                 elif not dCheck:
-                    Popup_Window('Please input a duration less than 50 hours.')
+                    current_popup_window = Popup_Window('Please input a duration less than 50 hours.').finalize()
             
             # ~~~~~Stop charge recording~~~~~
             elif event == 'charge_record_btn' and settings['chargeRecord'] != 'N':
-                RC.update_settings(path, "chargeRecord",'N')
+                RC.Update_Settings(path, "chargeRecord",'N')
                 settings['chargeRecord'] = 'N'
                 Update_Recording_Banner(True)
-                Popup_Window('Recording cancelled.')
+                current_popup_window = Popup_Window('Recording cancelled.').finalize()
                 
         
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -948,7 +954,7 @@ while True:
                 
             #Searching to filter results
             elif event == 'charge_filter':
-                window['old_recording_list'].update(values=RC.get_charges(path,values['charge_search'],values['temp_search'],values['date_search']))
+                window['old_recording_list'].update(values=RC.Get_Charges(path,values['charge_search'],values['temp_search'],values['date_search']))
             
             
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1018,8 +1024,8 @@ while True:
                         "github": values['github']
                     }
                     
-                    RC.update_settings(path, "all", settingsNew)
-                    Popup_Window('Settings have been changed successfully.')
+                    RC.Update_Settings(path, "all", settingsNew)
+                    current_popup_window = Popup_Window('Settings have been changed successfully.').finalize()
                     window['goto_main'].update(visible=False)
                     window['Title'].update(visible=True)
                     window["main_screen"].select()
@@ -1028,13 +1034,13 @@ while True:
                     
                 #ERROR MESSAGES                   
                 if not int_exists:
-                    Popup_Window('Please input an interval less than 100 minutes')
+                    current_popup_window = Popup_Window('Please input an interval less than 100 minutes').finalize()
                 
                 elif not temp_exists:
-                    Popup_Window('Please input a temperature less than 3000°F')
+                    current_popup_window = Popup_Window('Please input a temperature less than 3000°F').finalize()
                     
                 elif not maxR_exists:
-                    Popup_Window('Please input a maximum number of records greater than 100')
+                    current_popup_window = Popup_Window('Please input a maximum number of records greater than 100').finalize()
 
     
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1048,10 +1054,10 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            Popup_Window("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
+            current_popup_window = Popup_Window("~~ERR 05~~\nCharge file contains no headers, cannot be read.").finalize()
         
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            Popup_Window("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
+            current_popup_window = Popup_Window("~~ERR 06~~\nInvalid date in charge file, cannot be read.").finalize()
         
         elif str(err)[:10] == "[Errno 13]":
             sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
@@ -1059,13 +1065,13 @@ while True:
             last_reading_time = current_time - datetime.timedelta(seconds=(int(settings['interval'])*60-10)) #try again in 10s
         
         elif str(err) == "float division by zero":
-            Popup_Window("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
+            current_popup_window = Popup_Window("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.").finalize()
         
         elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-            Popup_Window("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
+            current_popup_window = Popup_Window("~~ERR 09~~\nCharge cannot be displayed. Not enough data.").finalize()
         
         else: #catch all
-            Popup_Window("~~ERR 00~~\n" + str(err))
+            current_popup_window = Popup_Window("~~ERR 00~~\n" + str(err)).finalize()
             print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
             
             #~~~Write to the error log file~~~
