@@ -2,17 +2,16 @@
 import subprocess
 from time import time
 import datetime
-from GeneralCommands import get_path
-from GeneralCommands import record_light
+from GeneralCommands import Get_Path
 
-path = get_path()+'Program/'
+path = Get_Path()+'Program/'
 
 ip = str(subprocess.check_output(['hostname', '-I'])).split(' ')[0].replace("b'", "")
-currTime=datetime.datetime.fromtimestamp(time()).strftime("%d %B, %Y - %I:%M:%S %p")
+current_time=datetime.datetime.fromtimestamp(time()).strftime("%d %B, %Y - %I:%M:%S %p")
 
 #IP address for the RPi on the local network. Used for VNC viewer connection
 with open(path+'RPi-IP.txt','w') as f:
-    f.write(currTime+' --- '+ip)
+    f.write(current_time+' --- '+ip)
 
 print ('Startup complete.')
 print ()
@@ -22,4 +21,4 @@ print ('~~~~~ Initializing Recording Program ~~~~~')
 subprocess.call('sudo python /home/RaspRecord.py',shell=True)
 
 #Shutdown RPi now that recording has finished
-subprocess.call("sudo nohup shutdown -h now", shell=True)
+#subprocess.call("sudo nohup shutdown -h now", shell=True)

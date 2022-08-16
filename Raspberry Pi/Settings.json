@@ -1,0 +1,12 @@
+{
+    "interval": 10,
+    "tempWarn": 1300,
+    "maxRecords": 1000,
+    "chargeRecord": "06-16334 -- 0600 -- 05-Jul-22",
+    "emailTo": [
+        "####@uniondrawn.com",
+        "####@uniondrawn.com"
+    ],
+    "enableEmail": true,
+    "github": "####"
+}
