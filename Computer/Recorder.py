@@ -27,8 +27,8 @@ except:
 def Record_Charge(charge):
     global charge_end
     charge_end = current_time + datetime.timedelta(hours=(int(charge[:2])+2)) #time to end the charge at, 2 hour extra safety
-    RC.Update_Settings(path, "chargeRecord",charge)
-    settings['chargeRecord'] = charge
+    RC.Update_Settings(path, "charge_record",charge)
+    settings['charge_record'] = charge
     Update_Recording_Banner(True)
     
 
@@ -36,20 +36,21 @@ def Record_Charge(charge):
 def Update_Settings_Display():
     event, values = window.read(timeout=100)
     window['interval'].update(value = settings['interval'])
-    window['temp'].update(value = settings['tempWarn'])
-    window['maxRecords'].update(value = settings['maxRecords'])
+    window['temp'].update(value = settings['temp_warn'])
+    window['max_records'].update(value = settings['max_records'])
     window['github'].update(value = settings['github'])
     
-    if bool(settings['enableEmail']) == True:
+    if bool(settings['enable_email']) == True:
         window['enable_email_alerts'].update('Disable Emails')
     else:
         window['enable_email_alerts'].update('Enable Emails')
         
     #Email listed as: one@email.com; two@email.com
     email_to_string = ''
-    for i in range(0,len(settings['emailTo'])):
-        email_to_string += str(settings['emailTo'][i]) +'; '
+    for i in range(0,len(settings['email_to'])):
+        email_to_string += str(settings['email_to'][i]) +'; '
     window['email'].update(value = email_to_string[:-2])
+
 
 # ~~~~~Change active screen~~~~~
 def Change_Active_Screen(screen):
@@ -59,12 +60,32 @@ def Change_Active_Screen(screen):
     global active_screen
     active_screen = screen #Save the screen
 
+
+# ~~~~~Upload current calibration numbers~~~~~
+def Set_Calibration_Numbers():
+    global calibration_numbers
+    calibration_window['TC1_calibration'].update(value=calibration_numbers["TC1"])
+    calibration_window['TC2_calibration'].update(value=calibration_numbers["TC2"])
+    calibration_window['TC3_calibration'].update(value=calibration_numbers["TC3"])
+    calibration_window['TC4_calibration'].update(value=calibration_numbers["TC4"])
+    calibration_window['TC6_calibration'].update(value=calibration_numbers["TC6"])
+    
+# ~~~~~Save new calibration numbers~~~~~
+def Update_Calibration_Numbers():
+    global calibration_numbers
+    calibration_list = ['TC1_calibration','TC2_calibration','TC3_calibration','TC4_calibration','TC6_calibration']
+    
+    for TC in calibration_list:
+        calibration_numbers[TC[:3]] = values[TC]
+        
+    RC.Save_Calibrations(path,calibration_numbers)
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User notifications ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # ~~~~~Update recording status~~~~~
 def Update_Recording_Banner(change):
     
-    record = settings['chargeRecord']
+    record = settings['charge_record']
     
     if record != 'N':    
         #Alert the user it is recording
@@ -95,7 +116,7 @@ def Update_Recording_Banner(change):
         
     if change:
         #Update settings file
-        RC.Update_Settings(path,"chargeRecord",record)
+        RC.Update_Settings(path,"charge_record",record)
         
 # ~~~~~Alert across top~~~~~
 def Update_Alert_Banner(msg):
@@ -120,7 +141,7 @@ def Update_Main_Screen_TC():
         window['TC' + str(tc)].update(str(round(df['Temp' + str(tc)].values[-1],1)) + '°F')
         
         #check high temperature limit
-        if round(df['Temp' + str(tc)].values[-1],1) < int(settings['tempWarn']):
+        if round(df['Temp' + str(tc)].values[-1],1) < int(settings['temp_warn']):
             window['TC' + str(tc)].update(background_color='#EEE')
                           
         else: #!!!Temperature over limit!!!
@@ -189,9 +210,7 @@ def Select_Data():
     
     
 # ~~~~~Save an image~~~~~
-def Save_Graph_As_Image(titleText):
-    global current_popup_window
-    
+def Save_Graph_As_Image(titleText):   
     if not RC.Does_This_Exist(path,"Figures\\"):
         RC.Make_Folder(path + "Figures\\")
         
@@ -204,7 +223,7 @@ def Save_Graph_As_Image(titleText):
     plt.legend('',frameon=False)
     lineSelect.set_visible(True)
     plt.title('')
-    current_popup_window = Popup_Window("Image saved in Figures folder.\n" + current_time.strftime("%d-%B-%y - %I-%M-%S %p") + ".png").finalize()
+    Popup_Window("Image saved in Figures folder.\n" + current_time.strftime("%d-%B-%y - %I-%M-%S %p") + ".png")
     RC.Open_Folder(imgName)
     
 
@@ -340,9 +359,41 @@ def Create_Charge_In_Use_Window(cNum,oldNum):
     ]
     #Open up the 'charge already in use' in a new window
     return sg.Window("Data Logger - Charge in Use", chargeLayout, keep_on_top=True, element_justification='c',modal=True,finalize=True)
+    
 
+# ~~~~~Calibration window input~~~~~
+def Create_Calibration_Window():
+    calibration_layout = [
+        [sg.Text("Data Logger Calibration",font=title_font)],
+        [sg.Text()],
+        [sg.Text("These numbers are used to calibrate the data logger readings to those manually measured from the thermocouples.",font=font)],
+        [sg.Text()],
+        #TCs along the top of the furnace display
+        [sg.Push(),
+         sg.Push(), sg.Text('TC6:',font=btn_font),sg.Input(key='TC6_calibration', font=tc_font,size=(7,1),enable_events=True), 
+         sg.Push(), sg.Text('TC5:',font=btn_font),sg.Text(font=tc_font,text_color='#EEE',size=(7,1)), 
+         sg.Push(), sg.Text('TC4:',font=btn_font),sg.Input(key='TC4_calibration', font=tc_font,size=(7,1),enable_events=True),sg.Push(),
+        sg.Push()],
+        
+        #Furnace display image
+        [sg.Image(furnace_pic,pad=(0,0))],
+        
+        #TCs along the bottom of the furnace display
+        [sg.Push(),
+         sg.Push(), sg.Text('TC1:',font=btn_font),sg.Input(key='TC1_calibration', font=tc_font,size=(7,1),enable_events=True), 
+         sg.Push(), sg.Text('TC2:',font=btn_font),sg.Input(key='TC2_calibration', font=tc_font,size=(7,1),enable_events=True), 
+         sg.Push(), sg.Text('TC3:',font=btn_font),sg.Input(key='TC3_calibration', font=tc_font,size=(7,1),enable_events=True),sg.Push(),
+        sg.Push()],
+        
+        [sg.Text("",font=font,size=(1,2))],
+        [sg.Push(),sg.Button("Save",key="calibration_save",font=btn_font,size=(10,2),button_color='#02AB29'),sg.Push(),sg.Button("Cancel",key="calibration_close",font=btn_font,size=(10,2),button_color='#F5273A'),sg.Push()]
+    ]
+    
+    #Opens up the new 'calibration' window
+    return sg.Window("Data Logger - Calibration",calibration_layout,keep_on_top=True, element_justification='c',modal=True,finalize=True)
 
-
+    
+    
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Startup ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -354,8 +405,7 @@ log_file = path + 'Program/AllTempLogs.csv'
 
 #MAKE SURE THE SETTINGS FILE EXISTS
 if not RC.Verify_Settings(path):
-    global current_popup_window
-    current_popup_window = Popup_Window('Settings file does not exist.\n\nA file with default values has been generated.').finalize() #inform user it was not found
+    Popup_Window('Settings file does not exist.\n\nA file with default values has been generated.') #inform user it was not found
     
 
 #Imbed image as Base64 string so the EXE can be a standalone file
@@ -388,6 +438,7 @@ sg.set_options(use_custom_titlebar=True,titlebar_icon=fire_icon,titlebar_font=fo
 
 
 settings = RC.Get_Settings("all", path) #CONTAINS ALL THE SETTINGS
+calibration_numbers = RC.Get_Calibration(path)
 
 current_time = datetime.datetime.fromtimestamp(time()) #used for 'clock'. Current time
 last_reading_time = current_time - datetime.timedelta(seconds=(int(settings['interval'])*60)) #last time the TCs were read
@@ -463,7 +514,7 @@ settings_screen_layout = [
             [sg.Column([
                 [sg.Text('Interval (min):',size=(15,1), font=font,justification='r'), sg.Input(key='interval', enable_events=True,size=(20,1), font=font,tooltip="Number of minutes between readings")],
                 [sg.Text('Temp Warning (F):',size=(15,1), font=font,justification='r'), sg.Input(key='temp', enable_events=True,size=(20,1), font=font,tooltip="High temperature limit. \nWhen exceeded it will trigger warnings.")],
-                [sg.Text('_'*56,font=font,pad=(0,20),text_color='#EEE')], #spacing
+                [sg.Text('_'*56,font=font,pad=(0,20),text_color='#1D2873')], #spacing
             ])],
             
             #Warn the user to consult manual
@@ -474,11 +525,11 @@ settings_screen_layout = [
                 [sg.Text('Alert Emails:',size=(15,1), font=font,justification='r'), sg.Multiline(key='email', enable_events=True,size=(25,3), font=font,tooltip="Enter emails to send high temperature alerts to. \nSeparate with a ' ;'")],
                 [sg.Text('Enable Alerts:',font=font,size=(15,1),justification='r'), sg.Button('Enable Emails',key='enable_email_alerts',font=('Arial',10),size=(12,1),enable_events=True)],
                 
-                [sg.Text('Max Log Records:',size=(15,1), font=font,justification='r'), sg.Input(key='maxRecords', enable_events=True,size=(15,1), font=font,tooltip="Maximum records in the general log file (does not affect individual charges)")],
+                [sg.Text('Max Log Records:',size=(15,1), font=font,justification='r'), sg.Input(key='max_records', enable_events=True,size=(15,1), font=font,tooltip="Maximum records in the general log file (does not affect individual charges)")],
                 [sg.Text('Github Key:',size=(15,1), font=font,justification='r'), sg.Input(key='github', enable_events=True,size=(41,1), font=font,tooltip="Github key used for uploading to the website: \nhttps://uds-furnace.github.io/View/")],
             ])],
-            
-            [sg.Text('',key='tips',pad=(0,20))],
+            [sg.Button("Open Calibrations",key="goto_calibrations",font=btn_font,button_color="#F57627",size=(15,2),pad=(0,10,0,5))],
+            [sg.Text('_'*56,font=font,text_color='#1D2873')],
             [sg.Push(), sg.Button('Save Changes',key='Submit',size=(15,2), font=btn_font, button_color='#02AB29'), sg.Push(), sg.Button('Cancel',size=(15,2), font=btn_font, button_color='#F5273A'), sg.Push()],
         ]
 
@@ -637,7 +688,7 @@ layout = [
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CREATE WINDOW FOR APPLICATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-window, error_window, charge_in_use_window, current_popup_window = sg.Window("Data Logger", layout, keep_on_top=True, location=(0, 0), element_justification='c',finalize=True), None, None, None
+window, error_window, charge_in_use_window, calibration_window = sg.Window("Data Logger", layout, keep_on_top=True, location=(0, 0), element_justification='c',finalize=True), None, None, None
 window.Maximize() #Make it full screen
 window.set_icon(pngbase64=fire_icon) #Add the taskbar icon
 
@@ -656,10 +707,10 @@ style.layout('TNotebook.Tab', [])
 
 #Update the charge if it is currently recording
 Update_Recording_Banner(False)
-if settings['chargeRecord'] not in ['Y','N']:
-    window['charge_input'].update(settings['chargeRecord'][3:8])
-    window['temp_input'].update(settings['chargeRecord'][12:16])
-    window['time_input'].update(settings['chargeRecord'][0:2])
+if settings['charge_record'] not in ['Y','N']:
+    window['charge_input'].update(settings['charge_record'][3:8])
+    window['temp_input'].update(settings['charge_record'][12:16])
+    window['time_input'].update(settings['charge_record'][0:2])
     
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN LOOP ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -671,7 +722,7 @@ while True:
         
         #Read all windows for events
         windows,event,values = sg.read_all_windows(timeout=100)
-        
+
         #See if window should be closed
         if event in (sg.WINDOW_CLOSED, sg.TITLEBAR_CLOSE_KEY, "close_program_btn",):
             if windows == window:
@@ -726,32 +777,31 @@ while True:
 
 
         # ~~~~~Charge in use window controls~~~~~
-        if windows == charge_in_use_window:
+        elif windows == charge_in_use_window:
             if event == 'chargeCancel':
                 charge_in_use_window.close()
                 
             elif event == 'chargeRU':
-                RC.Reuse(path, settings['chargeRecord'][3:8])
+                RC.Reuse(path, settings['charge_record'][3:8])
                 charge_in_use_window.close()
-                Record_Charge(settings['chargeRecord'])
+                Record_Charge(settings['charge_record'])
                 
             elif event == 'chargeOW':
-                RC.Overwrite(path, settings['chargeRecord'][3:8])
+                RC.Overwrite(path, settings['charge_record'][3:8])
                 charge_in_use_window.close()
-                Record_Charge(settings['chargeRecord'])
+                Record_Charge(settings['charge_record'])
          
         # ~~~~~Error log window controls~~~~~
-        if windows == error_window:
+        elif windows == error_window:
             #Close error log window
             if event == 'errCancel':
-                error_window.close()
-                    
+                error_window.close()                    
                     
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ MAIN SCREEN ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         
-        if active_screen == 'main_screen':
+        elif active_screen == 'main_screen':
             
             # ~~~~~Open up the live log screen~~~~~
             if event == 'goto_live':
@@ -790,12 +840,11 @@ while True:
                 
             #~~~~~Open up documentation~~~~~
             elif event == 'Help': 
-                #try:
-                    #print(path+r"Program/Installation & Instructions/Data Logger Documentation.docx")
-                startfile(realpath(path+r"Program/Installation and Instructions/Data Logger Documentation.docx"))
-                window.minimize()
-                #except:
-                    #current_popup_window = Popup_Window("Documentation could not be found.\nCheck //DISKSTATION1/mill/1 - Mill/Data Logger/Program/Installation & Instructions/Data Logger Documentation.docx").finalize()
+                try:
+                    startfile(realpath(path+r"Program/Installation and Instructions/Data Logger Documentation.docx"))
+                    window.minimize()
+                except:
+                    Popup_Window("Documentation could not be found.\nCheck //DISKSTATION1/mill/1 - Mill/Data Logger/Program/Installation & Instructions/Data Logger Documentation.docx")
                 
                 
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -878,7 +927,7 @@ while True:
             # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Recording a Charge ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     
             #Recording a new charge
-            elif event == 'charge_record_btn' and settings['chargeRecord'] == 'N':
+            elif event == 'charge_record_btn' and settings['charge_record'] == 'N':
                 #For verifying inputs
                 tCheck = False
                 dCheck = False
@@ -908,16 +957,16 @@ while True:
                     
                 # ~~~~~Inform user of bad inputs~~~~~    
                 elif not tCheck:
-                    current_popup_window = Popup_Window('Please input a temperature.').finalize()
+                    Popup_Window('Please input a temperature.')
                 elif not dCheck:
-                    current_popup_window = Popup_Window('Please input a duration less than 50 hours.').finalize()
+                    Popup_Window('Please input a duration less than 50 hours.')
             
             # ~~~~~Stop charge recording~~~~~
-            elif event == 'charge_record_btn' and settings['chargeRecord'] != 'N':
-                RC.Update_Settings(path, "chargeRecord",'N')
-                settings['chargeRecord'] = 'N'
+            elif event == 'charge_record_btn' and settings['charge_record'] != 'N':
+                RC.Update_Settings(path, "charge_record",'N')
+                settings['charge_record'] = 'N'
                 Update_Recording_Banner(True)
-                current_popup_window = Popup_Window('Recording cancelled.').finalize()
+                Popup_Window('Recording cancelled.')
                 
         
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -979,8 +1028,8 @@ while True:
                 window['temp'].update(values['temp'][:-1])
                 
             #Prevent invalid characters in the max records box
-            elif event == 'maxRecords' and values['maxRecords'] and values['maxRecords'][-1] not in ('0123456789'):
-                window['maxRecords'].update(values['maxRecords'][:-1])
+            elif event == 'max_records' and values['max_records'] and values['max_records'][-1] not in ('0123456789'):
+                window['max_records'].update(values['max_records'][:-1])
                 
             #Enable/disable email alerts, and inform user
             elif event == 'enable_email_alerts':
@@ -1006,7 +1055,7 @@ while True:
                     
                 #VERIFY RECORDS WAS INPUT
                 maxR_exists = True
-                if values['maxRecords'] == '' or int(values['maxRecords']) < 100:
+                if values['max_records'] == '' or int(values['max_records']) < 100:
                     maxR_exists = False
                     
                 
@@ -1016,16 +1065,16 @@ while True:
                     
                     settingsNew = {
                         "interval": int(values['interval']),
-                        "tempWarn": int(values['temp']),
-                        "maxRecords": int(values['maxRecords']),
-                        "chargeRecord": settings['chargeRecord'],
-                        "emailTo": str(values ['email']).split("; "),
-                        "enableEmail": bool(eAlert),
+                        "temp_warn": int(values['temp']),
+                        "max_records": int(values['max_records']),
+                        "charge_record": settings['charge_record'],
+                        "email_to": str(values ['email']).split("; "),
+                        "enable_email": bool(eAlert),
                         "github": values['github']
                     }
                     
                     RC.Update_Settings(path, "all", settingsNew)
-                    current_popup_window = Popup_Window('Settings have been changed successfully.').finalize()
+                    Popup_Window('Settings have been changed successfully.')
                     window['goto_main'].update(visible=False)
                     window['Title'].update(visible=True)
                     window["main_screen"].select()
@@ -1034,13 +1083,55 @@ while True:
                     
                 #ERROR MESSAGES                   
                 if not int_exists:
-                    current_popup_window = Popup_Window('Please input an interval less than 100 minutes').finalize()
+                    Popup_Window('Please input an interval less than 100 minutes')
                 
                 elif not temp_exists:
-                    current_popup_window = Popup_Window('Please input a temperature less than 3000°F').finalize()
+                    Popup_Window('Please input a temperature less than 3000°F')
                     
                 elif not maxR_exists:
-                    current_popup_window = Popup_Window('Please input a maximum number of records greater than 100').finalize()
+                    Popup_Window('Please input a maximum number of records greater than 100')
+              
+            #Open up the calibrations screen
+            elif event == "goto_calibrations":
+                calibration_window = Create_Calibration_Window()
+                calibration_window.Maximize()
+                Set_Calibration_Numbers()
+                
+        
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ CALIBRATION WINDOW ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        if windows == calibration_window:
+            #Close the window
+            if event == 'calibration_close':
+                calibration_window.close()
+            
+            #Prevent invalid characters in the TC1 box         
+            elif event == 'TC1_calibration' and values['TC1_calibration'] and values['TC1_calibration'][-1] not in ('0123456789.-'):
+                calibration_window['TC1_calibration'].update(value=values['TC1_calibration'][:-1])
+                
+            #Prevent invalid characters in the TC2 box         
+            elif event == 'TC2_calibration' and values['TC2_calibration'] and values['TC2_calibration'][-1] not in ('0123456789.-'):
+                calibration_window['TC2_calibration'].update(value=values['TC2_calibration'][:-1])
+                
+            #Prevent invalid characters in the TC3 box         
+            elif event == 'TC3_calibration' and values['TC3_calibration'] and values['TC3_calibration'][-1] not in ('0123456789.-'):
+                calibration_window['TC3_calibration'].update(value=values['TC3_calibration'][:-1])
+                
+            #Prevent invalid characters in the TC4 box         
+            elif event == 'TC4_calibration' and values['TC4_calibration'] and values['TC4_calibration'][-1] not in ('0123456789.-'):
+                calibration_window['TC4_calibration'].update(value=values['TC4_calibration'][:-1])
+                
+            #Prevent invalid characters in the TC6 box         
+            elif event == 'TC6_calibration' and values['TC6_calibration'] and values['TC6_calibration'][-1] not in ('0123456789.-'):
+                calibration_window['TC6_calibration'].update(value=values['TC6_calibration'][:-1])
+            
+            #Save the new numbers in the system
+            elif event == 'calibration_save':
+                Update_Calibration_Numbers()
+             
+                
 
     
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1054,10 +1145,10 @@ while True:
         print(err)
         
         if str(err) == "Missing column provided to 'parse_dates': 'Time'":
-            current_popup_window = Popup_Window("~~ERR 05~~\nCharge file contains no headers, cannot be read.").finalize()
+            Popup_Window("~~ERR 05~~\nCharge file contains no headers, cannot be read.")
         
         elif str(err) == "Can only use .dt accessor with datetimelike values":
-            current_popup_window = Popup_Window("~~ERR 06~~\nInvalid date in charge file, cannot be read.").finalize()
+            Popup_Window("~~ERR 06~~\nInvalid date in charge file, cannot be read.")
         
         elif str(err)[:10] == "[Errno 13]":
             sg.popup_timed("~~ERR 07~~\nThe log file is open! Please close it to continue.\nTrying again in 10s.",font=font,keep_on_top=True,non_blocking=True,auto_close_duration=5)
@@ -1065,13 +1156,13 @@ while True:
             last_reading_time = current_time - datetime.timedelta(seconds=(int(settings['interval'])*60-10)) #try again in 10s
         
         elif str(err) == "float division by zero":
-            current_popup_window = Popup_Window("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.").finalize()
+            Popup_Window("~~ERR 08~~\nCharge file contains no data and cannot be read.\nCopy data from the log file to the charge file.")
         
         elif str(err) == "zero-size array to reduction operation minimum which has no identity":
-            current_popup_window = Popup_Window("~~ERR 09~~\nCharge cannot be displayed. Not enough data.").finalize()
+            Popup_Window("~~ERR 09~~\nCharge cannot be displayed. Not enough data.")
         
         else: #catch all
-            current_popup_window = Popup_Window("~~ERR 00~~\n" + str(err)).finalize()
+            Popup_Window("~~ERR 00~~\n" + str(err))
             print('Error on line {}'.format(exc_info()[-1].tb_lineno), type(err).__name__, err)
             
             #~~~Write to the error log file~~~
@@ -1081,3 +1172,7 @@ while True:
 
 #If the user exits the program, close the window            
 window.close()
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPILE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#pyinstaller -wF
