@@ -21,4 +21,4 @@ print ('~~~~~ Initializing Recording Program ~~~~~')
 subprocess.call('sudo python /home/RaspRecord.py',shell=True)
 
 #Shutdown RPi now that recording has finished
-#subprocess.call("sudo nohup shutdown -h now", shell=True)
+subprocess.call("sudo nohup shutdown -h now", shell=True)
