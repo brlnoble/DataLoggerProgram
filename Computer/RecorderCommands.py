@@ -22,13 +22,13 @@ def Verify_Settings(path):
     #Create file that could not be found
     settings = {
         "interval": 10,
-        "tempWarn": 1300,
-        "maxRecords": 1000,
-        "chargeRecord": "N",
-        "emailTo": [
+        "temp_warn": 1300,
+        "max_records": 1000,
+        "charge_record": "N",
+        "email_to": [
             "intern@uniondrawn.com"
         ],
-        "enableEmail": True,
+        "enable_email": True,
         "github": "UNKNOWN"
     }
     Update_Settings(path, "all", settings)
@@ -162,7 +162,7 @@ def Get_Charges(path, charge_filter='', temp_filter='', date_filter=''):
 
 # ~~~~~Compare charges~~~~~
 def Check_Charge(path,charge):
-    files = get_charges(path)
+    files = Get_Charges(path)
     for c in files:
         if str(charge+' ') == c[:6]:
             return [False,c]
