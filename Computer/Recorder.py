@@ -755,7 +755,7 @@ while True:
             #only update graph if we are viewing the live plot and not charges
             if plot_display and not charge_display:
                 #adjust view if looking at most recent point
-                df = pd.read_csv(log_file,parse_dates=['clock'], dayfirst=True)
+                df = pd.read_csv(log_file,parse_dates=['Time'], dayfirst=True)
                 if len(df.Temp1) -1 > max_time:
                     if right == max_time:
                         right += 1
@@ -1175,4 +1175,4 @@ window.close()
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ COMPILE ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#pyinstaller -wF
+#pyinstaller -wF --splash=splashLoad.jpg --icon=RecorderIcon.ico Recorder.py
