@@ -7,10 +7,10 @@ The goal for this project was to create a simple data logger to record and graph
 Using an Raspberry Pi and Python, I hope to complete this in as simple a manner as possible to ensure ease of repairability for after I complete my internship.
 
 ## General Goals
-- [X] Read data from thermocouples (using six MAX6675 K-type thermocouple amplifiers)
+- [X] Read data from thermocouples (using five MAX6675 K-type thermocouple amplifiers)
 - [X] Record data at a given interval to a .csv file
-- [X] Save settings in a .txt file for access and modification
-- [X] Simple and intuitive computer program UI based upon PySimpleGUI
+- [X] Save settings in JSON files for access and modification
+- [X] Simple and intuitive computer program UI based upon [PySimpleGUI](https://github.com/PySimpleGUI/PySimpleGUI)
 - [X] Allow users to start and stop charge recording to save graphs
 - [X] Access and use program from computer
 - [X] Email alerts when temperature exceeds a set limit
@@ -29,6 +29,7 @@ Using an Raspberry Pi and Python, I hope to complete this in as simple a manner 
   - [X] Change log file location
   - [X] Change maximum records saved in log file
   - [X] Email settings
+  - [X] Manually calibrate readings with an offset
 - [X] Graphical view of current readout
   - [X] Live update graph
   - [X] Allow user to record a charge (input charge number)
