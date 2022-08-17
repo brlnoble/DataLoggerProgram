@@ -1,8 +1,0 @@
-intervalReading = 1
-tempWarning = 1300
-logFile = AllTempLogs.csv
-maxLogRecords = 1000
-recordCharge = 16458 -- 1150 -- 18-Apr-22
-emailTo = intern@uniondrawn.com
-enableEmail = True
-port = COM5
