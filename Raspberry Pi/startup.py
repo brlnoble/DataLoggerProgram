@@ -2,7 +2,7 @@
 import subprocess
 from time import time
 import datetime
-from GeneralCommands import Get_Path
+from GeneralCommands import Get_Path, Error_Log
 
 path = Get_Path()+'Program/'
 
@@ -18,7 +18,13 @@ print ()
 print ('~~~~~ Initializing Recording Program ~~~~~')
 
 #Run the recording program
-subprocess.call('sudo python /home/RaspRecord.py',shell=True)
+try:
+    subprocess.call('sudo python /home/RaspRecord.py',shell=True)
 
-#Shutdown RPi now that recording has finished
-subprocess.call("sudo nohup shutdown -h now", shell=True)
+    #Shutdown RPi now that recording has finished
+    subprocess.call("sudo nohup shutdown -h now", shell=True)
+
+#If the program crashes, record it to the error log and do NOT shutdown the device
+except Exception as err:
+    current_time = datetime.datetime.fromtimestamp(time()).strftime("%d %B, %Y - %I:%M:%S %p")
+    Error_Log(path,err,current_time)
