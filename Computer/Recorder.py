@@ -78,7 +78,7 @@ def Update_Calibration_Numbers():
     for TC in calibration_list:
         calibration_numbers[TC[:3]] = values[TC]
         
-    RC.Save_Calibrations(path,calibration_numbers)
+    return RC.Save_Calibrations(path,calibration_numbers)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ User notifications ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1129,7 +1129,15 @@ while True:
             
             #Save the new numbers in the system
             elif event == 'calibration_save':
-                Update_Calibration_Numbers()
+                if Update_Calibration_Numbers():
+                    Popup_Window('Calibrations have been changed successfully.')
+                    window['goto_main'].update(visible=False)
+                    window['Title'].update(visible=True)
+                    window["main_screen"].select()
+                    active_screen = 'main_screen'
+                    calibration_window.close()
+                else:
+                    Popup_Window('Calibrations could not be saved. Make sure "Calibration.JSON" is not open')
              
                 
 

@@ -221,6 +221,10 @@ def Get_Calibration(path):
     return calibration_numbers
     
 def Save_Calibrations(path,values):
-    with open(path+"Program/Calibration.json","w") as f:
-            json.dump(values,f,indent=4)
-    return
+    try:
+        with open(path+"Program/Calibration.json","w") as f:
+                json.dump(values,f,indent=4)
+        return True
+        
+    except:
+        return False
