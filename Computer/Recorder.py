@@ -325,6 +325,53 @@ def Check_Screen_Size():
                 
         furnace_pic = RC.Scale_Base64(furnace_pic, scale_factor)
         fire_icon = RC.Scale_Base64(fire_icon, scale_factor)
+        
+        
+# ~~~~~Switch between light and dark mode~~~~~
+def Switch_Theme():
+    global background_colour
+    global text_colour
+    global dark_mode
+    
+    if not dark_mode: #Change to dark mode
+        background_colour = '#222'
+        text_colour = '#DDD'
+        
+    else: #Change to light mode
+        background_colour = '#EEE'
+        text_colour = '#1D2873'
+        
+    dark_mode = not dark_mode
+    all_elements = window.element_list() #Grab all elements in the window
+    
+    column_count = 0
+    
+    #Loop through all window elements and update them
+    for element in all_elements:
+        
+        element_type = str(type(element))[32:-2] #Get the type of element
+        element_key = str(element.Key) #Get the key of the element
+        
+        #Don't update these items
+        element_dont_list = ['Button','TabGroup','Input','Listbox','Multiline','Slider','Canvas']
+        key_dont_list = ['TC1_text','TC2_text','TC3_text','TC4_text','TC6_text','alert_banner','recording_banner']
+        
+        element.ParentRowFrame.config(background=background_colour) #Update the padding colours
+        
+        #Change text background and foreground
+        if element_type == 'Text' and element_key not in ['alert_banner','recording_banner']:
+            element.Widget.config(background=background_colour)
+            
+            if element_key not in key_dont_list:
+                element.Widget.config(foreground=text_colour)
+        
+        elif element_type not in element_dont_list and element_key not in key_dont_list:
+            print(element_key)
+            print(element_type)
+            element.Widget.config(background=background_colour)
+    
+    window.TKroot.configure(background=background_colour) #Update window background colour
+    window.refresh()
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ Additional Screens ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -450,6 +497,8 @@ plot_display = False #flag for the plot display
 charge_display = False #flag for the charge view
 active_screen  = 'main_screen' #helps speed up the main loop by only checking code revelant to each screen
 
+dark_mode = False
+
 
 #Axes limits
 zoom = 30
@@ -541,11 +590,11 @@ tcGraph = [
             [sg.Text('Reading at Black Line',font=btn_font,justification='c')],
             [sg.Text()],
             [sg.Text('',key='TC_Title_Log',font=font,justification='c')],
-            [sg.Text('TC1: ',font=btn_font,text_color='#FF0000'),sg.Text('1',font=tc_font,key='TC1_Log',text_color='#333')],
-            [sg.Text('TC2: ',font=btn_font,text_color='#FFAA00'),sg.Text('2',font=tc_font,key='TC2_Log',text_color='#333')],
-            [sg.Text('TC3: ',font=btn_font,text_color='#365BB0'),sg.Text('3',font=tc_font,key='TC3_Log',text_color='#333')],
-            [sg.Text('TC4: ',font=btn_font,text_color='#00B366'),sg.Text('4',font=tc_font,key='TC4_Log',text_color='#333')],
-            [sg.Text('TC6: ',font=btn_font,text_color='#AA00AA'),sg.Text('6',font=tc_font,key='TC6_Log',text_color='#333')],
+            [sg.Text('TC1: ',font=btn_font,text_color='#FF0000',key='TC1_text'),sg.Text('1',font=tc_font,key='TC1_Log',text_color='#333')],
+            [sg.Text('TC2: ',font=btn_font,text_color='#FFAA00',key='TC2_text'),sg.Text('2',font=tc_font,key='TC2_Log',text_color='#333')],
+            [sg.Text('TC3: ',font=btn_font,text_color='#365BB0',key='TC3_text'),sg.Text('3',font=tc_font,key='TC3_Log',text_color='#333')],
+            [sg.Text('TC4: ',font=btn_font,text_color='#00B366',key='TC4_text'),sg.Text('4',font=tc_font,key='TC4_Log',text_color='#333')],
+            [sg.Text('TC6: ',font=btn_font,text_color='#AA00AA',key='TC6_text'),sg.Text('6',font=tc_font,key='TC6_Log',text_color='#333')],
             [sg.Text()],
             [sg.Button('Save Graph',key='save_image_btn',font=btn_font,button_color="#F57627",size=(10,2))]
             
@@ -678,7 +727,7 @@ tab_group = [
 layout = [
     [sg.Text(key='recording_banner',font=btn_font,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))], #Banner across the top that shows when we are recording
     [sg.Text(key='alert_banner',font=btn_font,background_color='#EEEEEE',text_color='#FFF',expand_x=True,justification='c',pad=(0,0))], #Banner across the top that shows when there is a temperature alert
-    [sg.Text('DATA LOGGER', key='Title', font=title_font,pad=(0,20)),sg.Button('Main Screen',key='goto_main',size=(10,2), font=btn_font, button_color='#F5273A',visible=False)],
+    [sg.Text('DATA LOGGER', key='Title', font=title_font,pad=(0,20),enable_events=True),sg.Button('Main Screen',key='goto_main',size=(10,2), font=btn_font, button_color='#F5273A',visible=False)],
     [sg.Text(key='clock',font=btn_font)],
     [sg.TabGroup(tab_group, border_width=0, pad=(0, 0), key='TABGROUP')],
 ]
@@ -773,7 +822,10 @@ while True:
             window['Title'].update(visible=True)
             window["main_screen"].select()
             active_screen = 'main_screen'
-
+            
+        #Toggle dark mode
+        elif event == 'Title':
+            Switch_Theme()
 
 
         # ~~~~~Charge in use window controls~~~~~
