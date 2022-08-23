@@ -182,10 +182,7 @@ def Read_TC(path,charge,current_time,temp_warning,calibration_numbers):
         tc_numbers[i] >>= 5
         tc_numbers[i] *= 9/5
         tc_numbers[i] += 32
-        print (tc_numbers[i])
         tc_numbers[i] += float(calibration_numbers["TC" + str(i)]) #Add the calibration offset
-        print (tc_numbers[i])
-        print ('~~~~~~~')
         if tc_numbers[i] >= 1870.00: #Cannot sense over this temperature - means furnace is off
             tc_numbers[i] = 00.00
         tc_reading[i] = f'{tc_numbers[i]:.2f}' #Format value as 00.00
@@ -333,6 +330,14 @@ def Error_Log(path,err,current_time):
     #If incorrect Github token
     elif str(err)[:3] == "401":
         err = 'ERR 04: Invalid Github token'
+        
+    #If no internet connection
+    elif str(err)[:19] == "HTTPSConnectionPool":
+        err = 'ERR 10: No network access on the Raspberry Pi'
+        
+    #Unknown error
+    else:
+        err = "ERR00: " + str(err)
 
     print (str(err)+': '+current_time.strftime("%I:%M:%S %p"))
 
