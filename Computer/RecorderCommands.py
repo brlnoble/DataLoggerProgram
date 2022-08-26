@@ -185,7 +185,7 @@ def Get_Err(path):
 
 # ~~~~~Reuse Charge~~~~~
 def Reuse(path,cNum):
-    charges = get_charges(path) #Get files
+    charges = Get_Charges(path) #Get files
     for file in charges:
         if file[:6] == cNum+' ': #Find file
             os.rename(path+'Charges/'+file+'.csv',path+'Charges/'+file[:5]+'F'+file[5:]+'.csv') #Add F to the old file
@@ -193,7 +193,7 @@ def Reuse(path,cNum):
 
 # ~~~~~Overwrite Charge~~~~~
 def Overwrite(path,cNum):
-    charges = get_charges(path)
+    charges = Get_Charges(path)
     for file in charges:
         if file[:6] == cNum+' ':
             os.remove(path+'Charges/'+file+'.csv')
