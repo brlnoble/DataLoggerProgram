@@ -72,5 +72,8 @@ ___
 
 ___
 
+## View of the Website
+<img src="https://github.com/brlnoble/DataLoggerProgram/blob/main/Web/image.png" width="900">
+
 ## Photo of the Installed Unit
 <img src="https://user-images.githubusercontent.com/51976754/185399193-5564c1a7-c0a6-42c3-befb-5af4616fdd23.png" width="900">
