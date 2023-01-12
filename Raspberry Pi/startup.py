@@ -18,13 +18,18 @@ print ()
 print ('~~~~~ Initializing Recording Program ~~~~~')
 
 #Run the recording program
+err = "" #Used just to check if an error occurs
+
 try:
     subprocess.call('sudo python /home/RaspRecord.py',shell=True)
 
-    #Shutdown RPi now that recording has finished
-    subprocess.call("sudo nohup shutdown -h now", shell=True)
-
 #If the program crashes, record it to the error log and do NOT shutdown the device
-except Exception as err:
+except Exception as errHandle:
+    err = errHandle
     current_time = datetime.datetime.fromtimestamp(time()).strftime("%d %B, %Y - %I:%M:%S %p")
     Error_Log(path,err,current_time)
+
+#If no error occured, shutdown the RPi
+if err == "":
+    #Shutdown RPi now that recording has finished
+    subprocess.call("sudo nohup shutdown -h now", shell=True)
