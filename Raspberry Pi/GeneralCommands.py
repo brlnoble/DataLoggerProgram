@@ -7,7 +7,7 @@ import json
 
 # ~~~~~Directory of this program~~~~~
 def Get_Path():
-    return '/diskstation1/share/1 - Mill/Data Logger/' #Path on RPi
+    return '/mnt/diskstation1/1 - Mill/Data Logger/' #Path on RPi
 
 
 # ~~~~~Make settings file if not present~~~~~
